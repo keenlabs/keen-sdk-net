@@ -8,27 +8,27 @@ namespace Keen.NET
     /// <summary>
     /// Values required to access a Keen project
     /// </summary>
-    public class ProjectSettings
+    public interface IProjectSettings
     {
         /// <summary>
         /// The Project ID, identifying the data silo to be accessed.
         /// </summary>
-        public string ProjectId { get; set; }
+        string ProjectId { get; }
 
         /// <summary>
         /// The Master API key, required for getting a collection schema
         /// or deleting the entire event collection.
         /// </summary>
-        public string MasterKey { get; set; }
+        string MasterKey { get; }
 
         /// <summary>
         /// The Write API key, required for inserting events.
         /// </summary>
-        public string WriteKey { get; set; }
+        string WriteKey { get; }
 
         /// <summary>
         /// The Read API key, used with query requests.
         /// </summary>
-        public string ReadKey { get; set; }
+        string ReadKey { get; }
     }
 }

@@ -7,13 +7,13 @@ namespace Keen.NET
 {
     public class KeenClient
     {
-        private ProjectSettings _prjSettings;
+        private IProjectSettings _prjSettings;
 
 		/// <summary>
 		/// 
 		/// </summary>
 		/// <param name="prjSettings">A ProjectSettings instance containing the ProjectId and API keys</param>
-		public KeenClient(ProjectSettings prjSettings)
+		public KeenClient(IProjectSettings prjSettings)
         {
 			// Preconditions
             if (null==prjSettings)

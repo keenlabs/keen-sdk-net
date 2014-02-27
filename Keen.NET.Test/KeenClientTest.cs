@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 
 using Keen.NET;
+using System.IO;
 
 namespace Keen.NET.Test
 {
@@ -19,30 +20,16 @@ namespace Keen.NET.Test
         }
 
         [Test]
-        public void Constructor_ProjectSettingsEmpty_Throws()
-        {
-            var settings = new ProjectSettings();
-            Assert.Throws<KeenException>(() => new KeenClient(settings));
-        }
-
-        [Test]
         public void Constructor_ProjectSettingsNoProjectID_Throws()
         {
-            var settings = new ProjectSettings() { MasterKey = "X", WriteKey = "X" };
+            var settings = new ProjectSettingsProvider(projectId: "", masterKey: "X", writeKey: "X");
             Assert.Throws<KeenException>(() => new KeenClient(settings));
         }
 
         [Test]
-        public void Constructor_ProjectSettingsNoReadWriteKeys_Throws()
+        public void Constructor_ProjectSettingsNoMasterOrWriteKeys_Throws()
         {
-            var settings = new ProjectSettings() { ProjectId = "X" };
-            Assert.Throws<KeenException>(() => new KeenClient(settings));
-        }
-
-        [Test]
-        public void Constructor_settings_Throws()
-        {
-            var settings = new ProjectSettings() { ProjectId = "X" };
+            var settings = new ProjectSettingsProvider(projectId: "X");
             Assert.Throws<KeenException>(() => new KeenClient(settings));
         }
     }

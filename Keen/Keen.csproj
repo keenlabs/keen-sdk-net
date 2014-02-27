@@ -35,12 +35,13 @@
   <ItemGroup>
     <!-- A reference to the entire .NET Framework is automatically included -->
     <None Include="app.config" />
+    <Compile Include="ProjectSettingsProvider.cs" />
     <Compile Include="KeenClient.cs" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="KeenException.cs" />
-    <Compile Include="ProjectSettings.cs" />
+    <Compile Include="IProjectSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
