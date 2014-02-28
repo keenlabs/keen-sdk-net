@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 
 using Keen.Core;
+using System.IO;
 
 namespace Keen.NET.Test
 {
@@ -35,5 +36,38 @@ namespace Keen.NET.Test
             var settings = new ProjectSettingsProviderEnv();
             Assert.DoesNotThrow(() => new KeenClient(settings));
         }
+
+        [Test]
+        public void SettingsProviderFile_InvalidFile_Throws()
+        {
+            var fp = Path.GetTempFileName();
+            try 
+	        {
+                File.WriteAllText(fp, "X\nX");
+
+                Assert.Throws<KeenException>(() => new ProjectSettingsProviderFile(fp));
+	        }
+	        finally
+	        {
+                    File.Delete(fp);
+	        }
+        }
+
+        [Test]
+        public void SettingsProviderFile_ValidFile_Success()
+        {
+            var fp = Path.GetTempFileName();
+            try
+            {
+                File.WriteAllText(fp, "X\nX\nX\nX");
+
+                Assert.DoesNotThrow(() => new ProjectSettingsProviderFile(fp));
+            }
+            finally
+            {
+                File.Delete(fp);
+            }
+        }
+
     }
 }
