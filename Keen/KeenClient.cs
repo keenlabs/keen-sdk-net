@@ -26,5 +26,25 @@ namespace Keen.Core
 
             _prjSettings = prjSettings;
         }
+
+		/// <summary>
+		/// Retrieve the schema for the specified collection. This requires
+        /// a value for the project settings Master API key.
+		/// </summary>
+		/// <param name="collection"></param>
+        public void GetSchema(string collection)
+        {
+            throw new KeenException();
+        }
+
+        /// <summary>
+        /// Add a an event to the specified collection.
+        /// </summary>
+        /// <param name="collection">Collection name</param>
+        /// <param name="eventProperties">The event to add</param>
+        public void AddEvent(string collection, dynamic eventInfo)
+        {
+            throw new KeenException();
+        }
     }
 }

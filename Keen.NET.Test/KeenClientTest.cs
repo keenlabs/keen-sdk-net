@@ -32,5 +32,41 @@ namespace Keen.NET.Test
             var settings = new ProjectSettingsProvider(projectId: "X");
             Assert.Throws<KeenException>(() => new KeenClient(settings));
         }
+
+        [Test]
+        public void GetCollectionSchema_InvalidProjectId_Throws()
+        {
+            var settingsEnv = new ProjectSettingsProviderEnv();
+            var settings = new ProjectSettingsProvider(projectId: "X", masterKey: settingsEnv.MasterKey);
+            var client = new KeenClient(settings);
+            Assert.Throws<KeenException>(() => client.GetSchema("X"));
+        }
+
+        [Test]
+        public void GetCollectionSchema_ValidProjectIdInvalidSchema_Throws()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            Assert.Throws<KeenException>(() => client.GetSchema("X"));
+        }
+
+        [Test]
+        public void AddEvent_InvalidProjectId_Throws()
+        {
+            var settingsEnv = new ProjectSettingsProviderEnv();
+            var settings = new ProjectSettingsProvider(projectId: "X", masterKey: settingsEnv.MasterKey);
+            var client = new KeenClient(settings);
+            Assert.Throws<KeenException>(() => client.AddEvent("X", new { X = "X" }));
+        }
+
+        [Test]
+        public void AddEvent_ValidProjectIdInvalidWriteKey_Throws()
+        {
+            var settingsEnv = new ProjectSettingsProviderEnv();
+            var settings = new ProjectSettingsProvider(projectId: settingsEnv.ProjectId, writeKey: "X");
+            var client = new KeenClient(settings);
+            Assert.Throws<KeenException>(() => client.AddEvent("X", new { X = "X" }));
+        }
+
     }
 }
