@@ -3,30 +3,30 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Keen.NET
+namespace Keen.Core
 {
     public class ProjectSettingsProvider : IProjectSettings
     {
         /// <summary>
         /// The Project ID, identifying the data silo to be accessed.
         /// </summary>
-        public string ProjectId { get; private set; }
+        public string ProjectId { get; protected set; }
 
         /// <summary>
         /// The Master API key, required for getting a collection schema
         /// or deleting the entire event collection.
         /// </summary>
-        public string MasterKey { get; private set; }
+        public string MasterKey { get; protected set; }
 
         /// <summary>
         /// The Write API key, required for inserting events.
         /// </summary>
-        public string WriteKey { get; private set; }
+        public string WriteKey { get; protected set; }
 
         /// <summary>
         /// The Read API key, used with query requests.
         /// </summary>
-        public string ReadKey { get; private set; }
+        public string ReadKey { get; protected set; }
 
         /// <summary>
         /// Obtains project setting values as constructor parameters
@@ -41,6 +41,10 @@ namespace Keen.NET
             MasterKey = masterKey;
             WriteKey = writeKey;
             ReadKey = readKey;
+        }
+
+        protected ProjectSettingsProvider()
+        {
         }
     }
 }

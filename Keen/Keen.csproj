@@ -8,7 +8,7 @@
     <ProjectGuid>{36D156BF-8523-42EC-9AD6-7C3AC05D699F}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Keen.NET</RootNamespace>
+    <RootNamespace>Keen.Core</RootNamespace>
     <AssemblyName>Keen</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>Profile158</TargetFrameworkProfile>

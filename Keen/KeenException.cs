@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Keen.NET
+namespace Keen.Core
 {
     public class KeenException : Exception
     {

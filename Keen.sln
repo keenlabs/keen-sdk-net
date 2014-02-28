@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keen", "Keen\Keen.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keen.NET.Test", "Keen.NET.Test\Keen.NET.Test.csproj", "{644382BF-CF65-4DB6-AFD8-1ACDA2800D31}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keen.Net", "Keen.Net\Keen.Net.csproj", "{0CD3383E-5267-48BC-99CD-1B3AE8AFF7BA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{644382BF-CF65-4DB6-AFD8-1ACDA2800D31}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{644382BF-CF65-4DB6-AFD8-1ACDA2800D31}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{644382BF-CF65-4DB6-AFD8-1ACDA2800D31}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0CD3383E-5267-48BC-99CD-1B3AE8AFF7BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0CD3383E-5267-48BC-99CD-1B3AE8AFF7BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0CD3383E-5267-48BC-99CD-1B3AE8AFF7BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0CD3383E-5267-48BC-99CD-1B3AE8AFF7BA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

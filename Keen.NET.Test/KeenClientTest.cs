@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
-using Keen.NET;
+using Keen.Core;
 using System.IO;
 
 namespace Keen.NET.Test
