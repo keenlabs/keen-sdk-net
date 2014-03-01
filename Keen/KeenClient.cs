@@ -1,6 +1,10 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 
 namespace Keen.Core
@@ -44,7 +48,17 @@ namespace Keen.Core
         /// <param name="eventProperties">The event to add</param>
         public void AddEvent(string collection, dynamic eventInfo)
         {
-            throw new KeenException();
+            string content = JsonConvert.SerializeObject(eventInfo);
+            using (var client = new HttpClient())
+            using (var contentStream = new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes(content))))
+            {
+                contentStream.Headers.Add("content-type", "application/json");
+                var task = client.PostAsync(string.Format("http://api.keen.io/3.0/projects/{0}/events/{1}?api_key={2}", _prjSettings.ProjectId, collection, _prjSettings.WriteKey), contentStream);
+                var response = task.Result;
+
+                if (!response.IsSuccessStatusCode)
+                    throw new KeenException("AddEvent failed with status: " + response.StatusCode);
+            }
         }
     }
 }

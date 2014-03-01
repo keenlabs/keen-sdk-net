@@ -7,6 +7,7 @@ using NUnit.Framework;
 
 using Keen.Core;
 using System.IO;
+using System.Diagnostics;
 
 namespace Keen.NET.Test
 {
@@ -66,6 +67,14 @@ namespace Keen.NET.Test
             var settings = new ProjectSettingsProvider(projectId: settingsEnv.ProjectId, writeKey: "X");
             var client = new KeenClient(settings);
             Assert.Throws<KeenException>(() => client.AddEvent("X", new { X = "X" }));
+        }
+
+        [Test]
+        public void AddEvent_Success()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            Assert.DoesNotThrow(() => client.AddEvent("AddEventTest", new { AProperty = "AValue" }));
         }
 
     }
