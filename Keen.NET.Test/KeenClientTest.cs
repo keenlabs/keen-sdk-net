@@ -8,6 +8,7 @@ using NUnit.Framework;
 using Keen.Core;
 using System.IO;
 using System.Diagnostics;
+using Newtonsoft.Json;
 
 namespace Keen.NET.Test
 {
@@ -33,6 +34,25 @@ namespace Keen.NET.Test
             var settings = new ProjectSettingsProvider(projectId: "X");
             Assert.Throws<KeenException>(() => new KeenClient(settings));
         }
+
+        [Test]
+        public void GetCollectionSchema_NullProjectId_Throws()
+        {
+            var settingsEnv = new ProjectSettingsProviderEnv();
+            var settings = new ProjectSettingsProvider(projectId: "X", masterKey: settingsEnv.MasterKey);
+            var client = new KeenClient(settings);
+            Assert.Throws<KeenException>(() => client.GetSchema(null));
+        }
+
+        [Test]
+        public void GetCollectionSchema_EmptyProjectId_Throws()
+        {
+            var settingsEnv = new ProjectSettingsProviderEnv();
+            var settings = new ProjectSettingsProvider(projectId: "X", masterKey: settingsEnv.MasterKey);
+            var client = new KeenClient(settings);
+            Assert.Throws<KeenException>(() => client.GetSchema(""));
+        }
+
 
         [Test]
         public void GetCollectionSchema_InvalidProjectId_Throws()
@@ -82,12 +102,53 @@ namespace Keen.NET.Test
         }
 
         [Test]
+        public void AddEvent_InvalidCollectionNameBlank_Throws()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            Assert.Throws<KeenException>(() => client.AddEvent("", new { AProperty = "AValue" }));
+        }
+
+        [Test]
+        public void AddEvent_InvalidCollectionNameNull_Throws()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            Assert.Throws<KeenException>(() => client.AddEvent(null, new { AProperty = "AValue" }));
+        }
+
+        [Test]
+        public void AddEvent_InvalidCollectionNameDollarSign_Throws()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            Assert.Throws<KeenException>(() => client.AddEvent("$Invalid", new { AProperty = "AValue" }));
+        }
+
+        [Test]
+        public void AddEvent_InvalidCollectionNameTooLong_Throws()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            Console.WriteLine(Enumerable.Repeat("X", 257).ToString());
+            Assert.Throws<KeenException>(() => client.AddEvent(new String('X', 257), new { AProperty = "AValue" }));
+        }
+
+        [Test]
+        public void AddEvent_InvalidCollectionRootKeen_Throws()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            Debug.WriteLine("event json:" + JsonConvert.SerializeObject(new { keen = "AValue" }));
+            Assert.Throws<KeenException>(() => client.AddEvent("X", new { keen = "AValue" }));
+        }
+
+        [Test]
         public void AddEvent_Success()
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
             Assert.DoesNotThrow(() => client.AddEvent("AddEventTest", new { AProperty = "AValue" }));
         }
-
     }
 }

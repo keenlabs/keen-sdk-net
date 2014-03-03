@@ -35,6 +35,7 @@
   <ItemGroup>
     <!-- A reference to the entire .NET Framework is automatically included -->
     <None Include="app.config" />
+    <Compile Include="KeenConstants.cs" />
     <Compile Include="ProjectSettingsProvider.cs" />
     <Compile Include="KeenClient.cs" />
     <None Include="packages.config" />
