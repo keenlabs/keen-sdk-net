@@ -48,7 +48,19 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
-            Assert.Throws<KeenException>(() => client.GetSchema("X"));
+            // Should be 404
+            Assert.Throws<KeenException>(() => client.GetSchema("DoesntExist"));
+        }
+
+        [Test]
+        public void GetCollectionSchema_ValidProject_Success()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+
+            // setup, ensure that collection AddEventTest exists.
+            Assert.DoesNotThrow(() => client.AddEvent("AddEventTest", new { AProperty = "AValue" }));
+            Assert.DoesNotThrow(() => client.GetSchema("AddEventTest"));
         }
 
         [Test]

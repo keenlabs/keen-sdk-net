@@ -38,7 +38,14 @@ namespace Keen.Core
 		/// <param name="collection"></param>
         public void GetSchema(string collection)
         {
-            throw new KeenException();
+            using (var client = new HttpClient())
+            {
+                var task = client.GetAsync(string.Format("http://api.keen.io/3.0/projects/{0}/events/{1}?api_key={2}", _prjSettings.ProjectId, collection, _prjSettings.MasterKey));
+                var response = task.Result;
+
+                if (!response.IsSuccessStatusCode)
+                    throw new KeenException("GetSchema failed with status: " + response.StatusCode);
+            }
         }
 
         /// <summary>
