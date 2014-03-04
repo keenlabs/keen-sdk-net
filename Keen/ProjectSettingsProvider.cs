@@ -46,5 +46,12 @@ namespace Keen.Core
         protected ProjectSettingsProvider()
         {
         }
+
+        public override string ToString()
+        {
+            return string.Format("ProjectSettingsProviderEnv:{{\nProjectId:{0}; \nMasterKey:{1}; \nWriteKey:{2}; \nReadKey:{3};\n}}",
+                ProjectId, MasterKey, WriteKey, ReadKey);
+        }
+
     }
 }
