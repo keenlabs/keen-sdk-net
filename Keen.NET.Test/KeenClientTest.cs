@@ -62,7 +62,7 @@ namespace Keen.NET.Test
             var settingsEnv = new ProjectSettingsProviderEnv();
             var settings = new ProjectSettingsProvider(projectId: "X", masterKey: settingsEnv.MasterKey);
             var client = new KeenClient(settings);
-            Assert.Throws<KeenException>(() => client.GetSchema("X"));
+            Assert.Throws<KeenResourceNotFoundException>(() => client.GetSchema("X"));
         }
 
         [Test]
@@ -70,8 +70,7 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
-            // Should be 404
-            Assert.Throws<KeenException>(() => client.GetSchema("DoesntExist"));
+            Assert.Throws<KeenResourceNotFoundException>(() => client.GetSchema("DoesntExist"));
         }
 
         [Test]
@@ -98,7 +97,7 @@ namespace Keen.NET.Test
             var settingsEnv = new ProjectSettingsProviderEnv();
             var settings = new ProjectSettingsProvider(projectId: "X", masterKey: settingsEnv.MasterKey);
             var client = new KeenClient(settings);
-            Assert.Throws<KeenException>(() => client.AddEvent("X", new { X = "X" }));
+            Assert.Throws<KeenResourceNotFoundException>(() => client.AddEvent("X", new { X = "X" }));
         }
 
         [Test]
@@ -107,7 +106,7 @@ namespace Keen.NET.Test
             var settingsEnv = new ProjectSettingsProviderEnv();
             var settings = new ProjectSettingsProvider(projectId: settingsEnv.ProjectId, writeKey: "X");
             var client = new KeenClient(settings);
-            Assert.Throws<KeenException>(() => client.AddEvent("X", new { X = "X" }));
+            Assert.Throws<KeenInvalidApiKeyException>(() => client.AddEvent("X", new { X = "X" }));
         }
 
         [Test]
@@ -148,7 +147,7 @@ namespace Keen.NET.Test
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
             Debug.WriteLine("event json:" + JsonConvert.SerializeObject(new { keen = "AValue" }));
-            Assert.Throws<KeenException>(() => client.AddEvent("X", new { keen = "AValue" }));
+            Assert.Throws<KeenNamespaceTypeException>(() => client.AddEvent("X", new { keen = "AValue" }));
         }
 
         [Test]

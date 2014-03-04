@@ -90,18 +90,15 @@ namespace Keen.Core
 
             using (var client = new HttpClient())
             {
-                var task = client.GetAsync(keenUrl(collection, _prjSettings.MasterKey));
-                var responseMsg = task.Result;
+                var responseMsg = client.GetAsync(keenUrl(collection, _prjSettings.MasterKey)).Result;
+                var responseString = responseMsg.Content.ReadAsStringAsync().Result;
+                dynamic response = JObject.Parse(responseString);
 
+                // error checking, throw an exception with information from the json 
+                // response if available, then check the HTTP response.
+                checkErrorCode(response);
                 if (!responseMsg.IsSuccessStatusCode)
                     throw new KeenException("GetSchema failed with status: " + responseMsg.StatusCode);
-
-                var responseString = responseMsg.Content.ReadAsStringAsync().Result;
-                Debug.WriteLine("GetSchema response:" + responseString);
-
-                dynamic response = JObject.Parse(responseString);
-                if (response.error_code != null)
-                    throw new KeenException("GetSchema failed with message: " + (string)response.message);
 
                 return response;
             }
@@ -120,20 +117,46 @@ namespace Keen.Core
                 throw new KeenException("An eventInfo object is required.");
 
             string content = JsonConvert.SerializeObject(eventInfo);
-            System.Diagnostics.Debug.WriteLine("AddEvent json:" + content);
+            Debug.WriteLine("AddEvent json:" + content);
             using (var client = new HttpClient())
             using (var contentStream = new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes(content))))
             {
                 contentStream.Headers.Add("content-type", "application/json");
-                var task = client.PostAsync(keenUrl(collection, _prjSettings.WriteKey), contentStream);
-                var responseMsg = task.Result;
+                var responseMsg = client.PostAsync(keenUrl(collection, _prjSettings.WriteKey), contentStream).Result;
+                var responseString = responseMsg.Content.ReadAsStringAsync().Result;
+                dynamic response = JObject.Parse(responseString);
 
-                var responseTask = responseMsg.Content.ReadAsStringAsync();
-                var responseString = responseTask.Result;
-                System.Diagnostics.Debug.WriteLine("AddEvent response content:" + responseString);
-
+                // error checking, throw an exception with information from the json 
+                // response if available, then check the HTTP response.
+                checkErrorCode(response);
                 if (!responseMsg.IsSuccessStatusCode)
                     throw new KeenException("AddEvent failed with status: " + responseMsg.StatusCode);
+            }
+        }
+
+        /// <summary>
+        /// Check the 'error_code' field and throw the appropriate exception if non-null.
+        /// </summary>
+        /// <param name="apiResponse">Deserialized json response from a Keen API call.</param>
+        private static void checkErrorCode(dynamic apiResponse)
+        {
+            if (apiResponse.error_code != null)
+            {
+                switch ((string)apiResponse.error_code)
+                {
+                    case "InvalidApiKeyError":
+                        throw new KeenInvalidApiKeyException((string)apiResponse.message);
+
+                    case "ResourceNotFoundError":
+                        throw new KeenResourceNotFoundException((string)apiResponse.message);
+
+                    case "NamespaceTypeError":
+                        throw new KeenNamespaceTypeException((string)apiResponse.message);
+
+                    default:
+                        Debug.WriteLine("Unhandled error_code \"{0}\" : \"{1}\"", (string)apiResponse.error_code, (string)apiResponse.message);
+                        throw new KeenException((string)apiResponse.error_code + " : " + (string)apiResponse.message);
+                }
             }
         }
     }
