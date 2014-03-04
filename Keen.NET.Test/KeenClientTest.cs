@@ -11,6 +11,7 @@ using System.Diagnostics;
 using Newtonsoft.Json;
 using System.Collections;
 using System.Dynamic;
+using System.Threading;
 
 namespace Keen.NET.Test
 {
@@ -157,5 +158,15 @@ namespace Keen.NET.Test
             var client = new KeenClient(settings);
             Assert.DoesNotThrow(() => client.AddEvent("AddEventTest", new { AProperty = "AValue" }));
         }
+
+        [Test]
+        public void DeleteCollection_Success()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            // Idempotent, does not matter if collection does not exist.
+            Assert.DoesNotThrow(() => client.DeleteCollection("DeleteColTest"));
+        }
+
     }
 }

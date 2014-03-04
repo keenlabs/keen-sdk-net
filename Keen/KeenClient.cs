@@ -78,6 +78,25 @@ namespace Keen.Core
                 KeenConstants.ServerAddress, KeenConstants.ApiVersion, _prjSettings.ProjectId);
         }
 
+        /// <summary>
+        /// Delete the specified collection. Deletion may be denied for collections with many events.
+        /// Master API key is required.
+        /// </summary>
+        /// <param name="collection">Name of collection to delete.</param>
+        public void DeleteCollection(string collection)
+        {
+            // Preconditions
+            validateEventCollectionName(collection);
+
+            using (var client = new HttpClient())
+            {
+                var responseMsg = client.DeleteAsync(keenUrl(collection, _prjSettings.MasterKey)).Result;
+                if (!responseMsg.IsSuccessStatusCode)
+                    throw new KeenException("DeleteCollection failed with status: " + responseMsg.StatusCode);
+            }
+            
+        }
+
 		/// <summary>
 		/// Retrieve the schema for the specified collection. This requires
         /// a value for the project settings Master API key.
