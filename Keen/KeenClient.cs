@@ -1,6 +1,8 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -81,7 +83,7 @@ namespace Keen.Core
         /// a value for the project settings Master API key.
 		/// </summary>
 		/// <param name="collection"></param>
-        public void GetSchema(string collection)
+        public dynamic GetSchema(string collection)
         {
             // Preconditions
             validateEventCollectionName(collection);
@@ -91,12 +93,17 @@ namespace Keen.Core
                 var task = client.GetAsync(keenUrl(collection, _prjSettings.MasterKey));
                 var responseMsg = task.Result;
 
-                var responseTask = responseMsg.Content.ReadAsStringAsync();
-                var responseString = responseTask.Result;
-                System.Diagnostics.Debug.WriteLine("GetSchema response:" + responseString);
-
                 if (!responseMsg.IsSuccessStatusCode)
                     throw new KeenException("GetSchema failed with status: " + responseMsg.StatusCode);
+
+                var responseString = responseMsg.Content.ReadAsStringAsync().Result;
+                Debug.WriteLine("GetSchema response:" + responseString);
+
+                dynamic response = JObject.Parse(responseString);
+                if (response.error_code != null)
+                    throw new KeenException("GetSchema failed with message: " + (string)response.message);
+
+                return response;
             }
         }
 
@@ -113,6 +120,7 @@ namespace Keen.Core
                 throw new KeenException("An eventInfo object is required.");
 
             string content = JsonConvert.SerializeObject(eventInfo);
+            System.Diagnostics.Debug.WriteLine("AddEvent json:" + content);
             using (var client = new HttpClient())
             using (var contentStream = new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes(content))))
             {

@@ -9,6 +9,8 @@ using Keen.Core;
 using System.IO;
 using System.Diagnostics;
 using Newtonsoft.Json;
+using System.Collections;
+using System.Dynamic;
 
 namespace Keen.NET.Test
 {
@@ -80,7 +82,14 @@ namespace Keen.NET.Test
 
             // setup, ensure that collection AddEventTest exists.
             Assert.DoesNotThrow(() => client.AddEvent("AddEventTest", new { AProperty = "AValue" }));
-            Assert.DoesNotThrow(() => client.GetSchema("AddEventTest"));
+            dynamic response;
+            Assert.DoesNotThrow(() => {
+                response = client.GetSchema("AddEventTest");
+                Assert.NotNull(response["properties"]);
+                Assert.NotNull(response["properties"]["AProperty"]);
+                Assert.True((string)response["properties"]["AProperty"]=="string");
+            });
+
         }
 
         [Test]
@@ -130,7 +139,6 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
-            Console.WriteLine(Enumerable.Repeat("X", 257).ToString());
             Assert.Throws<KeenException>(() => client.AddEvent(new String('X', 257), new { AProperty = "AValue" }));
         }
 
