@@ -175,7 +175,7 @@ namespace Keen.NET.Test
         }
 
         [Test]
-        public void AddEvent_MultipleEvents_Success()
+        public void AddEvent_MultipleEventsAnonymous_Success()
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
@@ -184,6 +184,48 @@ namespace Keen.NET.Test
                 AddEventTest = from i in Enumerable.Range(1, 10)
                                select new { AProperty = "AValue" + i }
             };
+            Assert.DoesNotThrow(() => client.AddEvents(collection));
+        }
+
+        [Test]
+        public void AddEvent_MultipleEventsExpando_Success()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+
+            dynamic collection = new ExpandoObject();
+            collection.AddEventTest = new List<dynamic>();
+            foreach( var i in Enumerable.Range(1,10))
+            {
+                dynamic anEvent = new ExpandoObject();
+                anEvent.AProperty = "AValue" + i;
+                collection.AddEventTest.Add(anEvent);
+            }
+
+            Assert.DoesNotThrow(() => client.AddEvents(collection));
+        }
+
+        private class TestCollection
+        {
+            public class TestEvent
+            {
+                public string AProperty { get; set; }
+            }
+            public List<TestEvent> AddEventTest { get; set; }
+        }
+
+        [Test]
+        public void AddEvent_MultipleEvents_Success()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+
+            var collection = new TestCollection()
+            {
+                AddEventTest = (from i in Enumerable.Range(1, 10)
+                               select new TestCollection.TestEvent() { AProperty = "AValue"+i}).ToList()
+            };
+
             Assert.DoesNotThrow(() => client.AddEvents(collection));
         }
 
