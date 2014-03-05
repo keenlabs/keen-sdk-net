@@ -47,6 +47,13 @@ namespace Keen.Core
         public KeenListsOfNonPrimitivesNotAllowedException(string message, Exception inner) : base(message, inner) { }    
     }
 
+    public class KeenInvalidBatchException : KeenException
+    {
+        public KeenInvalidBatchException() { }
+        public KeenInvalidBatchException(string message) : base(message) { }
+        public KeenInvalidBatchException(string message, Exception inner) : base(message, inner) { }
+    }
+
     public class KeenInternalServerErrorException : KeenException
     {
         public KeenInternalServerErrorException() { }

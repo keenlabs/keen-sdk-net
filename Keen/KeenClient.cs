@@ -199,6 +199,9 @@ namespace Keen.Core
                     case "ListsOfNonPrimitivesNotAllowedError":
                         throw new KeenListsOfNonPrimitivesNotAllowedException((string)apiResponse.message);
 
+                    case "InvalidBatchError":
+                        throw new KeenInvalidBatchException((string)apiResponse.message);
+
                     case "InternalServerError":
                         throw new KeenInternalServerErrorException((string)apiResponse.message);
 
