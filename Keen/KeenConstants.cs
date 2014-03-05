@@ -10,6 +10,9 @@ namespace Keen.Core
         private const string serverAddress = "http://api.keen.io";
         public static string ServerAddress { get { return serverAddress; } protected set { ;} }
 
+        private const string eventsCollectionResource = "events";
+        public static string EventsCollectionResource { get { return eventsCollectionResource; } protected set { ;} }
+
         private const string apiVersion = "3.0";
         public static string ApiVersion { get { return apiVersion; } protected set { ;} }
 

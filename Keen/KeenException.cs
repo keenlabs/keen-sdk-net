@@ -32,4 +32,25 @@ namespace Keen.Core
         public KeenNamespaceTypeException(string message) : base(message) { }
         public KeenNamespaceTypeException(string message, Exception inner) : base(message, inner) { }
     }
+
+    public class KeenInvalidEventException : KeenException
+    {
+        public KeenInvalidEventException() { }
+        public KeenInvalidEventException(string message) : base(message) { }
+        public KeenInvalidEventException(string message, Exception inner) : base(message, inner) { }
+    }
+
+    public class KeenListsOfNonPrimitivesNotAllowedException : KeenException
+    {
+        public KeenListsOfNonPrimitivesNotAllowedException() { }
+        public KeenListsOfNonPrimitivesNotAllowedException(string message) : base(message) { }
+        public KeenListsOfNonPrimitivesNotAllowedException(string message, Exception inner) : base(message, inner) { }    
+    }
+
+    public class KeenInternalServerErrorException : KeenException
+    {
+        public KeenInternalServerErrorException() { }
+        public KeenInternalServerErrorException(string message) : base(message) { }
+        public KeenInternalServerErrorException(string message, Exception inner) : base(message, inner) { }
+    }
 }

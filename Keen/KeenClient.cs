@@ -15,19 +15,7 @@ namespace Keen.Core
     public class KeenClient
     {
         private IProjectSettings _prjSettings;
-        private string keenEventCollectionUriTemplate;
-
-        /// <summary>
-        /// Construct the Keen Events Collection API URL for the given collection name and API key.
-        /// </summary>
-        /// <param name="collection"></param>
-        /// <param name="apiKey"></param>
-        /// <returns></returns>
-        private string keenUrl(string collection, string apiKey)
-        {
-            return string.Format(keenEventCollectionUriTemplate, collection, apiKey);
-        }
-
+        private string keenProjectUri;
 
         private HashSet<string> validCollectionNames = new HashSet<string>();
 
@@ -74,7 +62,7 @@ namespace Keen.Core
 
             _prjSettings = prjSettings;
 
-            keenEventCollectionUriTemplate = string.Format("{0}/{1}/projects/{2}/events/{{0}}?api_key={{1}}",
+            keenProjectUri = string.Format("{0}/{1}/projects/{2}/", 
                 KeenConstants.ServerAddress, KeenConstants.ApiVersion, _prjSettings.ProjectId);
         }
 
@@ -90,7 +78,8 @@ namespace Keen.Core
 
             using (var client = new HttpClient())
             {
-                var responseMsg = client.DeleteAsync(keenUrl(collection, _prjSettings.MasterKey)).Result;
+                client.DefaultRequestHeaders.Add("Authorization", _prjSettings.MasterKey);
+                var responseMsg = client.DeleteAsync(keenProjectUri + KeenConstants.EventsCollectionResource + "/" + collection).Result;
                 if (!responseMsg.IsSuccessStatusCode)
                     throw new KeenException("DeleteCollection failed with status: " + responseMsg.StatusCode);
             }
@@ -109,7 +98,8 @@ namespace Keen.Core
 
             using (var client = new HttpClient())
             {
-                var responseMsg = client.GetAsync(keenUrl(collection, _prjSettings.MasterKey)).Result;
+                client.DefaultRequestHeaders.Add("Authorization", _prjSettings.MasterKey);
+                var responseMsg = client.GetAsync(keenProjectUri + KeenConstants.EventsCollectionResource + "/" + collection).Result;
                 var responseString = responseMsg.Content.ReadAsStringAsync().Result;
                 dynamic response = JObject.Parse(responseString);
 
@@ -124,24 +114,55 @@ namespace Keen.Core
         }
 
         /// <summary>
-        /// Add a an event to the specified collection.
+        /// Add a single event to the specified collection.
         /// </summary>
         /// <param name="collection">Collection name</param>
-        /// <param name="eventProperties">The event to add</param>
-        public void AddEvent(string collection, dynamic eventInfo)
+        /// <param name="eventProperties">The event to add. This should be a </param>
+        public void AddEvent(string collection, object eventInfo)
         {
             // Preconditions
             validateEventCollectionName(collection);
-            if (null == eventInfo)
-                throw new KeenException("An eventInfo object is required.");
 
-            string content = JsonConvert.SerializeObject(eventInfo);
+            var jEvent = JObject.FromObject(eventInfo);
+            AddEvent(keenProjectUri + KeenConstants.EventsCollectionResource + "/" + collection, jEvent);
+        }
+
+        /// <summary>
+        /// Add one or more collections of events.
+        /// </summary>
+        /// <param name="eventCollections">The collections of events to send. Events are contained in 
+        /// array properties, the names of which indicate what collection the events belong to.</param>
+        public void AddEvents(object eventCollections)
+        {
+            JObject jEvent = JObject.FromObject(eventCollections);
+
+            // Each property of eventCollections is a collection name, validate each one.
+            foreach (var i in jEvent.Properties())
+                validateEventCollectionName(i.Name);
+
+            AddEvent(keenProjectUri + KeenConstants.EventsCollectionResource, jEvent);
+        }
+
+        /// <summary>
+        /// Internal AddEvent. Used to send both single and bulk events.
+        /// </summary>
+        /// <param name="keenUrl">Keen resource URL for single or bulk operation</param>
+        /// <param name="jEvent">A JObject containing either a single event for the collection 
+        /// specified in the URL, or one or more arrays of events named for the target collections.</param>
+        private void AddEvent(string keenUrl, JObject jEvent)
+        {
+            if (null == jEvent)
+                throw new KeenException("Event data is required.");
+
+            var content = jEvent.ToString();
             Debug.WriteLine("AddEvent json:" + content);
             using (var client = new HttpClient())
             using (var contentStream = new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes(content))))
             {
                 contentStream.Headers.Add("content-type", "application/json");
-                var responseMsg = client.PostAsync(keenUrl(collection, _prjSettings.WriteKey), contentStream).Result;
+
+                client.DefaultRequestHeaders.Add("Authorization", _prjSettings.WriteKey);
+                var responseMsg = client.PostAsync(keenUrl, contentStream).Result;
                 var responseString = responseMsg.Content.ReadAsStringAsync().Result;
                 dynamic response = JObject.Parse(responseString);
 
@@ -171,6 +192,15 @@ namespace Keen.Core
 
                     case "NamespaceTypeError":
                         throw new KeenNamespaceTypeException((string)apiResponse.message);
+
+                    case "InvalidEventError":
+                        throw new KeenInvalidEventException((string)apiResponse.message);
+
+                    case "ListsOfNonPrimitivesNotAllowedError":
+                        throw new KeenListsOfNonPrimitivesNotAllowedException((string)apiResponse.message);
+
+                    case "InternalServerError":
+                        throw new KeenInternalServerErrorException((string)apiResponse.message);
 
                     default:
                         Debug.WriteLine("Unhandled error_code \"{0}\" : \"{1}\"", (string)apiResponse.error_code, (string)apiResponse.message);

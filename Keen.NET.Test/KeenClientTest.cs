@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using System.Collections;
 using System.Dynamic;
 using System.Threading;
+using Newtonsoft.Json.Linq;
 
 namespace Keen.NET.Test
 {
@@ -96,7 +97,7 @@ namespace Keen.NET.Test
         public void AddEvent_InvalidProjectId_Throws()
         {
             var settingsEnv = new ProjectSettingsProviderEnv();
-            var settings = new ProjectSettingsProvider(projectId: "X", masterKey: settingsEnv.MasterKey);
+            var settings = new ProjectSettingsProvider(projectId: "X", writeKey: settingsEnv.WriteKey);
             var client = new KeenClient(settings);
             Assert.Throws<KeenResourceNotFoundException>(() => client.AddEvent("X", new { X = "X" }));
         }
@@ -157,6 +158,33 @@ namespace Keen.NET.Test
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
             Assert.DoesNotThrow(() => client.AddEvent("AddEventTest", new { AProperty = "AValue" }));
+        }
+
+        [Test]
+        public void AddEvent_MultipleEventsInvalidCollection_Throws()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            var collection = new
+            {
+                AddEventTest = from i in Enumerable.Range(1, 10)
+                               select new { AProperty = "AValue" + i },
+                InvalidCollection = 2,
+            };
+            Assert.Throws<KeenInternalServerErrorException>(() => client.AddEvents(collection));
+        }
+
+        [Test]
+        public void AddEvent_MultipleEvents_Success()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            var collection = new
+            {
+                AddEventTest = from i in Enumerable.Range(1, 10)
+                               select new { AProperty = "AValue" + i }
+            };
+            Assert.DoesNotThrow(() => client.AddEvents(collection));
         }
 
         [Test]
