@@ -158,6 +158,18 @@ namespace Keen.NET.Test
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
             Assert.DoesNotThrow(() => client.AddEvent("AddEventTest", new { AProperty = "AValue" }));
+        }        
+
+        [Test]
+        public void AddEvent_ScopedKeyWrite_Success()
+        {
+            var settingsEnv = new ProjectSettingsProviderEnv();
+            var scope = "{\"timestamp\": \"2014-02-25T22:09:27.320082\", \"allowed_operations\": [\"write\"]}";
+            var scopedKey = ScopedKey.EncryptString(settingsEnv.MasterKey, scope);
+            var settings = new ProjectSettingsProvider(projectId: settingsEnv.ProjectId, writeKey: scopedKey);            
+            
+            var client = new KeenClient(settings);
+            Assert.DoesNotThrow(() => client.AddEvent("AddEventTest", new { AProperty = "CustomKey" }));
         }
 
         [Test]
