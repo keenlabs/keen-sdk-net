@@ -19,6 +19,36 @@ namespace Keen.Core
 
         private HashSet<string> validCollectionNames = new HashSet<string>();
 
+        private Dictionary<string, object> globalProperties = new Dictionary<string, object>();
+
+        /// <summary>
+        /// Add a static global property. This property will be added to
+        /// every event.
+        /// </summary>
+        /// <param name="property">Property name</param>
+        /// <param name="value">Property value. This may be a simple value, object, or collection</param>
+        public void AddGlobalProperty(string property, object value)
+        {
+            validatePropertyName(property);
+
+            globalProperties.Add(property, value);
+        }
+
+        private void validatePropertyName(string property)
+        {
+            if (string.IsNullOrWhiteSpace(property))           
+                throw new KeenException("Property name may not be null or whitespace");
+
+            if (property.Length >= 256)
+                throw new KeenException("Property name must be less than 256 characters");
+
+            if (property.StartsWith("$"))
+                throw new KeenException("Property name may not start with \"$\"");
+
+            if (property.Contains("."))
+                throw new KeenException("Property name may not contain \".\"");
+        }
+
         /// <summary>
         /// Apply the collection name restrictions.
         /// </summary>
@@ -153,6 +183,11 @@ namespace Keen.Core
         {
             if (null == jEvent)
                 throw new KeenException("Event data is required.");
+
+            foreach( var p in globalProperties )
+            {
+                jEvent.Add(p.Key, JToken.FromObject(p.Value));
+            }
 
             var content = jEvent.ToString();
             Debug.WriteLine("AddEvent json:" + content);

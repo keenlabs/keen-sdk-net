@@ -250,5 +250,85 @@ namespace Keen.NET.Test
             Assert.DoesNotThrow(() => client.DeleteCollection("DeleteColTest"));
         }
 
+        [Test]
+        public void AddGlobalProperty_SimpleValue_Success()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            Assert.DoesNotThrow(() =>
+                {
+                    client.AddGlobalProperty("AGlobal", "AValue");
+                    client.AddEvent("AddEventTest", new { AProperty = "AValue" });
+                });
+
+        }
+
+        [Test]
+        public void AddGlobalProperty_InvalidValueNameDollar_Throws()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            Assert.Throws<KeenException>(() => client.AddGlobalProperty("$AGlobal", "AValue"));
+        }
+
+        [Test]
+        public void AddGlobalProperty_InvalidValueNamePeriod_Throws()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            Assert.Throws<KeenException>(() => client.AddGlobalProperty("A.Global", "AValue"));
+        }
+
+        [Test]
+        public void AddGlobalProperty_InvalidValueNameLength_Throws()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            Assert.Throws<KeenException>(() => client.AddGlobalProperty(new String('A', 256), "AValue"));
+        }
+
+        [Test]
+        public void AddGlobalProperty_InvalidValueNameNull_Throws()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            Assert.Throws<KeenException>(() => client.AddGlobalProperty(null, "AValue"));
+        }
+
+
+        [Test]
+        public void AddGlobalProperty_InvalidValueNameBlank_Throws()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            Assert.Throws<KeenException>(() => client.AddGlobalProperty("", "AValue"));
+        }
+
+        [Test]
+        public void AddGlobalProperty_ObjectValue_Success()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            Assert.DoesNotThrow(() =>
+            {
+                client.AddGlobalProperty("AGlobal", new { AProperty = "AValue" });
+                client.AddEvent("AddEventTest", new { AProperty = "AValue" });
+            });
+
+        }
+
+        [Test]
+        public void AddGlobalProperty_CollectionValue_Success()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            Assert.DoesNotThrow(() =>
+            {
+                client.AddGlobalProperty("AGlobal", new []{ 1, 2, 3, });
+                client.AddEvent("AddEventTest", new { AProperty = "AValue" });
+            });
+
+        }
+
     }
 }
