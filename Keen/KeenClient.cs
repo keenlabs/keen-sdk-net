@@ -21,19 +21,6 @@ namespace Keen.Core
 
         private Dictionary<string, object> globalProperties = new Dictionary<string, object>();
 
-        /// <summary>
-        /// Add a static global property. This property will be added to
-        /// every event.
-        /// </summary>
-        /// <param name="property">Property name</param>
-        /// <param name="value">Property value. This may be a simple value, object, or collection</param>
-        public void AddGlobalProperty(string property, object value)
-        {
-            validatePropertyName(property);
-
-            globalProperties.Add(property, value);
-        }
-
         private void validatePropertyName(string property)
         {
             if (string.IsNullOrWhiteSpace(property))           
@@ -73,6 +60,43 @@ namespace Keen.Core
                 throw new KeenException("Event collection name may not begin with \"_\".");
 
             validCollectionNames.Add(collection);
+        }
+
+        /// <summary>
+        /// Add a static global property. This property will be added to
+        /// every event.
+        /// </summary>
+        /// <param name="property">Property name</param>
+        /// <param name="value">Property value. This may be a simple value, array, or object,
+        /// or an object that supports IDynamicPropertyValue returning one of those.</param>
+        public void AddGlobalProperty(string property, object value)
+        {
+            // Verify that the property name is allowable, and that the value is populated.
+            validatePropertyName(property);
+            if (value == null)
+                throw new KeenException("Global properties must have a non-null value.");
+            var dynProp = value as IDynamicPropertyValue;
+            if (dynProp != null)
+                // Execute the property once before it is needed to check the value
+                ExecDynamicPropertyValue(property, dynProp);
+            
+            globalProperties.Add(property, value);
+        }
+
+        private object ExecDynamicPropertyValue(string propName, IDynamicPropertyValue dynProp)
+        {
+            object result;
+            try
+            {
+                result = dynProp.Value();
+            }
+            catch (Exception e)
+            {
+                throw new KeenException(string.Format("Dynamic property \"{0}\" execution failure", propName), e);
+            }
+            if (result==null)
+                throw new KeenException(string.Format("Dynamic property \"{0}\" execution returned null", propName));
+            return result;
         }
 
 		/// <summary>
@@ -184,9 +208,21 @@ namespace Keen.Core
             if (null == jEvent)
                 throw new KeenException("Event data is required.");
 
+            // Add global properties to the event
             foreach( var p in globalProperties )
             {
-                jEvent.Add(p.Key, JToken.FromObject(p.Value));
+                // If the property value is an IDynamicPropertyValue, 
+                // exec the Value() to generate the property value.
+                var dynProp = p.Value as IDynamicPropertyValue;
+                if (dynProp == null)
+                    jEvent.Add(p.Key, JToken.FromObject(p.Value));
+                else
+                {
+                    var val = dynProp.Value();
+                    if (null == val)
+                        throw new KeenException(string.Format("Dynamic property \"{0}\" returned a null value", p.Key));
+                    jEvent.Add(p.Key, JToken.FromObject(val));
+                }
             }
 
             var content = jEvent.ToString();

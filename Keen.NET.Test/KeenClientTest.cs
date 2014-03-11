@@ -249,7 +249,11 @@ namespace Keen.NET.Test
             // Idempotent, does not matter if collection does not exist.
             Assert.DoesNotThrow(() => client.DeleteCollection("DeleteColTest"));
         }
+    }
 
+    [TestFixture]
+    public class KeenClientGlobalPropertyTests
+    {
         [Test]
         public void AddGlobalProperty_SimpleValue_Success()
         {
@@ -314,8 +318,7 @@ namespace Keen.NET.Test
                 client.AddGlobalProperty("AGlobal", new { AProperty = "AValue" });
                 client.AddEvent("AddEventTest", new { AProperty = "AValue" });
             });
-
-        }
+       }
 
         [Test]
         public void AddGlobalProperty_CollectionValue_Success()
@@ -327,7 +330,81 @@ namespace Keen.NET.Test
                 client.AddGlobalProperty("AGlobal", new []{ 1, 2, 3, });
                 client.AddEvent("AddEventTest", new { AProperty = "AValue" });
             });
+        }
 
+        [Test]
+        public void AddGlobalProperty_DelegateSimpleValue_Success()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            Assert.DoesNotThrow(() =>
+            {
+                client.AddGlobalProperty("AGlobal", new DynamicPropertyValue(() => DateTime.Now.Millisecond));
+                client.AddEvent("AddEventTest", new { AProperty = "AValue" });
+                client.AddEvent("AddEventTest", new { AProperty = "AValue" });
+            });
+        }
+
+        [Test]
+        public void AddGlobalProperty_DelegateArrayValue_Success()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            Assert.DoesNotThrow(() =>
+            {
+                client.AddGlobalProperty("AGlobal", new DynamicPropertyValue(() => new[]{1,2,3}));
+                client.AddEvent("AddEventTest", new { AProperty = "AValue" });
+            });
+        }
+
+        [Test]
+        public void AddGlobalProperty_DelegateObjectValue_Success()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            Assert.DoesNotThrow(() =>
+            {
+                client.AddGlobalProperty("AGlobal", new DynamicPropertyValue(() => new { SubProp1 = "Value", SubProp2 = "Value" }));
+                client.AddEvent("AddEventTest", new { AProperty = "AValue" });
+            });
+        }
+
+        [Test]
+        public void AddGlobalProperty_DelegateNullDynamicValue_Throws()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            Assert.Throws<KeenException>(() =>{ client.AddGlobalProperty("AGlobal", new DynamicPropertyValue(() => null));});
+        }
+
+        [Test]
+        public void AddGlobalProperty_DelegateNullValueProvider_Throws()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            Assert.Throws<KeenException>(() =>{client.AddGlobalProperty("AGlobal", null);});
+        }
+
+        [Test]
+        public void AddGlobalProperty_DelegateValueProviderNullReturn_Throws()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            var i = 0;
+            // return valid for the first two tests, then null
+            client.AddGlobalProperty("AGlobal", new DynamicPropertyValue(() => i++ > 1?null:"value"));
+            // This is the second test (AddGlobalProperty runs the first)
+            Assert.DoesNotThrow(()=>client.AddEvent("AddEventTest", new { AProperty = "AValue" }));
+            // Third test should fail.
+            Assert.Throws<KeenException>(() => { client.AddEvent("AddEventTest", new { AProperty = "AValue" });});
+        }
+
+        [Test]
+        public void AddGlobalProperty_DelegateValueProviderThrows_Throws()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            Assert.Throws<KeenException>(() => client.AddGlobalProperty("AGlobal", new DynamicPropertyValue(() => { throw new Exception("test exception"); })));
         }
 
     }
