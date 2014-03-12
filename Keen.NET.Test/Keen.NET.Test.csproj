@@ -53,6 +53,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EventCacheMemoryTest.cs" />
     <Compile Include="KeenClientTest.cs" />
     <Compile Include="ProjectSettingsProviderTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -37,6 +37,7 @@
     <None Include="app.config" />
     <Compile Include="DynamicPropertyValue.cs" />
     <Compile Include="IDynamicPropertyValue.cs" />
+    <Compile Include="IEventCache.cs" />
     <Compile Include="KeenConstants.cs" />
     <Compile Include="ProjectSettingsProvider.cs" />
     <Compile Include="KeenClient.cs" />

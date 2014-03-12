@@ -52,6 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EventCacheMemory.cs" />
     <Compile Include="ProjectSettingsProviderEnv.cs" />
     <Compile Include="ProjectSettingsProviderFile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
