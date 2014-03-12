@@ -1,15 +1,28 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Keen.Core
+namespace Keen.Core.EventCache
 {
+    public class CachedEvent
+    {
+        public string Url { get; set; }
+        public JObject Event { get; set; }
+
+        public CachedEvent(string url, JObject e)
+        {
+            Url = url;
+            Event = e;
+        }
+    }
+
     public interface IEventCache
     {
-        void Add(object e);
+        void Add(CachedEvent e);
         void Clear();
         bool IsEmpty();
-        IEnumerable<object> Events();
+        IEnumerable<CachedEvent> Events();
     }
 }

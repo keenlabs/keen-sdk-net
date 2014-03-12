@@ -13,6 +13,7 @@ using System.Collections;
 using System.Dynamic;
 using System.Threading;
 using Newtonsoft.Json.Linq;
+using Keen.Net;
 
 namespace Keen.NET.Test
 {
@@ -405,6 +406,50 @@ namespace Keen.NET.Test
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
             Assert.Throws<KeenException>(() => client.AddGlobalProperty("AGlobal", new DynamicPropertyValue(() => { throw new Exception("test exception"); })));
+        }
+    }
+
+    [TestFixture]
+    public class KeenClientCachingTest
+    {
+        [Test]
+        public void Caching_SendEmptyEvents_Success()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings, new EventCacheMemory());
+            Assert.DoesNotThrow(()=>client.SendCachedEvents());
+        }
+
+        [Test]
+        public void Caching_ClearEvents_Success()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings, new EventCacheMemory());
+            Assert.DoesNotThrow(() => client.EventCache.Clear());
+        }
+
+        [Test]
+        public void Caching_AddEvents_Success()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings, new EventCacheMemory());
+
+            Assert.DoesNotThrow(() => client.AddEvent("CachedEventTest", new { AProperty = "AValue" }));
+            Assert.DoesNotThrow(() => client.AddEvent("CachedEventTest", new { AProperty = "AValue" }));
+            Assert.DoesNotThrow(() => client.AddEvent("CachedEventTest", new { AProperty = "AValue" }));
+        }
+
+        [Test]
+        public void Caching_SendEvents_Success()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings, new EventCacheMemory());
+
+            client.AddEvent("CachedEventTest", new { AProperty = "AValue" });
+            client.AddEvent("CachedEventTest", new { AProperty = "AValue" });
+            client.AddEvent("CachedEventTest", new { AProperty = "AValue" });
+
+            Assert.DoesNotThrow(()=>client.SendCachedEvents());
         }
 
     }

@@ -1,4 +1,5 @@
 ﻿using Keen.Core;
+using Keen.Core.EventCache;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,9 +10,9 @@ namespace Keen.Net
 {
     public class EventCacheMemory : IEventCache
     {
-        private List<object> events = new List<object>();
+        private List<CachedEvent> events = new List<CachedEvent>();
 
-        public void Add(object e)
+        public void Add(CachedEvent e)
         {
             if (null == e)
                 throw new KeenException("Cached events may not be null");
@@ -28,7 +29,7 @@ namespace Keen.Net
             return !events.Any();
         }
 
-        public IEnumerable<object> Events()
+        public IEnumerable<CachedEvent> Events()
         {
             return events;
         }

@@ -1,5 +1,6 @@
 ﻿using Keen.Core;
 using Keen.Net;
+using Keen.Core.EventCache;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -7,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace Keen.NET.Test
 {
@@ -24,7 +26,7 @@ namespace Keen.NET.Test
         public void AddEvent_ValidObject_Success()
         {
             IEventCache cache = new EventCacheMemory();
-            Assert.DoesNotThrow(() => cache.Add(new { AProperty = "AValue" }));
+            Assert.DoesNotThrow(() => cache.Add(new CachedEvent("url", JObject.FromObject( new { AProperty = "AValue" }))));
         }
 
         [Test]
@@ -32,7 +34,7 @@ namespace Keen.NET.Test
         {
             IEventCache cache = new EventCacheMemory();
             Assert.True(cache.IsEmpty());
-            cache.Add(new { AProperty = "AValue" });
+            cache.Add(new CachedEvent("url", JObject.FromObject( new { AProperty = "AValue" })));
             Assert.False(cache.IsEmpty());
         }
 
@@ -40,7 +42,7 @@ namespace Keen.NET.Test
         public void AddEvent_AddClearEmpty_Success()
         {
             IEventCache cache = new EventCacheMemory();
-            cache.Add(new { AProperty = "AValue" });
+            cache.Add( new CachedEvent("url", JObject.FromObject( new { AProperty = "AValue" })));
             Assert.DoesNotThrow(()=> cache.Clear());
             Assert.True(cache.IsEmpty());
         }
@@ -49,10 +51,9 @@ namespace Keen.NET.Test
         public void AddEvent_Iterate_Success()
         {
             IEventCache cache = new EventCacheMemory();
-            cache.Add(new { AProperty = "AValue" });
-            cache.Add(new { AProperty = "AValue" });
+            cache.Add( new CachedEvent("url", JObject.FromObject( new { AProperty = "AValue" })));
+            cache.Add( new CachedEvent("url", JObject.FromObject( new { AProperty = "AValue" })));
             Assert.True(cache.Events().Count() == 2);
         }
-
     }
 }

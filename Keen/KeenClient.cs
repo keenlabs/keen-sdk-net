@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Keen.Core.EventCache;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -20,6 +21,8 @@ namespace Keen.Core
         private HashSet<string> validCollectionNames = new HashSet<string>();
 
         private Dictionary<string, object> globalProperties = new Dictionary<string, object>();
+
+        public IEventCache EventCache { get; private set; }
 
         private void validatePropertyName(string property)
         {
@@ -118,6 +121,16 @@ namespace Keen.Core
 
             keenProjectUri = string.Format("{0}/{1}/projects/{2}/", 
                 KeenConstants.ServerAddress, KeenConstants.ApiVersion, _prjSettings.ProjectId);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="prjSettings">A ProjectSettings instance containing the ProjectId and API keys</param>
+        /// <param name="eventCache">An IEventCache instance providing a caching strategy</param>
+        public KeenClient(IProjectSettings prjSettings, IEventCache eventCache) : this(prjSettings)
+        {
+            EventCache = eventCache;
         }
 
         /// <summary>
@@ -225,6 +238,24 @@ namespace Keen.Core
                 }
             }
 
+            // If an event cache has been provided, cache this event insead of sending it.
+            if (null!=EventCache)
+                EventCache.Add(new CachedEvent(keenUrl, jEvent));
+            else
+                PostEvent(keenUrl, jEvent);
+        }
+
+        public void SendCachedEvents()
+        {
+            if (null==EventCache)
+                throw new KeenException("Event caching is not enabled");
+
+            foreach (var e in EventCache.Events())
+                PostEvent(e.Url, e.Event);
+        }
+
+        private void PostEvent(string keenUrl, JObject jEvent)
+        {
             var content = jEvent.ToString();
             Debug.WriteLine("AddEvent json:" + content);
             using (var client = new HttpClient())
