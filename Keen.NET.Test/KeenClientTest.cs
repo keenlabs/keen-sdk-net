@@ -467,7 +467,7 @@ namespace Keen.NET.Test
             client.AddEvent("CachedEventTest", new { AProperty = "AValue" });
 
             Assert.DoesNotThrow(()=>client.SendCachedEvents());
-            Assert.True(client.EventCache.IsEmpty(), "Cache is empty");
+            Assert.Null(client.EventCache.TryTake(), "Cache is empty");
         }
 
         [Test]
@@ -479,7 +479,7 @@ namespace Keen.NET.Test
 
             var client = new KeenClient(settings, new EventCacheMemory());
             client.AddEvent("CachedEventTest", new { AProperty = "AValue" });
-            Assert.Throws<KeenAggregateException>(() => client.SendCachedEvents());
+            Assert.Throws<KeenCacheException>(() => client.SendCachedEvents());
         }
 
     }

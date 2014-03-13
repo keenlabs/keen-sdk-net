@@ -22,7 +22,6 @@ namespace Keen.Core
 
         public IEventCache EventCache { get; private set; }
 
-
         /// <summary>
         /// Add a static global property. This property will be added to
         /// every event.
@@ -186,28 +185,50 @@ namespace Keen.Core
             }
         }
 
+        /// <summary>
+        /// Submit the events in the 
+        /// </summary>
         public void SendCachedEvents()
         {
             if (null==EventCache)
                 throw new KeenException("Event caching is not enabled");
 
-            foreach (var e in EventCache.Events())
-            {
+            var failedEvents = new List<CachedEvent>();
+            CachedEvent e;
+
+            while( null != (e=EventCache.TryTake()))
+            { 
                 // Use Event Resource API for bulk posting?
                 //var keenUrl = keenProjectUri + KeenConstants.EventsCollectionResource;
                 //JObject jEvent = JObject.FromObject(eventCollections);
                 // Each property of eventCollections is a collection name, validate each name.
                 //foreach (var i in jEvent.Properties())
                 //    KeenUtil.ValidateEventCollectionName(i.Name);
+                try
+                {
+                    HttpResponseMessage httpResponse;
+                    var apiResponse = KeenUtil.PostEvent(e.Url, e.Event, _prjSettings.WriteKey, out httpResponse);
 
-                HttpResponseMessage httpResponse;
-                var apiResponse = KeenUtil.PostEvent(e.Url, e.Event, _prjSettings.WriteKey, out httpResponse);
+                    // error checking, throw an exception with information from the 
+                    // json response if available, then check the HTTP response.
+                    KeenUtil.CheckApiErrorCode(apiResponse);
+                    if (!httpResponse.IsSuccessStatusCode)
+                        throw new KeenException("AddEvent failed with status: " + httpResponse.StatusCode);
+                }
+                catch (Exception ex)
+                {
+                    e.Error = ex;
+                    failedEvents.Add(e);
+                }
+            }
 
-                // error checking, throw an exception with information from the 
-                // json response if available, then check the HTTP response.
-                KeenUtil.CheckApiErrorCode(apiResponse);
-                if (!httpResponse.IsSuccessStatusCode)
-                    throw new KeenException("AddEvent failed with status: " + httpResponse.StatusCode);
+            // if any of the event submissions failed, put them back into the event cache
+            if (failedEvents.Any())
+            {
+                foreach (var failed in failedEvents)
+                    EventCache.Add(failed);
+
+                throw new KeenCacheException("One or more cached events could not be submitted", failedEvents);
             }
         }
 

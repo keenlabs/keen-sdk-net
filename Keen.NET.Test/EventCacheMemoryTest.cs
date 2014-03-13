@@ -33,9 +33,9 @@ namespace Keen.NET.Test
         public void AddEvent_AddNotEmpty_Success()
         {
             IEventCache cache = new EventCacheMemory();
-            Assert.True(cache.IsEmpty());
+            Assert.Null(cache.TryTake());
             cache.Add(new CachedEvent("url", JObject.FromObject( new { AProperty = "AValue" })));
-            Assert.False(cache.IsEmpty());
+            Assert.NotNull(cache.TryTake());
         }
 
         [Test]
@@ -44,7 +44,7 @@ namespace Keen.NET.Test
             IEventCache cache = new EventCacheMemory();
             cache.Add( new CachedEvent("url", JObject.FromObject( new { AProperty = "AValue" })));
             Assert.DoesNotThrow(()=> cache.Clear());
-            Assert.True(cache.IsEmpty());
+            Assert.Null(cache.TryTake());
         }
 
         [Test]
@@ -53,7 +53,9 @@ namespace Keen.NET.Test
             IEventCache cache = new EventCacheMemory();
             cache.Add( new CachedEvent("url", JObject.FromObject( new { AProperty = "AValue" })));
             cache.Add( new CachedEvent("url", JObject.FromObject( new { AProperty = "AValue" })));
-            Assert.True(cache.Events().Count() == 2);
+            Assert.NotNull(cache.TryTake());
+            Assert.NotNull(cache.TryTake());
+            Assert.Null(cache.TryTake());
         }
     }
 }

@@ -10,6 +10,7 @@ namespace Keen.Core.EventCache
     {
         public string Url { get; set; }
         public JObject Event { get; set; }
+        public Exception Error { get; set; }
 
         public CachedEvent(string url, JObject e)
         {
@@ -21,8 +22,7 @@ namespace Keen.Core.EventCache
     public interface IEventCache
     {
         void Add(CachedEvent e);
+        CachedEvent TryTake();
         void Clear();
-        bool IsEmpty();
-        IEnumerable<CachedEvent> Events();
     }
 }

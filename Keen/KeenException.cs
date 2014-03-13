@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Keen.Core.EventCache;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -59,5 +60,12 @@ namespace Keen.Core
         public KeenInternalServerErrorException() { }
         public KeenInternalServerErrorException(string message) : base(message) { }
         public KeenInternalServerErrorException(string message, Exception inner) : base(message, inner) { }
+    }
+
+    public class KeenCacheException : KeenException
+    {
+        private IEnumerable<CachedEvent> _failedEvents;
+        public KeenCacheException(IEnumerable<CachedEvent> failedEvents) { _failedEvents = failedEvents; }
+        public KeenCacheException(string message, IEnumerable<CachedEvent> failedEvents ) : base(message) { _failedEvents = failedEvents; }
     }
 }
