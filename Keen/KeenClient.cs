@@ -18,52 +18,10 @@ namespace Keen.Core
         private IProjectSettings _prjSettings;
         private string keenProjectUri;
 
-        private HashSet<string> validCollectionNames = new HashSet<string>();
-
         private Dictionary<string, object> globalProperties = new Dictionary<string, object>();
 
         public IEventCache EventCache { get; private set; }
 
-        private void validatePropertyName(string property)
-        {
-            if (string.IsNullOrWhiteSpace(property))           
-                throw new KeenException("Property name may not be null or whitespace");
-
-            if (property.Length >= 256)
-                throw new KeenException("Property name must be less than 256 characters");
-
-            if (property.StartsWith("$"))
-                throw new KeenException("Property name may not start with \"$\"");
-
-            if (property.Contains("."))
-                throw new KeenException("Property name may not contain \".\"");
-        }
-
-        /// <summary>
-        /// Apply the collection name restrictions.
-        /// </summary>
-        /// <param name="collection"></param>
-        public void validateEventCollectionName(string collection)
-        {
-            // avoid cost of re-checking collection names that have already been validated.
-            if (validCollectionNames.Contains(collection))
-                return;
-
-            if (null == collection)
-                throw new KeenException("Event collection name may not be null.");
-            if (string.IsNullOrWhiteSpace(collection))
-                throw new KeenException("Event collection name may not be blank.");
-            if (collection.Length > KeenConstants.CollectionNameLengthLimit)
-                throw new KeenException(string.Format("Event collection name may not be longer than {0} characters.", KeenConstants.CollectionNameLengthLimit));
-            if (new Regex("[^\x00-\x7F]").Match(collection).Success)
-                throw new KeenException("Event collection name must contain only Ascii characters.");
-            if (collection.Contains("$"))
-                throw new KeenException("Event collection name may not contain \"$\".");
-            if (collection.StartsWith("_"))
-                throw new KeenException("Event collection name may not begin with \"_\".");
-
-            validCollectionNames.Add(collection);
-        }
 
         /// <summary>
         /// Add a static global property. This property will be added to
@@ -75,7 +33,7 @@ namespace Keen.Core
         public void AddGlobalProperty(string property, object value)
         {
             // Verify that the property name is allowable, and that the value is populated.
-            validatePropertyName(property);
+            KeenUtil.ValidatePropertyName(property);
             if (value == null)
                 throw new KeenException("Global properties must have a non-null value.");
             var dynProp = value as IDynamicPropertyValue;
@@ -141,7 +99,7 @@ namespace Keen.Core
         public void DeleteCollection(string collection)
         {
             // Preconditions
-            validateEventCollectionName(collection);
+            KeenUtil.ValidateEventCollectionName(collection);
 
             using (var client = new HttpClient())
             {
@@ -161,7 +119,7 @@ namespace Keen.Core
         public dynamic GetSchema(string collection)
         {
             // Preconditions
-            validateEventCollectionName(collection);
+            KeenUtil.ValidateEventCollectionName(collection);
 
             using (var client = new HttpClient())
             {
@@ -172,7 +130,7 @@ namespace Keen.Core
 
                 // error checking, throw an exception with information from the json 
                 // response if available, then check the HTTP response.
-                checkErrorCode(response);
+                KeenUtil.CheckApiErrorCode(response);
                 if (!responseMsg.IsSuccessStatusCode)
                     throw new KeenException("GetSchema failed with status: " + responseMsg.StatusCode);
 
@@ -188,38 +146,12 @@ namespace Keen.Core
         public void AddEvent(string collection, object eventInfo)
         {
             // Preconditions
-            validateEventCollectionName(collection);
+            KeenUtil.ValidateEventCollectionName(collection);
+            if (null == eventInfo)
+                throw new KeenException("Event data is required.");
 
             var jEvent = JObject.FromObject(eventInfo);
-            AddEvent(keenProjectUri + KeenConstants.EventsCollectionResource + "/" + collection, jEvent);
-        }
-
-        /// <summary>
-        /// Add one or more collections of events.
-        /// </summary>
-        /// <param name="eventCollections">The collections of events to send. Events are contained in 
-        /// array properties, the names of which indicate what collection the events belong to.</param>
-        public void AddEvents(object eventCollections)
-        {
-            JObject jEvent = JObject.FromObject(eventCollections);
-
-            // Each property of eventCollections is a collection name, validate each one.
-            foreach (var i in jEvent.Properties())
-                validateEventCollectionName(i.Name);
-
-            AddEvent(keenProjectUri + KeenConstants.EventsCollectionResource, jEvent);
-        }
-
-        /// <summary>
-        /// Internal AddEvent. Used to send both single and bulk events.
-        /// </summary>
-        /// <param name="keenUrl">Keen resource URL for single or bulk operation</param>
-        /// <param name="jEvent">A JObject containing either a single event for the collection 
-        /// specified in the URL, or one or more arrays of events named for the target collections.</param>
-        private void AddEvent(string keenUrl, JObject jEvent)
-        {
-            if (null == jEvent)
-                throw new KeenException("Event data is required.");
+            string keenUrl = keenProjectUri + KeenConstants.EventsCollectionResource + "/" + collection;
 
             // Add global properties to the event
             foreach( var p in globalProperties )
@@ -239,10 +171,19 @@ namespace Keen.Core
             }
 
             // If an event cache has been provided, cache this event insead of sending it.
-            if (null!=EventCache)
+            if (null != EventCache)
                 EventCache.Add(new CachedEvent(keenUrl, jEvent));
             else
-                PostEvent(keenUrl, jEvent);
+            {
+                HttpResponseMessage httpResponse;
+                var apiResponse = KeenUtil.PostEvent(keenUrl, jEvent, _prjSettings.WriteKey, out httpResponse);
+
+                // error checking, throw an exception with information from the 
+                // json response if available, then check the HTTP response.
+                KeenUtil.CheckApiErrorCode(apiResponse);
+                if (!httpResponse.IsSuccessStatusCode)
+                    throw new KeenException("AddEvent failed with status: " + httpResponse.StatusCode);
+            }
         }
 
         public void SendCachedEvents()
@@ -251,67 +192,24 @@ namespace Keen.Core
                 throw new KeenException("Event caching is not enabled");
 
             foreach (var e in EventCache.Events())
-                PostEvent(e.Url, e.Event);
-        }
-
-        private void PostEvent(string keenUrl, JObject jEvent)
-        {
-            var content = jEvent.ToString();
-            Debug.WriteLine("AddEvent json:" + content);
-            using (var client = new HttpClient())
-            using (var contentStream = new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes(content))))
             {
-                contentStream.Headers.Add("content-type", "application/json");
+                // Use Event Resource API for bulk posting?
+                //var keenUrl = keenProjectUri + KeenConstants.EventsCollectionResource;
+                //JObject jEvent = JObject.FromObject(eventCollections);
+                // Each property of eventCollections is a collection name, validate each name.
+                //foreach (var i in jEvent.Properties())
+                //    KeenUtil.ValidateEventCollectionName(i.Name);
 
-                client.DefaultRequestHeaders.Add("Authorization", _prjSettings.WriteKey);
-                var responseMsg = client.PostAsync(keenUrl, contentStream).Result;
-                var responseString = responseMsg.Content.ReadAsStringAsync().Result;
-                dynamic response = JObject.Parse(responseString);
+                HttpResponseMessage httpResponse;
+                var apiResponse = KeenUtil.PostEvent(e.Url, e.Event, _prjSettings.WriteKey, out httpResponse);
 
-                // error checking, throw an exception with information from the json 
-                // response if available, then check the HTTP response.
-                checkErrorCode(response);
-                if (!responseMsg.IsSuccessStatusCode)
-                    throw new KeenException("AddEvent failed with status: " + responseMsg.StatusCode);
+                // error checking, throw an exception with information from the 
+                // json response if available, then check the HTTP response.
+                KeenUtil.CheckApiErrorCode(apiResponse);
+                if (!httpResponse.IsSuccessStatusCode)
+                    throw new KeenException("AddEvent failed with status: " + httpResponse.StatusCode);
             }
         }
 
-        /// <summary>
-        /// Check the 'error_code' field and throw the appropriate exception if non-null.
-        /// </summary>
-        /// <param name="apiResponse">Deserialized json response from a Keen API call.</param>
-        private static void checkErrorCode(dynamic apiResponse)
-        {
-            if (apiResponse.error_code != null)
-            {
-                switch ((string)apiResponse.error_code)
-                {
-                    case "InvalidApiKeyError":
-                        throw new KeenInvalidApiKeyException((string)apiResponse.message);
-
-                    case "ResourceNotFoundError":
-                        throw new KeenResourceNotFoundException((string)apiResponse.message);
-
-                    case "NamespaceTypeError":
-                        throw new KeenNamespaceTypeException((string)apiResponse.message);
-
-                    case "InvalidEventError":
-                        throw new KeenInvalidEventException((string)apiResponse.message);
-
-                    case "ListsOfNonPrimitivesNotAllowedError":
-                        throw new KeenListsOfNonPrimitivesNotAllowedException((string)apiResponse.message);
-
-                    case "InvalidBatchError":
-                        throw new KeenInvalidBatchException((string)apiResponse.message);
-
-                    case "InternalServerError":
-                        throw new KeenInternalServerErrorException((string)apiResponse.message);
-
-                    default:
-                        Debug.WriteLine("Unhandled error_code \"{0}\" : \"{1}\"", (string)apiResponse.error_code, (string)apiResponse.message);
-                        throw new KeenException((string)apiResponse.error_code + " : " + (string)apiResponse.message);
-                }
-            }
-        }
     }
 }

@@ -173,74 +173,91 @@ namespace Keen.NET.Test
             Assert.DoesNotThrow(() => client.AddEvent("AddEventTest", new { AProperty = "CustomKey" }));
         }
 
-        [Test]
-        public void AddEvent_MultipleEventsInvalidCollection_Throws()
-        {
-            var settings = new ProjectSettingsProviderEnv();
-            var client = new KeenClient(settings);
-            var collection = new
-            {
-                AddEventTest = from i in Enumerable.Range(1, 10)
-                               select new { AProperty = "AValue" + i },
-                InvalidCollection = 2,
-            };
-            Assert.Throws<KeenInternalServerErrorException>(() => client.AddEvents(collection));
-        }
+        //[Test]
+        //public void AddEvent_MultipleEventsInvalidCollection_Throws()
+        //{
+        //    var settings = new ProjectSettingsProviderEnv();
+        //    var client = new KeenClient(settings);
+        //    var collection = new
+        //    {
+        //        AddEventTest = from i in Enumerable.Range(1, 10)
+        //                       select new { AProperty = "AValue" + i },
+        //        InvalidCollection = 2,
+        //    };
+        //    Assert.Throws<KeenInternalServerErrorException>(() => client.AddEvents(collection));
+        //}
 
-        [Test]
-        public void AddEvent_MultipleEventsAnonymous_Success()
-        {
-            var settings = new ProjectSettingsProviderEnv();
-            var client = new KeenClient(settings);
-            var collection = new
-            {
-                AddEventTest = from i in Enumerable.Range(1, 10)
-                               select new { AProperty = "AValue" + i }
-            };
-            Assert.DoesNotThrow(() => client.AddEvents(collection));
-        }
+        //[Test]
+        //public void AddEvent_MultipleEventsInvalidItem_Throws()
+        //{
+        //    var settings = new ProjectSettingsProviderEnv();
+        //    var client = new KeenClient(settings);
+        //    var collection = new { AddEventTest = new List<dynamic>() };
+            
+        //    foreach( var k in new[]{ "ValidProperty", "Invalid.Property" })
+        //    {
+        //        IDictionary<string, object> item = new ExpandoObject();
+        //        item.Add(k, "AValue");
+        //        collection.AddEventTest.Add(item);
+        //    }
 
-        [Test]
-        public void AddEvent_MultipleEventsExpando_Success()
-        {
-            var settings = new ProjectSettingsProviderEnv();
-            var client = new KeenClient(settings);
+        //    Assert.DoesNotThrow(() => client.AddEvents(collection));
+        //}
 
-            dynamic collection = new ExpandoObject();
-            collection.AddEventTest = new List<dynamic>();
-            foreach( var i in Enumerable.Range(1,10))
-            {
-                dynamic anEvent = new ExpandoObject();
-                anEvent.AProperty = "AValue" + i;
-                collection.AddEventTest.Add(anEvent);
-            }
+        //[Test]
+        //public void AddEvent_MultipleEventsAnonymous_Success()
+        //{
+        //    var settings = new ProjectSettingsProviderEnv();
+        //    var client = new KeenClient(settings);
+        //    var collection = new
+        //    {
+        //        AddEventTest = from i in Enumerable.Range(1, 10)
+        //                       select new { AProperty = "AValue" + i }
+        //    };
+        //    Assert.DoesNotThrow(() => client.AddEvents(collection));
+        //}
 
-            Assert.DoesNotThrow(() => client.AddEvents(collection));
-        }
+        //[Test]
+        //public void AddEvent_MultipleEventsExpando_Success()
+        //{
+        //    var settings = new ProjectSettingsProviderEnv();
+        //    var client = new KeenClient(settings);
 
-        private class TestCollection
-        {
-            public class TestEvent
-            {
-                public string AProperty { get; set; }
-            }
-            public List<TestEvent> AddEventTest { get; set; }
-        }
+        //    dynamic collection = new ExpandoObject();
+        //    collection.AddEventTest = new List<dynamic>();
+        //    foreach( var i in Enumerable.Range(1,10))
+        //    {
+        //        dynamic anEvent = new ExpandoObject();
+        //        anEvent.AProperty = "AValue" + i;
+        //        collection.AddEventTest.Add(anEvent);
+        //    }
 
-        [Test]
-        public void AddEvent_MultipleEvents_Success()
-        {
-            var settings = new ProjectSettingsProviderEnv();
-            var client = new KeenClient(settings);
+        //    Assert.DoesNotThrow(() => client.AddEvents(collection));
+        //}
 
-            var collection = new TestCollection()
-            {
-                AddEventTest = (from i in Enumerable.Range(1, 10)
-                               select new TestCollection.TestEvent() { AProperty = "AValue"+i}).ToList()
-            };
+        //private class TestCollection
+        //{
+        //    public class TestEvent
+        //    {
+        //        public string AProperty { get; set; }
+        //    }
+        //    public List<TestEvent> AddEventTest { get; set; }
+        //}
 
-            Assert.DoesNotThrow(() => client.AddEvents(collection));
-        }
+        //[Test]
+        //public void AddEvent_MultipleEvents_Success()
+        //{
+        //    var settings = new ProjectSettingsProviderEnv();
+        //    var client = new KeenClient(settings);
+
+        //    var collection = new TestCollection()
+        //    {
+        //        AddEventTest = (from i in Enumerable.Range(1, 10)
+        //                       select new TestCollection.TestEvent() { AProperty = "AValue"+i}).ToList()
+        //    };
+
+        //    Assert.DoesNotThrow(() => client.AddEvents(collection));
+        //}
 
         [Test]
         public void DeleteCollection_Success()
@@ -450,6 +467,19 @@ namespace Keen.NET.Test
             client.AddEvent("CachedEventTest", new { AProperty = "AValue" });
 
             Assert.DoesNotThrow(()=>client.SendCachedEvents());
+            Assert.True(client.EventCache.IsEmpty(), "Cache is empty");
+        }
+
+        [Test]
+        public void Caching_SendInvalidEvents_Throws()
+        {
+            var settingsEnv = new ProjectSettingsProviderEnv();
+            // use an invalid write key to force an error on the server
+            var settings = new ProjectSettingsProvider(projectId: settingsEnv.ProjectId, writeKey: "InvalidWriteKey");
+
+            var client = new KeenClient(settings, new EventCacheMemory());
+            client.AddEvent("CachedEventTest", new { AProperty = "AValue" });
+            Assert.Throws<KeenAggregateException>(() => client.SendCachedEvents());
         }
 
     }
