@@ -186,7 +186,9 @@ namespace Keen.Core
         }
 
         /// <summary>
-        /// Submit the events in the 
+        /// Submit all events found in the event cache. If an events are rejected by the server, 
+        /// KeenCacheException will be thrown with a listing of the rejected events, each with
+        /// the error message it received.
         /// </summary>
         public void SendCachedEvents()
         {
@@ -207,13 +209,16 @@ namespace Keen.Core
                 try
                 {
                     HttpResponseMessage httpResponse;
-                    var apiResponse = KeenUtil.PostEvent(e.Url, e.Event, _prjSettings.WriteKey, out httpResponse);
+                    dynamic apiResponse = KeenUtil.PostEvent(e.Url, e.Event, _prjSettings.WriteKey, out httpResponse);
 
-                    // error checking, throw an exception with information from the 
-                    // json response if available, then check the HTTP response.
-                    KeenUtil.CheckApiErrorCode(apiResponse);
-                    if (!httpResponse.IsSuccessStatusCode)
-                        throw new KeenException("AddEvent failed with status: " + httpResponse.StatusCode);
+                    // If an error was returned, attached an appropriate exception, but don't throw.
+                    if (apiResponse.error_code != null)
+                        e.Error = new KeenException((string)apiResponse.error_code + " : " + (string)apiResponse.message);
+                    else if (!httpResponse.IsSuccessStatusCode)
+                        e.Error = new KeenException("AddEvent failed with status: " + httpResponse.StatusCode);
+
+                    if (null != e.Error)
+                        failedEvents.Add(e);
                 }
                 catch (Exception ex)
                 {
@@ -222,14 +227,9 @@ namespace Keen.Core
                 }
             }
 
-            // if any of the event submissions failed, put them back into the event cache
+            // if there where any failures, throw and include the errored items and details.
             if (failedEvents.Any())
-            {
-                foreach (var failed in failedEvents)
-                    EventCache.Add(failed);
-
                 throw new KeenCacheException("One or more cached events could not be submitted", failedEvents);
-            }
         }
 
     }
