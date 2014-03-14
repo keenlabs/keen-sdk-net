@@ -1,21 +1,25 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
-    <metadata>
-        <id>KeenClient</id>
-        <version>0.1.0</version>
-        <title>KeenClient - .NET SDK</title>
-        <authors>Sean Sparkman</authors>
-        <owners>Infinity Interactive, Inc.</owners>
-        <projectUrl>https://keen.io/</projectUrl>
-        <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>Keen.IO Client - .NET SDK</description>
-        <releaseNotes>Initial Release</releaseNotes>
-        <copyright>Copyright 2014</copyright>
-        <dependencies>
-            <dependency id="Microsoft.Net.Http" version="2.2.18" />
-            <dependency id="Newtonsoft.Json" version="6.0.1" />
-        </dependencies>
-    </metadata>
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>KeenClient</id>
+    <version>0.1.0</version>
+    <authors>Sean Sparkman</authors>
+    <owners>Infinity Interactive, Inc.</owners>
+    <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
+    <projectUrl>https://keen.io/</projectUrl>
+    <iconUrl>https://www.gravatar.com/avatar/b948c4bc2de9618c488431612d2ff99d</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Keen.IO Client - .NET SDK</description>
+    <summary>Initial Release</summary>
+    <tags></tags>
+    <dependencies>
+      <dependency id="Microsoft.Net.Http" version="2.2.18" />
+      <dependency id="Newtonsoft.Json" version="6.0.1" />
+      <dependency id="Microsoft.Bcl" version="1.1.6" />
+      <dependency id="Microsoft.Bcl.Build" version="1.0.13" />
+      <dependency id="Microsoft.Bcl.Async" version="1.0.165" />
+    </dependencies>
+  </metadata>
     <files>                
         <file src="Keen\bin\Debug\Keen.dll" target="lib\portable-net45+wp8+win8+monoandroid+monotouch\Keen.dll" />
     </files>
