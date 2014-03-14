@@ -43,8 +43,7 @@ namespace Keen.NET.Test
         [Test]
         public void GetCollectionSchema_NullProjectId_Throws()
         {
-            var settingsEnv = new ProjectSettingsProviderEnv();
-            var settings = new ProjectSettingsProvider(projectId: "X", masterKey: settingsEnv.MasterKey);
+            var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
             Assert.Throws<KeenException>(() => client.GetSchema(null));
         }
@@ -85,11 +84,12 @@ namespace Keen.NET.Test
             // setup, ensure that collection AddEventTest exists.
             Assert.DoesNotThrow(() => client.AddEvent("AddEventTest", new { AProperty = "AValue" }));
             dynamic response;
-            Assert.DoesNotThrow(() => {
+            Assert.DoesNotThrow(() =>
+            {
                 response = client.GetSchema("AddEventTest");
                 Assert.NotNull(response["properties"]);
                 Assert.NotNull(response["properties"]["AProperty"]);
-                Assert.True((string)response["properties"]["AProperty"]=="string");
+                Assert.True((string)response["properties"]["AProperty"] == "string");
             });
 
         }
@@ -159,7 +159,7 @@ namespace Keen.NET.Test
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
             Assert.DoesNotThrow(() => client.AddEvent("AddEventTest", new { AProperty = "AValue" }));
-        }        
+        }
 
         [Test]
         public void AddEvent_ScopedKeyWrite_Success()
@@ -167,8 +167,8 @@ namespace Keen.NET.Test
             var settingsEnv = new ProjectSettingsProviderEnv();
             var scope = "{\"timestamp\": \"2014-02-25T22:09:27.320082\", \"allowed_operations\": [\"write\"]}";
             var scopedKey = ScopedKey.EncryptString(settingsEnv.MasterKey, scope);
-            var settings = new ProjectSettingsProvider(projectId: settingsEnv.ProjectId, writeKey: scopedKey);            
-            
+            var settings = new ProjectSettingsProvider(projectId: settingsEnv.ProjectId, writeKey: scopedKey);
+
             var client = new KeenClient(settings);
             Assert.DoesNotThrow(() => client.AddEvent("AddEventTest", new { AProperty = "CustomKey" }));
         }
@@ -193,7 +193,7 @@ namespace Keen.NET.Test
         //    var settings = new ProjectSettingsProviderEnv();
         //    var client = new KeenClient(settings);
         //    var collection = new { AddEventTest = new List<dynamic>() };
-            
+
         //    foreach( var k in new[]{ "ValidProperty", "Invalid.Property" })
         //    {
         //        IDictionary<string, object> item = new ExpandoObject();
@@ -336,7 +336,7 @@ namespace Keen.NET.Test
                 client.AddGlobalProperty("AGlobal", new { AProperty = "AValue" });
                 client.AddEvent("AddEventTest", new { AProperty = "AValue" });
             });
-       }
+        }
 
         [Test]
         public void AddGlobalProperty_CollectionValue_Success()
@@ -345,7 +345,7 @@ namespace Keen.NET.Test
             var client = new KeenClient(settings);
             Assert.DoesNotThrow(() =>
             {
-                client.AddGlobalProperty("AGlobal", new []{ 1, 2, 3, });
+                client.AddGlobalProperty("AGlobal", new[] { 1, 2, 3, });
                 client.AddEvent("AddEventTest", new { AProperty = "AValue" });
             });
         }
@@ -370,7 +370,7 @@ namespace Keen.NET.Test
             var client = new KeenClient(settings);
             Assert.DoesNotThrow(() =>
             {
-                client.AddGlobalProperty("AGlobal", new DynamicPropertyValue(() => new[]{1,2,3}));
+                client.AddGlobalProperty("AGlobal", new DynamicPropertyValue(() => new[] { 1, 2, 3 }));
                 client.AddEvent("AddEventTest", new { AProperty = "AValue" });
             });
         }
@@ -392,7 +392,7 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
-            Assert.Throws<KeenException>(() =>{ client.AddGlobalProperty("AGlobal", new DynamicPropertyValue(() => null));});
+            Assert.Throws<KeenException>(() => { client.AddGlobalProperty("AGlobal", new DynamicPropertyValue(() => null)); });
         }
 
         [Test]
@@ -400,7 +400,7 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
-            Assert.Throws<KeenException>(() =>{client.AddGlobalProperty("AGlobal", null);});
+            Assert.Throws<KeenException>(() => { client.AddGlobalProperty("AGlobal", null); });
         }
 
         [Test]
@@ -410,11 +410,11 @@ namespace Keen.NET.Test
             var client = new KeenClient(settings);
             var i = 0;
             // return valid for the first two tests, then null
-            client.AddGlobalProperty("AGlobal", new DynamicPropertyValue(() => i++ > 1?null:"value"));
+            client.AddGlobalProperty("AGlobal", new DynamicPropertyValue(() => i++ > 1 ? null : "value"));
             // This is the second test (AddGlobalProperty runs the first)
-            Assert.DoesNotThrow(()=>client.AddEvent("AddEventTest", new { AProperty = "AValue" }));
+            Assert.DoesNotThrow(() => client.AddEvent("AddEventTest", new { AProperty = "AValue" }));
             // Third test should fail.
-            Assert.Throws<KeenException>(() => { client.AddEvent("AddEventTest", new { AProperty = "AValue" });});
+            Assert.Throws<KeenException>(() => { client.AddEvent("AddEventTest", new { AProperty = "AValue" }); });
         }
 
         [Test]
@@ -434,7 +434,7 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings, new EventCacheMemory());
-            Assert.DoesNotThrow(()=>client.SendCachedEvents());
+            Assert.DoesNotThrow(() => client.SendCachedEvents());
         }
 
         [Test]
@@ -466,7 +466,7 @@ namespace Keen.NET.Test
             client.AddEvent("CachedEventTest", new { AProperty = "AValue" });
             client.AddEvent("CachedEventTest", new { AProperty = "AValue" });
 
-            Assert.DoesNotThrow(()=>client.SendCachedEvents());
+            Assert.DoesNotThrow(() => client.SendCachedEvents());
             Assert.Null(client.EventCache.TryTake(), "Cache is empty");
         }
 
@@ -482,5 +482,81 @@ namespace Keen.NET.Test
             Assert.Throws<KeenCacheException>(() => client.SendCachedEvents());
         }
 
+    }
+
+    [TestFixture]
+    public class AsyncTests
+    {
+        [Test]
+        public async Task Async_DeleteCollection_Success()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            await client.DeleteCollectionAsync("DeleteColTest");
+        }
+
+        [Test]
+        [ExpectedException("Keen.Core.KeenException")]
+        public async Task Async_GetCollectionSchema_NullProjectId_Throws()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            await client.GetSchemaAsync(null);
+        }
+
+        [Test]
+        [ExpectedException("Keen.Core.KeenResourceNotFoundException")]
+        public async Task Async_AddEvent_InvalidProjectId_Throws()
+        {
+            var settingsEnv = new ProjectSettingsProviderEnv();
+            var settings = new ProjectSettingsProvider(projectId: "X", writeKey: settingsEnv.WriteKey);
+            var client = new KeenClient(settings);
+            await client.AddEventAsync("X", new { X = "X" });
+        }
+
+        [Test]
+        [ExpectedException("Keen.Core.KeenInvalidApiKeyException")]
+        public async Task Async_AddEvent_ValidProjectIdInvalidWriteKey_Throws()
+        {
+            var settingsEnv = new ProjectSettingsProviderEnv();
+            var settings = new ProjectSettingsProvider(projectId: settingsEnv.ProjectId, writeKey: "X");
+            var client = new KeenClient(settings);
+            await client.AddEventAsync("X", new { X = "X" });
+        }
+
+        [Test]
+        public async Task Async_AddEvent_Success()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            await client.AddEventAsync("AddEventTest", new { AProperty = "AValue" });
+        }
+
+        [Test]
+        public async Task Async_Caching_SendEvents_Success()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings, new EventCacheMemory());
+
+            client.AddEvent("CachedEventTest", new { AProperty = "AValue" });
+            client.AddEvent("CachedEventTest", new { AProperty = "AValue" });
+            client.AddEvent("CachedEventTest", new { AProperty = "AValue" });
+
+            await client.SendCachedEventsAsync();
+            Assert.Null(client.EventCache.TryTake(), "Cache is empty");
+        }
+
+        [Test]
+        [ExpectedException("Keen.Core.KeenCacheException")]
+        public async Task Async_Caching_SendInvalidEvents_Throws()
+        {
+            var settingsEnv = new ProjectSettingsProviderEnv();
+            // use an invalid write key to force an error on the server
+            var settings = new ProjectSettingsProvider(projectId: settingsEnv.ProjectId, writeKey: "InvalidWriteKey");
+
+            var client = new KeenClient(settings, new EventCacheMemory());
+            client.AddEvent("CachedEventTest", new { AProperty = "AValue" });
+            await client.SendCachedEventsAsync();
+        }
     }
 }

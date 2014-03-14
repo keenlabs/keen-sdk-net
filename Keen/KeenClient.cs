@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace Keen.Core
 {
@@ -95,6 +96,16 @@ namespace Keen.Core
         /// Master API key is required.
         /// </summary>
         /// <param name="collection">Name of collection to delete.</param>
+        public async Task DeleteCollectionAsync(string collection)
+        {
+            await Task.Factory.StartNew(()=> DeleteCollection(collection));
+        }
+
+        /// <summary>
+        /// Delete the specified collection. Deletion may be denied for collections with many events.
+        /// Master API key is required.
+        /// </summary>
+        /// <param name="collection">Name of collection to delete.</param>
         public void DeleteCollection(string collection)
         {
             // Preconditions
@@ -108,6 +119,16 @@ namespace Keen.Core
                     throw new KeenException("DeleteCollection failed with status: " + responseMsg.StatusCode);
             }
             
+        }
+
+        /// <summary>
+        /// Retrieve the schema for the specified collection. This requires
+        /// a value for the project settings Master API key.
+        /// </summary>
+        /// <param name="collection"></param>
+        public async Task<dynamic> GetSchemaAsync(string collection)
+        {
+            return await Task<dynamic>.Factory.StartNew(() => GetSchema(collection));
         }
 
 		/// <summary>
@@ -135,6 +156,16 @@ namespace Keen.Core
 
                 return response;
             }
+        }
+
+        /// <summary>
+        /// Add a single event to the specified collection.
+        /// </summary>
+        /// <param name="collection">Collection name</param>
+        /// <param name="eventProperties">The event to add. This should be a </param>
+        public async Task AddEventAsync(string collection, object eventInfo)
+        {
+            await Task.Factory.StartNew(() => AddEvent(collection, eventInfo));
         }
 
         /// <summary>
@@ -183,6 +214,16 @@ namespace Keen.Core
                 if (!httpResponse.IsSuccessStatusCode)
                     throw new KeenException("AddEvent failed with status: " + httpResponse.StatusCode);
             }
+        }
+
+        /// <summary>
+        /// Submit all events found in the event cache. If an events are rejected by the server, 
+        /// KeenCacheException will be thrown with a listing of the rejected events, each with
+        /// the error message it received.
+        /// </summary>
+        public async Task SendCachedEventsAsync()
+        {
+            await Task.Factory.StartNew(() => SendCachedEvents());
         }
 
         /// <summary>
