@@ -15,8 +15,5 @@ namespace Keen.Core
 
         private const string apiVersion = "3.0";
         public static string ApiVersion { get { return apiVersion; } protected set { ;} }
-
-        private const int collectionNameLengthLimit = 64;
-        public static int CollectionNameLengthLimit { get { return collectionNameLengthLimit; } protected set { ;} }
     }
 }

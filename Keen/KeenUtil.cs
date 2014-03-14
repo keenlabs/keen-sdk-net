@@ -43,8 +43,8 @@ namespace Keen.Core
                 throw new KeenException("Event collection name may not be null.");
             if (string.IsNullOrWhiteSpace(collection))
                 throw new KeenException("Event collection name may not be blank.");
-            if (collection.Length > KeenConstants.CollectionNameLengthLimit)
-                throw new KeenException(string.Format("Event collection name may not be longer than {0} characters.", KeenConstants.CollectionNameLengthLimit));
+            if (collection.Length > 64)
+                throw new KeenException("Event collection name may not be longer than 64 characters.");
             if (new Regex("[^\x00-\x7F]").Match(collection).Success)
                 throw new KeenException("Event collection name must contain only Ascii characters.");
             if (collection.Contains("$"))

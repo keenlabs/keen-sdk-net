@@ -15,11 +15,20 @@ namespace Keen.Core
     public class DynamicPropertyValue : IDynamicPropertyValue
     {
         private Func<object> _value;
+
+        /// <summary>
+        /// Call the delegate that produces the property value
+        /// </summary>
+        /// <returns>The value produced by the delegate</returns>
         public object Value()
         {
             return _value();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value">A delegate that will be called each time the property value is required</param>
         public DynamicPropertyValue(Func<object> value)
         {
             _value = value;
