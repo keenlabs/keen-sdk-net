@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace Keen.Core
 {
@@ -14,6 +15,11 @@ namespace Keen.Core
     {
         private static HashSet<string> validCollectionNames = new HashSet<string>();
 
+        /// <summary>
+        /// Apply property name restrictions. Throws KeenException with an 
+        /// explanation if a collection name is unacceptable.
+        /// </summary>
+        /// <param name="property"></param>
         public static void ValidatePropertyName(string property)
         {
             if (string.IsNullOrWhiteSpace(property))
@@ -30,7 +36,8 @@ namespace Keen.Core
         }
 
         /// <summary>
-        /// Apply the collection name restrictions.
+        /// Apply the collection name restrictions. Throws KeenException with an 
+        /// explanation if a collection name is unacceptable.
         /// </summary>
         /// <param name="collection"></param>
         public static void ValidateEventCollectionName(string collection)
@@ -55,7 +62,19 @@ namespace Keen.Core
             validCollectionNames.Add(collection);
         }
 
-        public static JObject PostEvent(string keenUrl, JObject jEvent, string authKey, out HttpResponseMessage httpResponse)
+        /// <summary>
+        /// Post an event to the keen service endpoint. This method returns both the HttpResponseMessage
+        /// and the parsed JSON response. In the event of an error, the HttpResponseMessage may indicate
+        /// failure, with the JSON response carrying more detailed information. Or the HttpResponseMessage
+        /// may indicate success, with the JSON response indicating partial failure. Or the HttpResponseMessage
+        /// might indicate failure and the JSON response will be empty. The caller is responsible for determining
+        /// how best to use the two pieces of information.
+        /// </summary>
+        /// <param name="keenUrl">Full URL of service endpoint</param>
+        /// <param name="jEvent">A JObject representing the event data</param>
+        /// <param name="authKey">An API authorization key suitable for the specified service</param>
+        /// <returns>The HttpResponseMessage, and a JObject representing the returned JSON</returns>
+        public static async Task<Tuple<HttpResponseMessage, JObject>> PostEvent(string keenUrl, JObject jEvent, string authKey)
         {
             var content = jEvent.ToString();
             Debug.WriteLine("AddEvent json:" + content);
@@ -65,9 +84,11 @@ namespace Keen.Core
                 contentStream.Headers.Add("content-type", "application/json");
 
                 client.DefaultRequestHeaders.Add("Authorization", authKey);
-                httpResponse = client.PostAsync(keenUrl, contentStream).Result;
-                var responseString = httpResponse.Content.ReadAsStringAsync().Result;
-                return JObject.Parse(responseString);
+                var httpResponse = await client.PostAsync(keenUrl, contentStream)
+                    .ConfigureAwait(continueOnCapturedContext:false);
+                var responseString = await httpResponse.Content.ReadAsStringAsync()
+                    .ConfigureAwait(continueOnCapturedContext: false);
+                return Tuple.Create( httpResponse, JObject.Parse(responseString));
             }
         }
 

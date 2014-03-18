@@ -98,7 +98,20 @@ namespace Keen.Core
         /// <param name="collection">Name of collection to delete.</param>
         public async Task DeleteCollectionAsync(string collection)
         {
-            await Task.Factory.StartNew(()=> DeleteCollection(collection));
+            // Preconditions
+            KeenUtil.ValidateEventCollectionName(collection);
+            if (string.IsNullOrWhiteSpace(_prjSettings.MasterKey))
+                throw new KeenException("Master API key is requried for DeleteCollection");
+
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Add("Authorization", _prjSettings.MasterKey);
+                var responseMsg = await client.DeleteAsync(keenProjectUri + KeenConstants.EventsCollectionResource + "/" + collection)
+                    .ConfigureAwait(continueOnCapturedContext:false); // avoid potential deadlock with syncronous wrapper
+                if (!responseMsg.IsSuccessStatusCode)
+                    throw new KeenException("DeleteCollection failed with status: " + responseMsg.StatusCode);
+            }
+
         }
 
         /// <summary>
@@ -108,17 +121,20 @@ namespace Keen.Core
         /// <param name="collection">Name of collection to delete.</param>
         public void DeleteCollection(string collection)
         {
-            // Preconditions
-            KeenUtil.ValidateEventCollectionName(collection);
-
-            using (var client = new HttpClient())
+            try
             {
-                client.DefaultRequestHeaders.Add("Authorization", _prjSettings.MasterKey);
-                var responseMsg = client.DeleteAsync(keenProjectUri + KeenConstants.EventsCollectionResource + "/" + collection).Result;
-                if (!responseMsg.IsSuccessStatusCode)
-                    throw new KeenException("DeleteCollection failed with status: " + responseMsg.StatusCode);
+                DeleteCollectionAsync(collection).Wait();
             }
-            
+            catch (AggregateException ex)
+            {
+                // if there is a KeenException in there, rethrow that and disregard the rest
+                var ke = ex.InnerExceptions.First((e) => e is KeenException);
+                if (null != ke)
+                    throw ke;
+
+                // otherwise just rethrow the AggregateException
+                throw;
+            }
         }
 
         /// <summary>
@@ -128,24 +144,18 @@ namespace Keen.Core
         /// <param name="collection"></param>
         public async Task<dynamic> GetSchemaAsync(string collection)
         {
-            return await Task<dynamic>.Factory.StartNew(() => GetSchema(collection));
-        }
-
-		/// <summary>
-		/// Retrieve the schema for the specified collection. This requires
-        /// a value for the project settings Master API key.
-		/// </summary>
-		/// <param name="collection"></param>
-        public dynamic GetSchema(string collection)
-        {
             // Preconditions
             KeenUtil.ValidateEventCollectionName(collection);
+            if (string.IsNullOrWhiteSpace(_prjSettings.MasterKey))
+                throw new KeenException("Master API key is requried for GetSchema");
 
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Add("Authorization", _prjSettings.MasterKey);
-                var responseMsg = client.GetAsync(keenProjectUri + KeenConstants.EventsCollectionResource + "/" + collection).Result;
-                var responseString = responseMsg.Content.ReadAsStringAsync().Result;
+                var responseMsg = await client.GetAsync(keenProjectUri + KeenConstants.EventsCollectionResource + "/" + collection)
+                    .ConfigureAwait(continueOnCapturedContext: false); // avoid potential deadlock with syncronous wrapper
+                var responseString = await responseMsg.Content.ReadAsStringAsync()
+                    .ConfigureAwait(continueOnCapturedContext: false);
                 dynamic response = JObject.Parse(responseString);
 
                 // error checking, throw an exception with information from the json 
@@ -158,33 +168,48 @@ namespace Keen.Core
             }
         }
 
-        /// <summary>
-        /// Add a single event to the specified collection.
-        /// </summary>
-        /// <param name="collection">Collection name</param>
-        /// <param name="eventProperties">The event to add. This should be a </param>
-        public async Task AddEventAsync(string collection, object eventInfo)
+		/// <summary>
+		/// Retrieve the schema for the specified collection. This requires
+        /// a value for the project settings Master API key.
+		/// </summary>
+		/// <param name="collection"></param>
+        public dynamic GetSchema(string collection)
         {
-            await Task.Factory.StartNew(() => AddEvent(collection, eventInfo));
+            try
+            {
+                return GetSchemaAsync(collection).Result;
+            }
+            catch (AggregateException ex)
+            {
+                // if there is a KeenException in there, rethrow that and disregard the rest
+                var ke = ex.InnerExceptions.First((e) => e is KeenException);
+                if (null != ke)
+                    throw ke;
+
+                // otherwise just rethrow the AggregateException
+                throw;
+            }
         }
 
         /// <summary>
         /// Add a single event to the specified collection.
         /// </summary>
         /// <param name="collection">Collection name</param>
-        /// <param name="eventProperties">The event to add. This should be a </param>
-        public void AddEvent(string collection, object eventInfo)
+        /// <param name="eventProperties">The event to add.</param>
+        public async Task AddEventAsync(string collection, object eventInfo)
         {
             // Preconditions
             KeenUtil.ValidateEventCollectionName(collection);
             if (null == eventInfo)
                 throw new KeenException("Event data is required.");
+            if (string.IsNullOrWhiteSpace(_prjSettings.WriteKey))
+                throw new KeenException("Write API key is requried for AddEvent");
 
             var jEvent = JObject.FromObject(eventInfo);
             string keenUrl = keenProjectUri + KeenConstants.EventsCollectionResource + "/" + collection;
 
             // Add global properties to the event
-            foreach( var p in globalProperties )
+            foreach (var p in globalProperties)
             {
                 // If the property value is an IDynamicPropertyValue, 
                 // exec the Value() to generate the property value.
@@ -205,14 +230,60 @@ namespace Keen.Core
                 EventCache.Add(new CachedEvent(keenUrl, jEvent));
             else
             {
-                HttpResponseMessage httpResponse;
-                var apiResponse = KeenUtil.PostEvent(keenUrl, jEvent, _prjSettings.WriteKey, out httpResponse);
+                var response = await KeenUtil.PostEvent(keenUrl, jEvent, _prjSettings.WriteKey)
+                    .ConfigureAwait(continueOnCapturedContext:false);
 
                 // error checking, throw an exception with information from the 
                 // json response if available, then check the HTTP response.
-                KeenUtil.CheckApiErrorCode(apiResponse);
-                if (!httpResponse.IsSuccessStatusCode)
-                    throw new KeenException("AddEvent failed with status: " + httpResponse.StatusCode);
+                KeenUtil.CheckApiErrorCode(response.Item2);
+                if (!response.Item1.IsSuccessStatusCode)
+                    throw new KeenException("AddEvent failed with status: " + response.Item1.StatusCode);
+            }
+        }
+
+        /// <summary>
+        /// Add a single event to the specified collection.
+        /// </summary>
+        /// <param name="collection">Collection name</param>
+        /// <param name="eventProperties">The event to add. This should be a </param>
+        public void AddEvent(string collection, object eventInfo)
+        {
+            try
+            {
+                AddEventAsync(collection, eventInfo).Wait();
+            }
+            catch (AggregateException ex)
+            {
+                // if there is a KeenException in there, rethrow that and disregard the rest
+                var ke = ex.InnerExceptions.First((e) => e is KeenException);
+                if (null != ke)
+                    throw ke;
+
+                // otherwise just rethrow the AggregateException
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Submit all events found in the event cache. If an events are rejected by the server, 
+        /// KeenCacheException will be thrown with a listing of the rejected events, each with
+        /// the error message it received.
+        /// </summary>
+        public void SendCachedEvents()
+        {
+            try
+            {
+                SendCachedEventsAsync().Wait();
+            }
+            catch (AggregateException ex)
+            {
+                // if this is a KeenCacheException, rethrow that and disregard the rest
+                var kce = ex.InnerExceptions.First((e)=> e is KeenCacheException);
+                if (null != kce)
+                    throw kce;
+
+                // otherwise rethrow the AggregateException
+                throw;
             }
         }
 
@@ -222,16 +293,6 @@ namespace Keen.Core
         /// the error message it received.
         /// </summary>
         public async Task SendCachedEventsAsync()
-        {
-            await Task.Factory.StartNew(() => SendCachedEvents());
-        }
-
-        /// <summary>
-        /// Submit all events found in the event cache. If an events are rejected by the server, 
-        /// KeenCacheException will be thrown with a listing of the rejected events, each with
-        /// the error message it received.
-        /// </summary>
-        public void SendCachedEvents()
         {
             if (null==EventCache)
                 throw new KeenException("Event caching is not enabled");
@@ -249,14 +310,14 @@ namespace Keen.Core
                 //    KeenUtil.ValidateEventCollectionName(i.Name);
                 try
                 {
-                    HttpResponseMessage httpResponse;
-                    dynamic apiResponse = KeenUtil.PostEvent(e.Url, e.Event, _prjSettings.WriteKey, out httpResponse);
+                    var response = await KeenUtil.PostEvent(e.Url, e.Event, _prjSettings.WriteKey)
+                        .ConfigureAwait(continueOnCapturedContext:false);
 
                     // If an error was returned, attached an appropriate exception, but don't throw.
-                    if (apiResponse.error_code != null)
-                        e.Error = new KeenException((string)apiResponse.error_code + " : " + (string)apiResponse.message);
-                    else if (!httpResponse.IsSuccessStatusCode)
-                        e.Error = new KeenException("AddEvent failed with status: " + httpResponse.StatusCode);
+                    if (response.Item2["error_code"] != null)
+                        e.Error = new KeenException(response.Item2["error_code"].Value<string>() + " : " + response.Item2["message"].Value<string>());
+                    else if (!response.Item1.IsSuccessStatusCode)
+                        e.Error = new KeenException("AddEvent failed with status: " + response.Item1.StatusCode);
 
                     if (null != e.Error)
                         failedEvents.Add(e);
