@@ -192,6 +192,44 @@ namespace Keen.Core
         }
 
         /// <summary>
+        /// Add a collection of events to the specified collection
+        /// </summary>
+        /// <param name="collection">Collection name</param>
+        /// <param name="eventsInfo">Collection of events to add</param>
+        public void AddEvents(string collection, IEnumerable<object> eventsInfo)
+        {
+            try
+            {
+                AddEventsAsync(collection, eventsInfo).Wait();
+            }
+            catch (AggregateException ex)
+            {
+                // if there is a KeenException in there, rethrow that and disregard the rest
+                var ke = ex.InnerExceptions.First((e) => e is KeenException);
+                if (null != ke)
+                    throw ke;
+
+                // otherwise just rethrow the AggregateException
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Add a collection of events to the specified collection
+        /// </summary>
+        /// <param name="collection">Collection name</param>
+        /// <param name="eventsInfo">Collection of events to add</param>
+        /// <returns></returns>
+        public async Task AddEventsAsync(string collection, IEnumerable<object> eventsInfo)
+        {
+            if (null == eventsInfo)
+                throw new KeenException("AddEvents eventsInfo may not be null");
+
+            foreach (var e in eventsInfo)
+                await AddEventAsync(collection, e);
+        }
+
+        /// <summary>
         /// Add a single event to the specified collection.
         /// </summary>
         /// <param name="collection">Collection name</param>

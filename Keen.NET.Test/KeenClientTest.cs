@@ -162,6 +162,16 @@ namespace Keen.NET.Test
         }
 
         [Test]
+        public void AddEvents_Success()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            var events = from e in Enumerable.Range(1,10)
+                         select new { AProperty = "Value" + e };
+            Assert.DoesNotThrow(() => client.AddEvents("AddEventTest", events));
+        }
+
+        [Test]
         public void AddEvent_ScopedKeyWrite_Success()
         {
             var settingsEnv = new ProjectSettingsProviderEnv();
@@ -530,6 +540,25 @@ namespace Keen.NET.Test
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
             await client.AddEventAsync("AddEventTest", new { AProperty = "AValue" });
+        }
+
+        [Test]
+        [ExpectedException("Keen.Core.KeenException")]
+        public async Task Async_AddEvents_NullCollection_Throws()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            await client.AddEventsAsync("AddEventTest", null);
+        }
+
+        [Test]
+        public async Task Async_AddEvents_Success()
+        {
+            var settings = new ProjectSettingsProviderEnv();
+            var client = new KeenClient(settings);
+            var events = from e in Enumerable.Range(1, 10)
+                         select new { AProperty = "Value" + e };
+            await client.AddEventsAsync("AddEventTest", events);
         }
 
         [Test]
