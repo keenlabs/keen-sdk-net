@@ -20,11 +20,38 @@ namespace Keen.NET.Test
     internal class TestSetting
     {
         public static bool UseEventCollectionMock = true;
+
+        public static void SetupEnv()
+        {
+            foreach (var s in new[] { "KEEN_PROJECT_ID", "KEEN_MASTER_KEY", "KEEN_WRITE_KEY", "KEEN_READ_KEY" })
+                Environment.SetEnvironmentVariable(s, "0123456789ABCDEF");
+        }
+
+        public static void ResetEnv()
+        {
+            foreach (var s in new[] { "KEEN_PROJECT_ID", "KEEN_MASTER_KEY", "KEEN_WRITE_KEY", "KEEN_READ_KEY" })
+                Environment.SetEnvironmentVariable(s, null);
+        }
+
     }
 
     [TestFixture]
     public class KeenClientTest
     {
+        [TestFixtureSetUp]
+        public void Setup()
+        {
+            if (TestSetting.UseEventCollectionMock)
+                TestSetting.SetupEnv();
+        }
+
+        [TestFixtureTearDown]
+        public void TearDown()
+        {
+            if (TestSetting.UseEventCollectionMock)
+                TestSetting.ResetEnv();
+        }
+
         [Test]
         public void Constructor_ProjectSettingsNull_Throws()
         {
