@@ -7,7 +7,7 @@ namespace Keen.Core
 {
     public class KeenConstants
     {
-        private const string serverAddress = "http://api.keen.io";
+        private const string serverAddress = "https://api.keen.io";
         public static string ServerAddress { get { return serverAddress; } protected set { ;} }
 
         private const string eventsCollectionResource = "events";
