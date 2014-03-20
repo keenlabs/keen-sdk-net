@@ -19,7 +19,7 @@ namespace Keen.NET.Test
 {
     internal class TestSetting
     {
-        public static bool UseEventCollectionMock = false;
+        public static bool UseEventCollectionMock = true;
     }
 
     [TestFixture]
