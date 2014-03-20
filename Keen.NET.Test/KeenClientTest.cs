@@ -39,9 +39,7 @@ namespace Keen.NET.Test
         {
             foreach (var s in new[] { "KEEN_PROJECT_ID", "KEEN_MASTER_KEY", "KEEN_WRITE_KEY", "KEEN_READ_KEY" })
             {
-                Debug.WriteLine(string.Format("setting {0}", s));
                 Environment.SetEnvironmentVariable(s, "0123456789ABCDEF");
-                Debug.WriteLine(string.Format("{0} is {1}", s, Environment.GetEnvironmentVariable(s)));
             }
         }
 
@@ -80,7 +78,6 @@ namespace Keen.NET.Test
         public void GetCollectionSchema_NullProjectId_Throws()
         {
             var settings = new ProjectSettingsProviderEnv();
-            Debug.WriteLine(settings);
             var client = new KeenClient(settings);
             Assert.Throws<KeenException>(() => client.GetSchema(null));
         }
