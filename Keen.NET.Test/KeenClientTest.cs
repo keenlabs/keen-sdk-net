@@ -17,14 +17,32 @@ using Keen.Net;
 
 namespace Keen.NET.Test
 {
-    internal class TestSetting
+    public class TestBase
     {
         public static bool UseEventCollectionMock = true;
+
+        [TestFixtureSetUp]
+        public void Setup()
+        {
+            if (UseEventCollectionMock)
+                SetupEnv();
+        }
+
+        [TestFixtureTearDown]
+        public void TearDown()
+        {
+            if (UseEventCollectionMock)
+                ResetEnv();
+        }
 
         public static void SetupEnv()
         {
             foreach (var s in new[] { "KEEN_PROJECT_ID", "KEEN_MASTER_KEY", "KEEN_WRITE_KEY", "KEEN_READ_KEY" })
+            {
+                Debug.WriteLine(string.Format("setting {0}", s));
                 Environment.SetEnvironmentVariable(s, "0123456789ABCDEF");
+                Debug.WriteLine(string.Format("{0} is {1}", s, Environment.GetEnvironmentVariable(s)));
+            }
         }
 
         public static void ResetEnv()
@@ -36,22 +54,8 @@ namespace Keen.NET.Test
     }
 
     [TestFixture]
-    public class KeenClientTest
+    public class KeenClientTest : TestBase
     {
-        [TestFixtureSetUp]
-        public void Setup()
-        {
-            if (TestSetting.UseEventCollectionMock)
-                TestSetting.SetupEnv();
-        }
-
-        [TestFixtureTearDown]
-        public void TearDown()
-        {
-            if (TestSetting.UseEventCollectionMock)
-                TestSetting.ResetEnv();
-        }
-
         [Test]
         public void Constructor_ProjectSettingsNull_Throws()
         {
@@ -76,6 +80,7 @@ namespace Keen.NET.Test
         public void GetCollectionSchema_NullProjectId_Throws()
         {
             var settings = new ProjectSettingsProviderEnv();
+            Debug.WriteLine(settings);
             var client = new KeenClient(settings);
             Assert.Throws<KeenException>(() => client.GetSchema(null));
         }
@@ -96,7 +101,7 @@ namespace Keen.NET.Test
             var settingsEnv = new ProjectSettingsProviderEnv();
             var settings = new ProjectSettingsProvider(projectId: "X", masterKey: settingsEnv.MasterKey);
             var client = new KeenClient(settings);
-            if (TestSetting.UseEventCollectionMock)
+            if (UseEventCollectionMock)
                 client.EventCollection = new EventCollectionMock(settings,
                     GetSchema: new Func<string, IProjectSettings, JObject>((c, p) =>
                     {
@@ -113,7 +118,7 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
-            if (TestSetting.UseEventCollectionMock)
+            if (UseEventCollectionMock)
                 client.EventCollection = new EventCollectionMock(settings,
                     GetSchema: new Func<string, IProjectSettings, JObject>((c, p) =>
                     {
@@ -130,7 +135,7 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
-            if (TestSetting.UseEventCollectionMock)
+            if (UseEventCollectionMock)
                 client.EventCollection = new EventCollectionMock(settings,
                     GetSchema: new Func<string, IProjectSettings, JObject>((c, p) =>
                     {
@@ -155,7 +160,7 @@ namespace Keen.NET.Test
             var settingsEnv = new ProjectSettingsProviderEnv();
             var settings = new ProjectSettingsProvider(projectId: "X", writeKey: settingsEnv.WriteKey);
             var client = new KeenClient(settings);
-            if (TestSetting.UseEventCollectionMock)
+            if (UseEventCollectionMock)
                 client.EventCollection = new EventCollectionMock(settings,
                     AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
                     {
@@ -172,7 +177,7 @@ namespace Keen.NET.Test
             var settingsEnv = new ProjectSettingsProviderEnv();
             var settings = new ProjectSettingsProvider(projectId: settingsEnv.ProjectId, writeKey: "X");
             var client = new KeenClient(settings);
-            if (TestSetting.UseEventCollectionMock)
+            if (UseEventCollectionMock)
                 client.EventCollection = new EventCollectionMock(settings,
                     AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
                     {
@@ -219,7 +224,7 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
-            if (TestSetting.UseEventCollectionMock)
+            if (UseEventCollectionMock)
                 client.EventCollection = new EventCollectionMock(settings,
                     AddEvent: new Action<string,JObject,IProjectSettings>((c,e,p) => 
                     {
@@ -237,7 +242,7 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
-            if (TestSetting.UseEventCollectionMock)
+            if (UseEventCollectionMock)
                 client.EventCollection = new EventCollectionMock(settings,
                     AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
                     {
@@ -254,7 +259,7 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
-            if (TestSetting.UseEventCollectionMock)
+            if (UseEventCollectionMock)
                 client.EventCollection = new EventCollectionMock(settings,
                     AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
                     {
@@ -278,7 +283,7 @@ namespace Keen.NET.Test
             var settings = new ProjectSettingsProvider(masterKey: settingsEnv.MasterKey, projectId: settingsEnv.ProjectId, writeKey: scopedKey);
 
             var client = new KeenClient(settings);
-            if (TestSetting.UseEventCollectionMock)
+            if (UseEventCollectionMock)
                 client.EventCollection = new EventCollectionMock(settings,
                     AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
                     {
@@ -383,7 +388,7 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
-            if (TestSetting.UseEventCollectionMock)
+            if (UseEventCollectionMock)
                 client.EventCollection = new EventCollectionMock(settings,
                     DeleteCollection: new Action<string, IProjectSettings>((c, p) =>
                     {
@@ -399,14 +404,14 @@ namespace Keen.NET.Test
     }
 
     [TestFixture]
-    public class KeenClientGlobalPropertyTests
+    public class KeenClientGlobalPropertyTests : TestBase
     {
         [Test]
         public void AddGlobalProperty_SimpleValue_Success()
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
-            if (TestSetting.UseEventCollectionMock)
+            if (UseEventCollectionMock)
                 client.EventCollection = new EventCollectionMock(settings,
                     AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
                     {
@@ -471,7 +476,7 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
-            if (TestSetting.UseEventCollectionMock)
+            if (UseEventCollectionMock)
                 client.EventCollection = new EventCollectionMock(settings,
                     AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
                     {
@@ -495,7 +500,7 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
-            if (TestSetting.UseEventCollectionMock)
+            if (UseEventCollectionMock)
                 client.EventCollection = new EventCollectionMock(settings,
                     AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
                     {
@@ -519,7 +524,7 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
-            if (TestSetting.UseEventCollectionMock)
+            if (UseEventCollectionMock)
                 client.EventCollection = new EventCollectionMock(settings,
                     AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
                     {
@@ -544,7 +549,7 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
-            if (TestSetting.UseEventCollectionMock)
+            if (UseEventCollectionMock)
                 client.EventCollection = new EventCollectionMock(settings,
                     AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
                     {
@@ -568,7 +573,7 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
-            if (TestSetting.UseEventCollectionMock)
+            if (UseEventCollectionMock)
                 client.EventCollection = new EventCollectionMock(settings,
                     AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
                     {
@@ -608,7 +613,7 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
-            if (TestSetting.UseEventCollectionMock)
+            if (UseEventCollectionMock)
                 client.EventCollection = new EventCollectionMock(settings,
                     AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
                     {
@@ -639,7 +644,7 @@ namespace Keen.NET.Test
     }
 
     [TestFixture]
-    public class KeenClientCachingTest
+    public class KeenClientCachingTest : TestBase
     {
         [Test]
         public void Caching_SendEmptyEvents_Success()
@@ -673,7 +678,7 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings, new EventCacheMemory());
-            if (TestSetting.UseEventCollectionMock)
+            if (UseEventCollectionMock)
                 client.EventCollection = new EventCollectionMock(settings,
                     AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
                     {
@@ -707,14 +712,14 @@ namespace Keen.NET.Test
     }
 
     [TestFixture]
-    public class AsyncTests
+    public class AsyncTests : TestBase
     {
         [Test]
         public async Task Async_DeleteCollection_Success()
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
-            if (TestSetting.UseEventCollectionMock)
+            if (UseEventCollectionMock)
                 client.EventCollection = new EventCollectionMock(settings,
                     DeleteCollection: new Action<string, IProjectSettings>((c, p) =>
                     {
@@ -743,7 +748,7 @@ namespace Keen.NET.Test
             var settingsEnv = new ProjectSettingsProviderEnv();
             var settings = new ProjectSettingsProvider(projectId: "X", writeKey: settingsEnv.WriteKey);
             var client = new KeenClient(settings);
-            if (TestSetting.UseEventCollectionMock)
+            if (UseEventCollectionMock)
                 client.EventCollection = new EventCollectionMock(settings,
                     AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
                     {
@@ -761,7 +766,7 @@ namespace Keen.NET.Test
             var settingsEnv = new ProjectSettingsProviderEnv();
             var settings = new ProjectSettingsProvider(projectId: settingsEnv.ProjectId, writeKey: "X");
             var client = new KeenClient(settings);
-            if (TestSetting.UseEventCollectionMock)
+            if (UseEventCollectionMock)
                 client.EventCollection = new EventCollectionMock(settings,
                     AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
                     {
@@ -777,7 +782,7 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
-            if (TestSetting.UseEventCollectionMock)
+            if (UseEventCollectionMock)
                 client.EventCollection = new EventCollectionMock(settings,
                     AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
                     {
@@ -802,7 +807,7 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
-            if (TestSetting.UseEventCollectionMock)
+            if (UseEventCollectionMock)
                 client.EventCollection = new EventCollectionMock(settings,
                     AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
                     {
@@ -820,7 +825,7 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings, new EventCacheMemory());
-            if (TestSetting.UseEventCollectionMock)
+            if (UseEventCollectionMock)
                 client.EventCollection = new EventCollectionMock(settings,
                     AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
                     {

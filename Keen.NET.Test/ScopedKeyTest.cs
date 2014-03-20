@@ -13,7 +13,7 @@ using System.Collections;
 namespace Keen.NET.Test
 {
     [TestFixture]
-    public class ScopedKeyTest
+    public class ScopedKeyTest : TestBase
     {
         [Test]
         public void Encrypt_NullObject_Success()
@@ -79,7 +79,7 @@ namespace Keen.NET.Test
         public void Decrypt_WriteKey_Success() 
         {
             // if mocking is turned on, the write key will be fake and not decryptable, so skip the test
-            if (TestSetting.UseEventCollectionMock)
+            if (UseEventCollectionMock)
                 return;
 
             var settings = new ProjectSettingsProviderEnv();
