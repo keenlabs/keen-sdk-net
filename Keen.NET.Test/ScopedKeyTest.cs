@@ -46,10 +46,7 @@ namespace Keen.NET.Test
                 filter.Add("operator", "eq" );
                 filter.Add("property_value", 123 );
                 secOps.filters = new List<object>(){ filter };
-                secOps.allowed_operations = new List<string>(){ "read" };
-
-                Debug.WriteLine("scoped key: " + ScopedKey.Encrypt(settings.MasterKey, (object)secOps));
-                                                                   
+                secOps.allowed_operations = new List<string>(){ "read" };                                                                  
             });
         }
 

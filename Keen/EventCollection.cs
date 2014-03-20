@@ -24,7 +24,6 @@ namespace Keen.Core
                 var responseString = await responseMsg.Content.ReadAsStringAsync()
                     .ConfigureAwait(continueOnCapturedContext: false);
                 dynamic response = JObject.Parse(responseString);
-                Debug.WriteLine(responseString);
 
                 // error checking, throw an exception with information from the json 
                 // response if available, then check the HTTP response.
@@ -51,7 +50,6 @@ namespace Keen.Core
         public async System.Threading.Tasks.Task AddEvent(string collection, JObject anEvent)
         {
             var content = anEvent.ToString();
-            Debug.WriteLine("AddEvent json:" + content);
 
             using (var client = new HttpClient())
             using (var contentStream = new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes(content))))
