@@ -11,6 +11,12 @@ namespace Keen.Core
     public interface IProjectSettings
     {
         /// <summary>
+        /// The Keen.IO URL for this project. Usually this will be the
+        /// server address and API version.
+        /// </summary>
+        string KeenUrl { get; }
+
+        /// <summary>
         /// The Project ID, identifying the data silo to be accessed.
         /// </summary>
         string ProjectId { get; }

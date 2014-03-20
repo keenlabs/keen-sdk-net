@@ -62,6 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EventCacheMemoryTest.cs" />
+    <Compile Include="EventCollectionMock.cs" />
     <Compile Include="KeenClientTest.cs" />
     <Compile Include="ProjectSettingsProviderTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

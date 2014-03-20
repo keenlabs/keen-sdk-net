@@ -63,36 +63,6 @@ namespace Keen.Core
         }
 
         /// <summary>
-        /// Post an event to the keen service endpoint. This method returns both the HttpResponseMessage
-        /// and the parsed JSON response. In the event of an error, the HttpResponseMessage may indicate
-        /// failure, with the JSON response carrying more detailed information. Or the HttpResponseMessage
-        /// may indicate success, with the JSON response indicating partial failure. Or the HttpResponseMessage
-        /// might indicate failure and the JSON response will be empty. The caller is responsible for determining
-        /// how best to use the two pieces of information.
-        /// </summary>
-        /// <param name="keenUrl">Full URL of service endpoint</param>
-        /// <param name="jEvent">A JObject representing the event data</param>
-        /// <param name="authKey">An API authorization key suitable for the specified service</param>
-        /// <returns>The HttpResponseMessage, and a JObject representing the returned JSON</returns>
-        public static async Task<Tuple<HttpResponseMessage, JObject>> PostEvent(string keenUrl, JObject jEvent, string authKey)
-        {
-            var content = jEvent.ToString();
-            Debug.WriteLine("AddEvent json:" + content);
-            using (var client = new HttpClient())
-            using (var contentStream = new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes(content))))
-            {
-                contentStream.Headers.Add("content-type", "application/json");
-
-                client.DefaultRequestHeaders.Add("Authorization", authKey);
-                var httpResponse = await client.PostAsync(keenUrl, contentStream)
-                    .ConfigureAwait(continueOnCapturedContext:false);
-                var responseString = await httpResponse.Content.ReadAsStringAsync()
-                    .ConfigureAwait(continueOnCapturedContext: false);
-                return Tuple.Create( httpResponse, JObject.Parse(responseString));
-            }
-        }
-
-        /// <summary>
         /// Check the 'error_code' field and throw the appropriate exception if non-null.
         /// </summary>
         /// <param name="apiResponse">Deserialized json response from a Keen API call.</param>
@@ -130,5 +100,19 @@ namespace Keen.Core
             }
         }
 
+        /// <summary>
+        /// Flatten an AggregateException and if only one exception instance is found 
+        /// in the innerexceptions, return it, otherwise return the original 
+        /// AggregateException unchanged.
+        /// </summary>
+        /// <param name="ex"></param>
+        /// <returns></returns>
+        internal static Exception TryUnwrap(this AggregateException ex)
+        {
+            if (ex.Flatten().InnerExceptions.Count == 1)
+                return ex.Flatten().InnerExceptions[0];
+            else
+                return ex;
+        }
     }
 }

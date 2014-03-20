@@ -17,6 +17,11 @@ using Keen.Net;
 
 namespace Keen.NET.Test
 {
+    internal class TestSetting
+    {
+        public static bool UseEventCollectionMock = false;
+    }
+
     [TestFixture]
     public class KeenClientTest
     {
@@ -64,6 +69,15 @@ namespace Keen.NET.Test
             var settingsEnv = new ProjectSettingsProviderEnv();
             var settings = new ProjectSettingsProvider(projectId: "X", masterKey: settingsEnv.MasterKey);
             var client = new KeenClient(settings);
+            if (TestSetting.UseEventCollectionMock)
+                client.EventCollection = new EventCollectionMock(settings,
+                    GetSchema: new Func<string, IProjectSettings, JObject>((c, p) =>
+                    {
+                        if ((p == settings) && (c == "X"))
+                            throw new KeenResourceNotFoundException();
+                        else
+                            throw new Exception("Unexpected value");
+                    }));
             Assert.Throws<KeenResourceNotFoundException>(() => client.GetSchema("X"));
         }
 
@@ -72,6 +86,15 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
+            if (TestSetting.UseEventCollectionMock)
+                client.EventCollection = new EventCollectionMock(settings,
+                    GetSchema: new Func<string, IProjectSettings, JObject>((c, p) =>
+                    {
+                        if ((p == settings) && (c == "DoesntExist"))
+                            throw new KeenResourceNotFoundException();
+                        return new JObject();
+                    }));
+
             Assert.Throws<KeenResourceNotFoundException>(() => client.GetSchema("DoesntExist"));
         }
 
@@ -80,18 +103,23 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
+            if (TestSetting.UseEventCollectionMock)
+                client.EventCollection = new EventCollectionMock(settings,
+                    GetSchema: new Func<string, IProjectSettings, JObject>((c, p) =>
+                    {
+                        if ((p == settings) && (c == "AddEventTest"))
+                            return JObject.Parse("{\"properties\":{\"AProperty\": \"string\"}}");
+                        else
+                            throw new KeenResourceNotFoundException(c);
+                    }));
 
-            // setup, ensure that collection AddEventTest exists.
-            Assert.DoesNotThrow(() => client.AddEvent("AddEventTest", new { AProperty = "AValue" }));
-            dynamic response;
             Assert.DoesNotThrow(() =>
             {
-                response = client.GetSchema("AddEventTest");
+                dynamic response = client.GetSchema("AddEventTest");
                 Assert.NotNull(response["properties"]);
                 Assert.NotNull(response["properties"]["AProperty"]);
                 Assert.True((string)response["properties"]["AProperty"] == "string");
             });
-
         }
 
         [Test]
@@ -100,6 +128,14 @@ namespace Keen.NET.Test
             var settingsEnv = new ProjectSettingsProviderEnv();
             var settings = new ProjectSettingsProvider(projectId: "X", writeKey: settingsEnv.WriteKey);
             var client = new KeenClient(settings);
+            if (TestSetting.UseEventCollectionMock)
+                client.EventCollection = new EventCollectionMock(settings,
+                    AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
+                    {
+                        if ((p == settings) && (c == "X") && (e["X"].Value<string>() == "X"))
+                            throw new KeenResourceNotFoundException(c);
+                    }));
+
             Assert.Throws<KeenResourceNotFoundException>(() => client.AddEvent("X", new { X = "X" }));
         }
 
@@ -109,6 +145,13 @@ namespace Keen.NET.Test
             var settingsEnv = new ProjectSettingsProviderEnv();
             var settings = new ProjectSettingsProvider(projectId: settingsEnv.ProjectId, writeKey: "X");
             var client = new KeenClient(settings);
+            if (TestSetting.UseEventCollectionMock)
+                client.EventCollection = new EventCollectionMock(settings,
+                    AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
+                    {
+                        if ((p == settings) && (c == "X") && (e["X"].Value<string>() == "X"))
+                            throw new KeenInvalidApiKeyException(c);
+                    }));
             Assert.Throws<KeenInvalidApiKeyException>(() => client.AddEvent("X", new { X = "X" }));
         }
 
@@ -149,7 +192,16 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
-            Debug.WriteLine("event json:" + JsonConvert.SerializeObject(new { keen = "AValue" }));
+            if (TestSetting.UseEventCollectionMock)
+                client.EventCollection = new EventCollectionMock(settings,
+                    AddEvent: new Action<string,JObject,IProjectSettings>((c,e,p) => 
+                    {
+                        if ((p == settings) && (c == "X") && (e["keen"].Value<string>()=="AValue"))
+                            throw new KeenNamespaceTypeException();
+                        else
+                            throw new Exception("Unexpected value");
+                    }));
+            
             Assert.Throws<KeenNamespaceTypeException>(() => client.AddEvent("X", new { keen = "AValue" }));
         }
 
@@ -158,6 +210,15 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
+            if (TestSetting.UseEventCollectionMock)
+                client.EventCollection = new EventCollectionMock(settings,
+                    AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
+                    {
+                        if ((p == settings) && (c == "AddEventTest") && (e["AProperty"].Value<string>()=="AValue"))
+                            return;
+                        else
+                            throw new Exception("Unexpected values");
+                    }));
             Assert.DoesNotThrow(() => client.AddEvent("AddEventTest", new { AProperty = "AValue" }));
         }
 
@@ -166,7 +227,17 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
-            var events = from e in Enumerable.Range(1,10)
+            if (TestSetting.UseEventCollectionMock)
+                client.EventCollection = new EventCollectionMock(settings,
+                    AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
+                    {
+                        if ((p == settings) && (c == "AddEventTest") && (e["AProperty"].Value<string>().StartsWith("Value")))
+                            return;
+                        else
+                            throw new Exception("Unexpected values");
+                    }));
+
+            var events = from e in Enumerable.Range(1, 10)
                          select new { AProperty = "Value" + e };
             Assert.DoesNotThrow(() => client.AddEvents("AddEventTest", events));
         }
@@ -177,9 +248,20 @@ namespace Keen.NET.Test
             var settingsEnv = new ProjectSettingsProviderEnv();
             var scope = "{\"timestamp\": \"2014-02-25T22:09:27.320082\", \"allowed_operations\": [\"write\"]}";
             var scopedKey = ScopedKey.EncryptString(settingsEnv.MasterKey, scope);
-            var settings = new ProjectSettingsProvider(projectId: settingsEnv.ProjectId, writeKey: scopedKey);
+            var settings = new ProjectSettingsProvider(masterKey: settingsEnv.MasterKey, projectId: settingsEnv.ProjectId, writeKey: scopedKey);
 
             var client = new KeenClient(settings);
+            if (TestSetting.UseEventCollectionMock)
+                client.EventCollection = new EventCollectionMock(settings,
+                    AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
+                    {
+                        var key = JObject.Parse(ScopedKey.Decrypt(p.MasterKey, p.WriteKey));
+                        if ((key["allowed_operations"].Values<string>().First()=="write") && (p == settings) && (c == "AddEventTest") && (e["AProperty"].Value<string>()=="CustomKey"))
+                            return;
+                        else
+                            throw new Exception("Unexpected value");
+                    }));
+
             Assert.DoesNotThrow(() => client.AddEvent("AddEventTest", new { AProperty = "CustomKey" }));
         }
 
@@ -274,6 +356,16 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
+            if (TestSetting.UseEventCollectionMock)
+                client.EventCollection = new EventCollectionMock(settings,
+                    DeleteCollection: new Action<string, IProjectSettings>((c, p) =>
+                    {
+                        if ((p == settings) && (c == "DeleteColTest"))
+                            return;
+                        else
+                            throw new Exception("Unexpected value");
+                    }));
+
             // Idempotent, does not matter if collection does not exist.
             Assert.DoesNotThrow(() => client.DeleteCollection("DeleteColTest"));
         }
@@ -287,12 +379,23 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
+            if (TestSetting.UseEventCollectionMock)
+                client.EventCollection = new EventCollectionMock(settings,
+                    AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
+                    {
+                        if ((p == settings) && (c == "AddEventTest") 
+                            && (e["AProperty"].Value<string>() == "AValue") 
+                            && (e["AGlobal"].Value<string>() == "AValue"))
+                            return;
+                        else
+                            throw new Exception("Unexpected value");
+                    }));
+
             Assert.DoesNotThrow(() =>
                 {
                     client.AddGlobalProperty("AGlobal", "AValue");
                     client.AddEvent("AddEventTest", new { AProperty = "AValue" });
                 });
-
         }
 
         [Test]
@@ -341,6 +444,18 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
+            if (TestSetting.UseEventCollectionMock)
+                client.EventCollection = new EventCollectionMock(settings,
+                    AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
+                    {
+                        if ((p == settings) && (c == "AddEventTest") 
+                            && (e["AProperty"].Value<string>() == "AValue") 
+                            && (e["AGlobal"]["AProperty"].Value<string>() == "AValue"))
+                            return;
+                        else
+                            throw new Exception("Unexpected value");
+                    }));
+
             Assert.DoesNotThrow(() =>
             {
                 client.AddGlobalProperty("AGlobal", new { AProperty = "AValue" });
@@ -353,6 +468,18 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
+            if (TestSetting.UseEventCollectionMock)
+                client.EventCollection = new EventCollectionMock(settings,
+                    AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
+                    {
+                        if ((p == settings) && (c == "AddEventTest")
+                            && (e["AProperty"].Value<string>() == "AValue")
+                            && (e["AGlobal"].Values<int>().All((x) => (x == 1) || (x == 2) || (x == 3))))
+                            return;
+                        else
+                            throw new Exception("Unexpected value");
+                    }));
+
             Assert.DoesNotThrow(() =>
             {
                 client.AddGlobalProperty("AGlobal", new[] { 1, 2, 3, });
@@ -365,6 +492,18 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
+            if (TestSetting.UseEventCollectionMock)
+                client.EventCollection = new EventCollectionMock(settings,
+                    AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
+                    {
+                        if ((p == settings) && (c == "AddEventTest")
+                            && (e["AProperty"].Value<string>() == "AValue")
+                            && (e["AGlobal"]!=null))
+                            return;
+                        else
+                            throw new Exception("Unexpected value");
+                    }));
+
             Assert.DoesNotThrow(() =>
             {
                 client.AddGlobalProperty("AGlobal", new DynamicPropertyValue(() => DateTime.Now.Millisecond));
@@ -378,6 +517,18 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
+            if (TestSetting.UseEventCollectionMock)
+                client.EventCollection = new EventCollectionMock(settings,
+                    AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
+                    {
+                        if ((p == settings) && (c == "AddEventTest") 
+                            && (e["AProperty"].Value<string>() == "AValue")
+                            && (e["AGlobal"].Values<int>().All((x) => (x == 1) || (x == 2) || (x == 3))))
+                            return;
+                        else
+                            throw new Exception("Unexpected value");
+                    }));
+
             Assert.DoesNotThrow(() =>
             {
                 client.AddGlobalProperty("AGlobal", new DynamicPropertyValue(() => new[] { 1, 2, 3 }));
@@ -390,6 +541,18 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
+            if (TestSetting.UseEventCollectionMock)
+                client.EventCollection = new EventCollectionMock(settings,
+                    AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
+                    {
+                        if ((p == settings) && (c == "AddEventTest") 
+                            && (e["AProperty"].Value<string>() == "AValue") 
+                            && (e["AGlobal"].Value<JObject>()["SubProp1"].Value<string>() == "Value"))
+                            return;
+                        else
+                            throw new Exception("Unexpected value");
+                    }));
+
             Assert.DoesNotThrow(() =>
             {
                 client.AddGlobalProperty("AGlobal", new DynamicPropertyValue(() => new { SubProp1 = "Value", SubProp2 = "Value" }));
@@ -418,6 +581,18 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
+            if (TestSetting.UseEventCollectionMock)
+                client.EventCollection = new EventCollectionMock(settings,
+                    AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
+                    {
+                        if ((p == settings) && (c == "AddEventTest") 
+                            && (e["AProperty"].Value<string>() == "AValue")
+                            && (e["AGlobal"].Value<string>() == "value"))
+                            return;
+                        else
+                            throw new Exception("Unexpected value");
+                    }));
+
             var i = 0;
             // return valid for the first two tests, then null
             client.AddGlobalProperty("AGlobal", new DynamicPropertyValue(() => i++ > 1 ? null : "value"));
@@ -471,6 +646,16 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings, new EventCacheMemory());
+            if (TestSetting.UseEventCollectionMock)
+                client.EventCollection = new EventCollectionMock(settings,
+                    AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
+                    {
+                        if ((p == settings) && (c == "CachedEventTest")
+                            && (e["AProperty"].Value<string>() == "AValue"))
+                            return;
+                        else
+                            throw new Exception("Unexpected value");
+                    }));
 
             client.AddEvent("CachedEventTest", new { AProperty = "AValue" });
             client.AddEvent("CachedEventTest", new { AProperty = "AValue" });
@@ -502,6 +687,16 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
+            if (TestSetting.UseEventCollectionMock)
+                client.EventCollection = new EventCollectionMock(settings,
+                    DeleteCollection: new Action<string, IProjectSettings>((c, p) =>
+                    {
+                        if ((p == settings) && (c == "DeleteColTest"))
+                            return;
+                        else
+                            throw new Exception("Unexpected value");
+                    }));
+
             await client.DeleteCollectionAsync("DeleteColTest");
         }
 
@@ -521,7 +716,15 @@ namespace Keen.NET.Test
             var settingsEnv = new ProjectSettingsProviderEnv();
             var settings = new ProjectSettingsProvider(projectId: "X", writeKey: settingsEnv.WriteKey);
             var client = new KeenClient(settings);
-            await client.AddEventAsync("X", new { X = "X" });
+            if (TestSetting.UseEventCollectionMock)
+                client.EventCollection = new EventCollectionMock(settings,
+                    AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
+                    {
+                        if ((p == settings) && (c == "AddEventTest") && (e["AProperty"].Value<string>() == "Value"))
+                            throw new KeenResourceNotFoundException(c);
+                    }));
+
+            await client.AddEventAsync("AddEventTest", new { AProperty = "Value" });
         }
 
         [Test]
@@ -531,7 +734,15 @@ namespace Keen.NET.Test
             var settingsEnv = new ProjectSettingsProviderEnv();
             var settings = new ProjectSettingsProvider(projectId: settingsEnv.ProjectId, writeKey: "X");
             var client = new KeenClient(settings);
-            await client.AddEventAsync("X", new { X = "X" });
+            if (TestSetting.UseEventCollectionMock)
+                client.EventCollection = new EventCollectionMock(settings,
+                    AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
+                    {
+                        if ((p == settings) && (c == "AddEventTest") && (e["AProperty"].Value<string>() == "Value"))
+                            throw new KeenInvalidApiKeyException(c);
+                    }));
+
+            await client.AddEventAsync("AddEventTest", new { AProperty = "Value" });
         }
 
         [Test]
@@ -539,6 +750,14 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
+            if (TestSetting.UseEventCollectionMock)
+                client.EventCollection = new EventCollectionMock(settings,
+                    AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
+                    {
+                        if ((p == settings) && (c == "AddEventTest") && (e["AProperty"].Value<string>() == "Value"))
+                            throw new KeenResourceNotFoundException(c);
+                    }));
+            
             await client.AddEventAsync("AddEventTest", new { AProperty = "AValue" });
         }
 
@@ -556,6 +775,14 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings);
+            if (TestSetting.UseEventCollectionMock)
+                client.EventCollection = new EventCollectionMock(settings,
+                    AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
+                    {
+                        if ((p == settings) && (c == "AddEventTest") && (e["AProperty"].Value<string>().StartsWith("Value")))
+                            return;
+                    }));
+
             var events = from e in Enumerable.Range(1, 10)
                          select new { AProperty = "Value" + e };
             await client.AddEventsAsync("AddEventTest", events);
@@ -566,6 +793,13 @@ namespace Keen.NET.Test
         {
             var settings = new ProjectSettingsProviderEnv();
             var client = new KeenClient(settings, new EventCacheMemory());
+            if (TestSetting.UseEventCollectionMock)
+                client.EventCollection = new EventCollectionMock(settings,
+                    AddEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
+                    {
+                        if ((p == settings) && (c == "CachedEventTest") && (e["AProperty"].Value<string>() == "Value"))
+                            return;
+                    }));
 
             client.AddEvent("CachedEventTest", new { AProperty = "AValue" });
             client.AddEvent("CachedEventTest", new { AProperty = "AValue" });

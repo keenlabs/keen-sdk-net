@@ -3,18 +3,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Keen.Core.EventCache
 {
     public class CachedEvent
     {
-        public string Url { get; set; }
+        public string Collection { get; set; }
         public JObject Event { get; set; }
         public Exception Error { get; set; }
 
-        public CachedEvent(string url, JObject e)
+        public CachedEvent(string collection, JObject e)
         {
-            Url = url;
+            Collection = collection;
             Event = e;
         }
     }

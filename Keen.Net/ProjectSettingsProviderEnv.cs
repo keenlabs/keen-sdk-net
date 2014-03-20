@@ -20,6 +20,7 @@ namespace Keen.NET
         /// </summary>
         public ProjectSettingsProviderEnv()
         {
+            KeenUrl = Environment.GetEnvironmentVariable("KEEN_SERVER_URL") ?? KeenConstants.ServerAddress + "/" + KeenConstants.ApiVersion + "/";
             ProjectId = Environment.GetEnvironmentVariable("KEEN_PROJECT_ID") ?? "";
             MasterKey = Environment.GetEnvironmentVariable("KEEN_MASTER_KEY") ?? "";
             WriteKey = Environment.GetEnvironmentVariable("KEEN_WRITE_KEY") ?? "";

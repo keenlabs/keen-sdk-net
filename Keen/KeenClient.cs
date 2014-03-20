@@ -17,10 +17,19 @@ namespace Keen.Core
     public class KeenClient
     {
         private IProjectSettings _prjSettings;
-        private string keenProjectUri;
-
         private Dictionary<string, object> globalProperties = new Dictionary<string, object>();
 
+        /// <summary>
+        /// EventCollection provides access to the Keen.IO EventCollection API methods.
+        /// The default implementation can be overridden by setting a new implementation here.
+        /// </summary>
+        public IEventCollection EventCollection { get; set; }
+
+        /// <summary>
+        /// EventCache provides a caching implementation allowing events to be cached locally
+        /// instead of being sent one at a time. The implementation is responsible for cache 
+        /// maintenance policy, such as trimming old entries to avoid excessive cache size.
+        /// </summary>
         public IEventCache EventCache { get; private set; }
 
         /// <summary>
@@ -68,17 +77,22 @@ namespace Keen.Core
         {
             // Preconditions
             if (null == prjSettings)
-                throw new KeenException("An ProjectSettings instance is required.");
+                throw new KeenException("An IEventCollection instance is required.");
+            if (null == prjSettings)
+                throw new KeenException("An IProjectSettings instance is required.");
             if (string.IsNullOrWhiteSpace(prjSettings.ProjectId))
                 throw new KeenException("A Project ID is required.");
             if ((string.IsNullOrWhiteSpace(prjSettings.MasterKey)
                 && string.IsNullOrWhiteSpace(prjSettings.WriteKey)))
                 throw new KeenException("A Master or Write API key is required.");
+            if (string.IsNullOrWhiteSpace(prjSettings.KeenUrl))
+                throw new KeenException("A URL for the server address is required.");
 
             _prjSettings = prjSettings;
-
-            keenProjectUri = string.Format("{0}/{1}/projects/{2}/", 
-                KeenConstants.ServerAddress, KeenConstants.ApiVersion, _prjSettings.ProjectId);
+            // The EventCollection interface normally should not need to be set by
+            // callers, so the default implementation is set up here. Users may
+            // override this by injecting an implementation via the property.
+            EventCollection = new EventCollection(_prjSettings);
         }
 
         /// <summary>
@@ -103,15 +117,7 @@ namespace Keen.Core
             if (string.IsNullOrWhiteSpace(_prjSettings.MasterKey))
                 throw new KeenException("Master API key is requried for DeleteCollection");
 
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Add("Authorization", _prjSettings.MasterKey);
-                var responseMsg = await client.DeleteAsync(keenProjectUri + KeenConstants.EventsCollectionResource + "/" + collection)
-                    .ConfigureAwait(continueOnCapturedContext:false); // avoid potential deadlock with syncronous wrapper
-                if (!responseMsg.IsSuccessStatusCode)
-                    throw new KeenException("DeleteCollection failed with status: " + responseMsg.StatusCode);
-            }
-
+            await EventCollection.DeleteCollection(collection);
         }
 
         /// <summary>
@@ -127,13 +133,7 @@ namespace Keen.Core
             }
             catch (AggregateException ex)
             {
-                // if there is a KeenException in there, rethrow that and disregard the rest
-                var ke = ex.InnerExceptions.First((e) => e is KeenException);
-                if (null != ke)
-                    throw ke;
-
-                // otherwise just rethrow the AggregateException
-                throw;
+                throw ex.TryUnwrap();
             }
         }
 
@@ -149,23 +149,7 @@ namespace Keen.Core
             if (string.IsNullOrWhiteSpace(_prjSettings.MasterKey))
                 throw new KeenException("Master API key is requried for GetSchema");
 
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Add("Authorization", _prjSettings.MasterKey);
-                var responseMsg = await client.GetAsync(keenProjectUri + KeenConstants.EventsCollectionResource + "/" + collection)
-                    .ConfigureAwait(continueOnCapturedContext: false); // avoid potential deadlock with syncronous wrapper
-                var responseString = await responseMsg.Content.ReadAsStringAsync()
-                    .ConfigureAwait(continueOnCapturedContext: false);
-                dynamic response = JObject.Parse(responseString);
-
-                // error checking, throw an exception with information from the json 
-                // response if available, then check the HTTP response.
-                KeenUtil.CheckApiErrorCode(response);
-                if (!responseMsg.IsSuccessStatusCode)
-                    throw new KeenException("GetSchema failed with status: " + responseMsg.StatusCode);
-
-                return response;
-            }
+            return await EventCollection.GetSchema(collection);
         }
 
 		/// <summary>
@@ -181,13 +165,7 @@ namespace Keen.Core
             }
             catch (AggregateException ex)
             {
-                // if there is a KeenException in there, rethrow that and disregard the rest
-                var ke = ex.InnerExceptions.First((e) => e is KeenException);
-                if (null != ke)
-                    throw ke;
-
-                // otherwise just rethrow the AggregateException
-                throw;
+                throw ex.TryUnwrap();
             }
         }
 
@@ -204,13 +182,7 @@ namespace Keen.Core
             }
             catch (AggregateException ex)
             {
-                // if there is a KeenException in there, rethrow that and disregard the rest
-                var ke = ex.InnerExceptions.First((e) => e is KeenException);
-                if (null != ke)
-                    throw ke;
-
-                // otherwise just rethrow the AggregateException
-                throw;
+                throw ex.TryUnwrap();
             }
         }
 
@@ -244,7 +216,6 @@ namespace Keen.Core
                 throw new KeenException("Write API key is requried for AddEvent");
 
             var jEvent = JObject.FromObject(eventInfo);
-            string keenUrl = keenProjectUri + KeenConstants.EventsCollectionResource + "/" + collection;
 
             // Add global properties to the event
             foreach (var p in globalProperties)
@@ -265,18 +236,9 @@ namespace Keen.Core
 
             // If an event cache has been provided, cache this event insead of sending it.
             if (null != EventCache)
-                EventCache.Add(new CachedEvent(keenUrl, jEvent));
+                EventCache.Add(new CachedEvent(collection, jEvent));
             else
-            {
-                var response = await KeenUtil.PostEvent(keenUrl, jEvent, _prjSettings.WriteKey)
-                    .ConfigureAwait(continueOnCapturedContext:false);
-
-                // error checking, throw an exception with information from the 
-                // json response if available, then check the HTTP response.
-                KeenUtil.CheckApiErrorCode(response.Item2);
-                if (!response.Item1.IsSuccessStatusCode)
-                    throw new KeenException("AddEvent failed with status: " + response.Item1.StatusCode);
-            }
+                await EventCollection.AddEvent(collection, jEvent);
         }
 
         /// <summary>
@@ -292,13 +254,7 @@ namespace Keen.Core
             }
             catch (AggregateException ex)
             {
-                // if there is a KeenException in there, rethrow that and disregard the rest
-                var ke = ex.InnerExceptions.First((e) => e is KeenException);
-                if (null != ke)
-                    throw ke;
-
-                // otherwise just rethrow the AggregateException
-                throw;
+                throw ex.TryUnwrap();
             }
         }
 
@@ -315,13 +271,7 @@ namespace Keen.Core
             }
             catch (AggregateException ex)
             {
-                // if this is a KeenCacheException, rethrow that and disregard the rest
-                var kce = ex.InnerExceptions.First((e)=> e is KeenCacheException);
-                if (null != kce)
-                    throw kce;
-
-                // otherwise rethrow the AggregateException
-                throw;
+                throw ex.TryUnwrap();
             }
         }
 
@@ -339,26 +289,10 @@ namespace Keen.Core
             CachedEvent e;
 
             while( null != (e=EventCache.TryTake()))
-            { 
-                // Use Event Resource API for bulk posting?
-                //var keenUrl = keenProjectUri + KeenConstants.EventsCollectionResource;
-                //JObject jEvent = JObject.FromObject(eventCollections);
-                // Each property of eventCollections is a collection name, validate each name.
-                //foreach (var i in jEvent.Properties())
-                //    KeenUtil.ValidateEventCollectionName(i.Name);
+            {
                 try
                 {
-                    var response = await KeenUtil.PostEvent(e.Url, e.Event, _prjSettings.WriteKey)
-                        .ConfigureAwait(continueOnCapturedContext:false);
-
-                    // If an error was returned, attached an appropriate exception, but don't throw.
-                    if (response.Item2["error_code"] != null)
-                        e.Error = new KeenException(response.Item2["error_code"].Value<string>() + " : " + response.Item2["message"].Value<string>());
-                    else if (!response.Item1.IsSuccessStatusCode)
-                        e.Error = new KeenException("AddEvent failed with status: " + response.Item1.StatusCode);
-
-                    if (null != e.Error)
-                        failedEvents.Add(e);
+                    await EventCollection.AddEvent(e.Collection, e.Event);
                 }
                 catch (Exception ex)
                 {
