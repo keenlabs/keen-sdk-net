@@ -20,7 +20,7 @@ namespace Keen.NET.Test
 {
     public class TestBase
     {
-        public static bool UseMocks = false;
+        public static bool UseMocks = true;
 
         [TestFixtureSetUp]
         public void Setup()
