@@ -76,7 +76,7 @@ namespace Keen.NET.Test
         public void Decrypt_WriteKey_Success() 
         {
             // if mocking is turned on, the write key will be fake and not decryptable, so skip the test
-            if (UseEventCollectionMock)
+            if (UseMocks)
                 return;
 
             var settings = new ProjectSettingsProviderEnv();
