@@ -811,7 +811,7 @@ namespace Keen.NET.Test
                             throw new Exception("Unexpected value");
                     }));
 
-            for (int i = 0; i < KeenConstants.BulkBatchSize+5; i++)
+            for (int i = 0; i < KeenConstants.BulkBatchSize; i++)
                 client.AddEvent("CachedEventTest", new { AProperty = "AValue" });
 
             Assert.DoesNotThrow(() => client.SendCachedEvents());
