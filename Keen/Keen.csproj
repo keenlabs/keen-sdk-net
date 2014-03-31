@@ -36,8 +36,10 @@
     <!-- A reference to the entire .NET Framework is automatically included -->
     <None Include="app.config" />
     <Compile Include="DynamicPropertyValue.cs" />
+    <Compile Include="Event.cs" />
     <Compile Include="EventCollection.cs" />
     <Compile Include="IDynamicPropertyValue.cs" />
+    <Compile Include="IEvent.cs" />
     <Compile Include="IEventCache.cs" />
     <Compile Include="IEventCollection.cs" />
     <Compile Include="KeenConstants.cs" />

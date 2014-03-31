@@ -63,6 +63,55 @@ namespace Keen.Core
         }
 
         /// <summary>
+        /// Check the 'error' field on a bulk insert operation response and return 
+        /// the appropriate exception.
+        /// </summary>
+        /// <param name="apiResponse">Deserialized json response from a Keen API call.</param>
+        public static Exception GetBulkApiError(JObject apiResponse)
+        {
+            var error = apiResponse.SelectToken("$.error");
+            if (null == error)
+                return null;
+
+            var errCode = error.SelectToken("$.name").ToString();
+            var message = error.SelectToken("$.description").ToString();
+            switch (errCode)
+            {
+                case "InvalidApiKeyError":
+                    return new KeenInvalidApiKeyException(message);
+
+                case "ResourceNotFoundError":
+                    return new KeenResourceNotFoundException(message);
+
+                case "NamespaceTypeError":
+                    return new KeenNamespaceTypeException(message);
+
+                case "InvalidEventError":
+                    return new KeenInvalidEventException(message);
+
+                case "ListsOfNonPrimitivesNotAllowedError":
+                    return new KeenListsOfNonPrimitivesNotAllowedException(message);
+
+                case "InvalidBatchError":
+                    return new KeenInvalidBatchException(message);
+
+                case "InternalServerError":
+                    return new KeenInternalServerErrorException(message);
+
+                case "InvalidKeenNamespaceProperty":
+                    return new KeenInvalidKeenNamespacePropertyException(message);
+
+                case "InvalidPropertyNameError":
+                    return new KeenInvalidPropertyNameException(message);
+
+                default:
+                    Debug.WriteLine("Unhandled error_code \"{0}\" : \"{1}\"", errCode, message);
+                    return new KeenException(errCode + " : " + message);
+            }
+        }
+
+
+        /// <summary>
         /// Check the 'error_code' field and throw the appropriate exception if non-null.
         /// </summary>
         /// <param name="apiResponse">Deserialized json response from a Keen API call.</param>
@@ -92,6 +141,9 @@ namespace Keen.Core
 
                     case "InternalServerError":
                         throw new KeenInternalServerErrorException((string)apiResponse.message);
+
+                    case "InvalidKeenNamespaceProperty":
+                        throw new KeenInvalidKeenNamespacePropertyException((string)apiResponse.message);
 
                     default:
                         Debug.WriteLine("Unhandled error_code \"{0}\" : \"{1}\"", (string)apiResponse.error_code, (string)apiResponse.message);
