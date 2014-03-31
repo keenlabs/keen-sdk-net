@@ -816,7 +816,7 @@ namespace Keen.NET.Test
 
             Assert.DoesNotThrow(() => client.SendCachedEvents());
             Assert.Null(client.EventCache.TryTake(), "Cache is empty");
-            Assert.True( !UseMocks || ( total == KeenConstants.BulkBatchSize + 5));
+            Assert.True( !UseMocks || ( total == KeenConstants.BulkBatchSize));
         }
 
         [Test]
