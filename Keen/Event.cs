@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Keen.Core.EventCache;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -6,20 +7,21 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Keen.Core
 {
-    class EventCollection : IEventCollection
+    class Event : IEvent
     {
-        private string _serverUrl;
         private IProjectSettings _prjSettings;
+        private string _serverUrl;
 
-        public async System.Threading.Tasks.Task<JObject> GetSchema(string collection)
+        public async Task<JObject> GetSchemas()
         {
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Add("Authorization", _prjSettings.MasterKey);
-                var responseMsg = await client.GetAsync(_serverUrl + collection)
+                var responseMsg = await client.GetAsync(_serverUrl)
                     .ConfigureAwait(continueOnCapturedContext: false);
                 var responseString = await responseMsg.Content.ReadAsStringAsync()
                     .ConfigureAwait(continueOnCapturedContext: false);
@@ -29,27 +31,20 @@ namespace Keen.Core
                 // response if available, then check the HTTP response.
                 KeenUtil.CheckApiErrorCode(response);
                 if (!responseMsg.IsSuccessStatusCode)
-                    throw new KeenException("GetSchema failed with status: " + responseMsg.StatusCode);
+                    throw new KeenException("GetSchemas failed with status: " + responseMsg.StatusCode);
 
                 return response;
             }
         }
 
-        public async System.Threading.Tasks.Task DeleteCollection(string collection)
+        /// <summary>
+        /// Add all events in a single request.
+        /// </summary>
+        /// <param name="events"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<CachedEvent>> AddEvents(JObject events)
         {
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Add("Authorization", _prjSettings.MasterKey);
-                var responseMsg = await client.DeleteAsync(_serverUrl + collection)
-                    .ConfigureAwait(continueOnCapturedContext: false); 
-                if (!responseMsg.IsSuccessStatusCode)
-                    throw new KeenException("DeleteCollection failed with status: " + responseMsg.StatusCode);
-            }
-        }
-
-        public async System.Threading.Tasks.Task AddEvent(string collection, JObject anEvent)
-        {
-            var content = anEvent.ToString();
+            var content = events.ToString();
 
             using (var client = new HttpClient())
             using (var contentStream = new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes(content))))
@@ -57,7 +52,7 @@ namespace Keen.Core
                 contentStream.Headers.Add("content-type", "application/json");
 
                 client.DefaultRequestHeaders.Add("Authorization", _prjSettings.WriteKey);
-                var httpResponse = await client.PostAsync(_serverUrl + collection, contentStream)
+                var httpResponse = await client.PostAsync(_serverUrl, contentStream)
                     .ConfigureAwait(continueOnCapturedContext: false);
                 var responseString = await httpResponse.Content.ReadAsStringAsync()
                     .ConfigureAwait(continueOnCapturedContext: false);
@@ -69,23 +64,38 @@ namespace Keen.Core
                     // like that, this will throw. 
                     jsonResponse = JObject.Parse(responseString);
                 }
-                catch (Exception) 
-                { }
+                catch (Exception)
+                {}
 
-                // error checking, throw an exception with information from the 
-                // json response if available, then check the HTTP response.
-                KeenUtil.CheckApiErrorCode(jsonResponse);
                 if (!httpResponse.IsSuccessStatusCode)
-                    throw new KeenException("AddEvent failed with status: " + httpResponse);
+                    throw new KeenException("AddEvents failed with status: " + httpResponse);
+                if (null == jsonResponse)
+                    throw new KeenException("AddEvents failed with empty response from server.");
+
+                // error checking, return failed events in the list,
+                // or if the HTTP response is a failure, throw.
+                var failedItems = from respCols in jsonResponse.Properties()
+                                  from eventsCols in events.Properties()
+                                  where respCols.Name == eventsCols.Name
+                                  let collection = respCols.Name
+                                  let combined = eventsCols.Children().Children()
+                                    .Zip(respCols.Children().Children(), 
+                                    (e, r) => new { eventObj = (JObject)e, result = (JObject)r })
+                                  from e in combined
+                                  where !(bool)(e.result.Property("success").Value)
+                                  select new CachedEvent(collection, e.eventObj, KeenUtil.GetBulkApiError(e.result));
+                
+                return failedItems;
             }
         }
 
-        public EventCollection(IProjectSettings prjSettings)
+        public Event(IProjectSettings prjSettings)
         {
             _prjSettings = prjSettings;
-
-            _serverUrl = string.Format("{0}projects/{1}/{2}/",
+        
+            _serverUrl = string.Format("{0}projects/{1}/{2}",
                 _prjSettings.KeenUrl, _prjSettings.ProjectId, KeenConstants.EventsResource);
         }
+
     }
 }

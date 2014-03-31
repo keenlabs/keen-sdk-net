@@ -61,11 +61,25 @@ namespace Keen.Core
         public KeenInternalServerErrorException(string message) : base(message) { }
         public KeenInternalServerErrorException(string message, Exception inner) : base(message, inner) { }
     }
+    
+    public class KeenInvalidKeenNamespacePropertyException: KeenException
+    {
+        public KeenInvalidKeenNamespacePropertyException() { }
+        public KeenInvalidKeenNamespacePropertyException(string message) : base(message) { }
+        public KeenInvalidKeenNamespacePropertyException(string message, Exception inner) : base(message, inner) { }
+    }
+    
+    public class KeenInvalidPropertyNameException: KeenException
+    {
+        public KeenInvalidPropertyNameException() { }
+        public KeenInvalidPropertyNameException(string message) : base(message) { }
+        public KeenInvalidPropertyNameException(string message, Exception inner) : base(message, inner) { }
+    }
 
-    public class KeenCacheException : KeenException
+    public class KeenBulkException : KeenException
     {
         private IEnumerable<CachedEvent> _failedEvents;
-        public KeenCacheException(IEnumerable<CachedEvent> failedEvents) { _failedEvents = failedEvents; }
-        public KeenCacheException(string message, IEnumerable<CachedEvent> failedEvents ) : base(message) { _failedEvents = failedEvents; }
+        public KeenBulkException(IEnumerable<CachedEvent> failedEvents) { _failedEvents = failedEvents; }
+        public KeenBulkException(string message, IEnumerable<CachedEvent> failedEvents ) : base(message) { _failedEvents = failedEvents; }
     }
 }
