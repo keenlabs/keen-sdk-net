@@ -37,6 +37,7 @@
     <None Include="app.config" />
     <Compile Include="DynamicPropertyValue.cs" />
     <Compile Include="Event.cs" />
+    <Compile Include="EventCachePortable.cs" />
     <Compile Include="EventCollection.cs" />
     <Compile Include="IDynamicPropertyValue.cs" />
     <Compile Include="IEvent.cs" />
@@ -62,6 +63,12 @@
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\packages\Newtonsoft.Json.6.0.1\lib\portable-net40+sl5+wp80+win8+monotouch+monoandroid\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="PCLStorage">
+      <HintPath>..\packages\PCLStorage.0.9.4\lib\portable-net45+sl5+wp8+win8+monoandroid+monotouch\PCLStorage.dll</HintPath>
+    </Reference>
+    <Reference Include="PCLStorage.Abstractions">
+      <HintPath>..\packages\PCLStorage.0.9.4\lib\portable-net45+sl5+wp8+win8+monoandroid+monotouch\PCLStorage.Abstractions.dll</HintPath>
     </Reference>
     <Reference Include="System.IO">
       <HintPath>..\packages\Microsoft.Bcl.1.1.6\lib\portable-net40+sl5+win8+wp8\System.IO.dll</HintPath>

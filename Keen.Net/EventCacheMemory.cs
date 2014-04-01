@@ -12,25 +12,34 @@ namespace Keen.Net
     {
         private Queue<CachedEvent> events = new Queue<CachedEvent>();
 
-        public void Add(CachedEvent e)
+        public Task Add(CachedEvent e)
         {
             if (null == e)
                 throw new KeenException("Cached events may not be null");
 
-            lock(events)
-                events.Enqueue(e);
+            return Task.Run(() =>
+            {
+                lock (events)
+                    events.Enqueue(e);
+            });
         }
 
-        public void Clear()
+        public Task Clear()
         {
-            lock(events)
-                events.Clear();
+            return Task.Run(() =>
+            {
+                lock (events)
+                    events.Clear();
+            });
         }
 
-        public CachedEvent TryTake()
+        public Task<CachedEvent> TryTake()
         {
-            lock(events)
-                return events.Any() ? events.Dequeue() : null;
+            return Task.Run(() =>
+            {
+                lock (events)
+                    return events.Any() ? events.Dequeue() : null;
+            });
         }
     }
 }

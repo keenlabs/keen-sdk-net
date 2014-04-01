@@ -29,8 +29,8 @@ namespace Keen.Core.EventCache
 
     public interface IEventCache
     {
-        void Add(CachedEvent e);
-        CachedEvent TryTake();
-        void Clear();
+        Task Add(CachedEvent e);
+        Task<CachedEvent> TryTake();
+        Task Clear();
     }
 }
