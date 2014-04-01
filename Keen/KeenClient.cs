@@ -124,7 +124,8 @@ namespace Keen.Core
             if (string.IsNullOrWhiteSpace(_prjSettings.MasterKey))
                 throw new KeenException("Master API key is requried for DeleteCollection");
 
-            await EventCollection.DeleteCollection(collection);
+            await EventCollection.DeleteCollection(collection)
+                .ConfigureAwait(continueOnCapturedContext: false);
         }
 
         /// <summary>
@@ -154,7 +155,8 @@ namespace Keen.Core
             if (string.IsNullOrWhiteSpace(_prjSettings.MasterKey))
                 throw new KeenException("Master API key is requried for GetSchemas");
 
-            return await Event.GetSchemas();
+            return await Event.GetSchemas()
+                .ConfigureAwait(continueOnCapturedContext: false);
         }
 
         /// <summary>
@@ -184,7 +186,8 @@ namespace Keen.Core
             if (string.IsNullOrWhiteSpace(_prjSettings.MasterKey))
                 throw new KeenException("Master API key is requried for GetSchema");
 
-            return await EventCollection.GetSchema(collection);
+            return await EventCollection.GetSchema(collection)
+                .ConfigureAwait(continueOnCapturedContext: false);
         }
 
 		/// <summary>
@@ -240,7 +243,8 @@ namespace Keen.Core
             jEvent.Add(collection, JToken.FromObject(eventsInfo));
 
             // Use the bulk interface to add events
-            return await Event.AddEvents(jEvent);
+            return await Event.AddEvents(jEvent)
+                .ConfigureAwait(continueOnCapturedContext: false);
         }
 
         /// <summary>
@@ -265,7 +269,8 @@ namespace Keen.Core
             {
                 var jEvent = PrepareUserObject(e); 
                 if (null!=mainCache)
-                    mainCache.Add(new CachedEvent(collection, jEvent));
+                    await mainCache.Add(new CachedEvent(collection, jEvent))
+                        .ConfigureAwait(continueOnCapturedContext: false);
                 else
                     localCache.Add(jEvent);
             }
@@ -274,7 +279,8 @@ namespace Keen.Core
             // ahead and send it using the bulk interface.
             if (localCache.Any())
             {
-                var errs = await AddEventsBulkAsync(collection, localCache);
+                var errs = await AddEventsBulkAsync(collection, localCache)
+                        .ConfigureAwait(continueOnCapturedContext: false);
                 if (errs.Any())
                     throw new KeenBulkException("One or more events was rejected during the bulk add operation", errs);
             }
@@ -298,9 +304,11 @@ namespace Keen.Core
 
             // If an event cache has been provided, cache this event insead of sending it.
             if (null != EventCache)
-                EventCache.Add(new CachedEvent(collection, jEvent));
+                await EventCache.Add(new CachedEvent(collection, jEvent))
+                    .ConfigureAwait(continueOnCapturedContext: false);
             else
-                await EventCollection.AddEvent(collection, jEvent);
+                await EventCollection.AddEvent(collection, jEvent)
+                    .ConfigureAwait(continueOnCapturedContext: false);
         }
 
         /// <summary>
@@ -410,7 +418,7 @@ namespace Keen.Core
             };
 
             // Take items from the cache and sort them by collection
-            while (null != (e = EventCache.TryTake()))
+            while (null != (e = await EventCache.TryTake().ConfigureAwait(continueOnCapturedContext: false)))
             {
                 var batch = getListFor(e.Collection);
                 batch.Add(e);
@@ -418,14 +426,14 @@ namespace Keen.Core
                 // If this collection has reached the maximum batch size, send it
                 if (batch.Count == KeenConstants.BulkBatchSize)
                 {
-                    failedEvents.AddRange(await AddEventsBulkAsync(e.Collection, batch.Select((n) => n.Event)));
+                    failedEvents.AddRange(await AddEventsBulkAsync(e.Collection, batch.Select((n) => n.Event)).ConfigureAwait(continueOnCapturedContext: false));
                     batch.Clear();
                 }
             }
             
             // Send the remainder of all the collections
             foreach (var c in batches.Where(b => b.Value.Any()))
-                failedEvents.AddRange(await AddEventsBulkAsync(c.Key, c.Value.Select((n) => n.Event)));
+                failedEvents.AddRange(await AddEventsBulkAsync(c.Key, c.Value.Select((n) => n.Event)).ConfigureAwait(continueOnCapturedContext: false));
 
             // if there where any failures, throw and include the errored items and details.
             if (failedEvents.Any())
