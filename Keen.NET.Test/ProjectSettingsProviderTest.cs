@@ -8,7 +8,7 @@ using NUnit.Framework;
 using Keen.Core;
 using System.IO;
 
-namespace Keen.NET.Test
+namespace Keen.net.Test
 {
     [TestFixture]
     public class ProjectSettingsProviderTest

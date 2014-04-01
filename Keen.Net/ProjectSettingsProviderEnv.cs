@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Keen.Core;
 
-namespace Keen.NET
+namespace Keen.net
 {
     /// <summary>
     /// Project settings provider which reads project settings from environment variables.

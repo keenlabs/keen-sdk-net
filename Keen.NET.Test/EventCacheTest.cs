@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
-namespace Keen.NET.Test
+namespace Keen.net.Test
 {
     [TestFixture]
     public class EventCacheTest : TestBase
