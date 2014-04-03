@@ -38,6 +38,13 @@ Event data is provided to the client as an object. A simple way to do this is wi
   keenClient.AddEvent("purchases", aPurchase);
 ```
 
+Recording Events Asynchronously
+-------------------------------
+
+Sometimes you want to record events in a non-blocking manner.  This is pretty simple:
+
+  `keenClient.AddEventAsync("purchases", aPurchase);`
+
 Using Global Properties
 -----------------------
 
