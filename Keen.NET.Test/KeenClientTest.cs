@@ -16,7 +16,7 @@ using Newtonsoft.Json.Linq;
 using Keen.Net;
 using Keen.Core.EventCache;
 
-namespace Keen.net.Test
+namespace Keen.Net.Test
 {
     public class TestBase
     {

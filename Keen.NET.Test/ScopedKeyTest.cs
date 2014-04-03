@@ -10,7 +10,7 @@ using System.Diagnostics;
 using System.Dynamic;
 using System.Collections;
 
-namespace Keen.net.Test
+namespace Keen.Net.Test
 {
     [TestFixture]
     public class ScopedKeyTest : TestBase

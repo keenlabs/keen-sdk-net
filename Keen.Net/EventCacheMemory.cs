@@ -8,6 +8,11 @@ using System.Threading.Tasks;
 
 namespace Keen.Net
 {
+    /// <summary>
+    /// <para>This is a simple memory-based cache provider. It has no cache-expiration policy.
+    /// To use, pass an instance of this class when constructing KeenClient</para>
+    /// <seealso cref="Keen.Core.KeenClient"/>
+    /// </summary>
     public class EventCacheMemory : IEventCache
     {
         private Queue<CachedEvent> events = new Queue<CachedEvent>();

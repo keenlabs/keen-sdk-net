@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
-namespace Keen.net.Test
+namespace Keen.Net.Test
 {
     [TestFixture]
     public class EventCacheTest : TestBase
@@ -18,7 +18,7 @@ namespace Keen.net.Test
         static object[] Providers = 
         {
             new object[] { new EventCacheMemory() },
-            new object[] { EventCachePortable.Factory() },
+            new object[] { EventCachePortable.New() },
         };
 
         [Test]

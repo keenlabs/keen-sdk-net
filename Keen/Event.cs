@@ -11,11 +11,18 @@ using System.Threading.Tasks;
 
 namespace Keen.Core
 {
-    class Event : IEvent
+    /// <summary>
+    /// Event implements the IEvent interface which represents the Keen.IO Event API methods.
+    /// </summary>
+    internal class Event : IEvent
     {
         private IProjectSettings _prjSettings;
         private string _serverUrl;
 
+        /// <summary>
+        /// Get details of all schemas in the project.
+        /// </summary>
+        /// <returns></returns>
         public async Task<JObject> GetSchemas()
         {
             using (var client = new HttpClient())
@@ -65,7 +72,7 @@ namespace Keen.Core
                     jsonResponse = JObject.Parse(responseString);
                 }
                 catch (Exception)
-                {}
+                { }
 
                 if (!httpResponse.IsSuccessStatusCode)
                     throw new KeenException("AddEvents failed with status: " + httpResponse);
@@ -79,12 +86,12 @@ namespace Keen.Core
                                   where respCols.Name == eventsCols.Name
                                   let collection = respCols.Name
                                   let combined = eventsCols.Children().Children()
-                                    .Zip(respCols.Children().Children(), 
+                                    .Zip(respCols.Children().Children(),
                                     (e, r) => new { eventObj = (JObject)e, result = (JObject)r })
                                   from e in combined
                                   where !(bool)(e.result.Property("success").Value)
                                   select new CachedEvent(collection, e.eventObj, KeenUtil.GetBulkApiError(e.result));
-                
+
                 return failedItems;
             }
         }
@@ -92,7 +99,7 @@ namespace Keen.Core
         public Event(IProjectSettings prjSettings)
         {
             _prjSettings = prjSettings;
-        
+
             _serverUrl = string.Format("{0}projects/{1}/{2}",
                 _prjSettings.KeenUrl, _prjSettings.ProjectId, KeenConstants.EventsResource);
         }

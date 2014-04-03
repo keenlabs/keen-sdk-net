@@ -9,7 +9,10 @@ using System.Text;
 
 namespace Keen.Core
 {
-    class EventCollection : IEventCollection
+    /// <summary>
+    /// EventCollection implements the IEventCollection interface which represents the Keen.IO EventCollection API methods.
+    /// </summary>
+    internal class EventCollection : IEventCollection
     {
         private string _serverUrl;
         private IProjectSettings _prjSettings;

@@ -42,7 +42,9 @@ namespace Keen.Core
         /// <param name="collection"></param>
         public static void ValidateEventCollectionName(string collection)
         {
-            // avoid cost of re-checking collection names that have already been validated.
+            // Avoid cost of re-checking collection names that have already been validated.
+            // There is a race condition here, but it's harmless and does not justify the
+            // overhead of synchronization.
             if (validCollectionNames.Contains(collection))
                 return;
 

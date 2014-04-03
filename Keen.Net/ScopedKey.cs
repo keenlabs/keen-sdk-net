@@ -9,6 +9,10 @@ using System.Diagnostics;
 
 namespace Keen.Core
 {
+    /// <summary>
+    /// ScopedKey provides encryption and decryption functions which can be used to create 
+    /// and read scoped keys, such as the API Read and Write keys. 
+    /// </summary>
     public static class ScopedKey
     {
         private static readonly int KeySize = 32;

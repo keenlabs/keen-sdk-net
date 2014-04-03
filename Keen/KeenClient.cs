@@ -94,7 +94,7 @@ namespace Keen.Core
                 throw new KeenException("A URL for the server address is required.");
 
             _prjSettings = prjSettings;
-            // The EventCollection and Event interfacea normally should not need to 
+            // The EventCollection and Event interface normally should not need to 
             // be set by callers, so the default implementation is set up here. Users 
             // may override these by injecting an implementation via the property.
             EventCollection = new EventCollection(_prjSettings);

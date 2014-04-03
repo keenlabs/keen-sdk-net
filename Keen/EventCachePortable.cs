@@ -10,6 +10,13 @@ using System.Threading.Tasks;
 
 namespace Keen.Core
 {
+    /// <summary>
+    /// <para>EventCachePortable implements the IEventCache interface using
+    /// file-based storage via the PCLStorage library. It has no
+    /// cache-expiration policy.</para>
+    /// <para>To use, pass an instance of this class when constructing KeenClient.
+    /// To construct a new instance, call the static New() method.</para>
+    /// </summary>
     public class EventCachePortable : IEventCache
     {
         private static Queue<string> events = new Queue<string>();
@@ -17,11 +24,15 @@ namespace Keen.Core
         private EventCachePortable()
         {}
 
-        public static EventCachePortable Factory()
+        /// <summary>
+        /// Create, initialize and return an instance of EventCachePortable.
+        /// </summary>
+        /// <returns></returns>
+        public static EventCachePortable New()
         {
             try
             {
-                return FactoryAsync().Result;
+                return NewAsync().Result;
             }
             catch (AggregateException ex)
             {
@@ -30,7 +41,11 @@ namespace Keen.Core
             } 
         }
 
-        public static async Task<EventCachePortable> FactoryAsync()
+        /// <summary>
+        /// Create, initialize and return an instance of EventCachePortable.
+        /// </summary>
+        /// <returns></returns>
+        public static async Task<EventCachePortable> NewAsync()
         {
             var instance = new EventCachePortable();
 
@@ -57,18 +72,24 @@ namespace Keen.Core
             IFile file;
             var attempts = 0;
             var done = false;
+            string name = null;
             do
             {
                 attempts++;
 
-                string name;
-                lock (events)
-                {
-                    var i = 0;
-                    while (events.Contains(name = e.Collection + i++))
-                        ;
-                    events.Enqueue(name);
-                }
+                // Avoid race conditions in parallel environment by locking on the events queue
+                // and generating and inserting a unique name within the lock. CreateFileAsync has
+                // a CreateCollisionOption.GenerateUniqueName, but it will return the same name
+                // multiple times when called from parallel tasks.
+                // If creating and writing the file fails, loop around and 
+                if (string.IsNullOrEmpty(name))
+                    lock (events)
+                    {
+                        var i = 0;
+                        while (events.Contains(name = e.Collection + i++))
+                            ;
+                        events.Enqueue(name);
+                    }
 
                 Exception lastErr = null;
                 try
@@ -88,6 +109,10 @@ namespace Keen.Core
                     lastErr = ex;
                 }
 
+                // If the file was not created, not written, or partially written,
+                // the events queue may be left with a file name that references a 
+                // file that is nonexistent, empty, or invalid. It's easier to handle
+                // this when the queue is read than to try to dequeue the name.
                 if (attempts > 100)
                     throw new KeenException("Persistent failure while saving file, aborting", lastErr);
             } while (!done);           
