@@ -6,11 +6,15 @@ Installation
 
 The easiest way to get started with the .NET SDK is to use the NuGet package. That can be installed from the Package Manager Console in Visual Studio with the command :
 
-  `Install-Package KeenClient -Version 0.1.3`
+```
+  Install-Package KeenClient -Version 0.1.3
+```
 
 The most up to date code is available in this repo.
 
-  `https://github.com/keenlabs/keen-sdk-net`
+```
+  https://github.com/keenlabs/keen-sdk-net
+```  
 
 Initializing the Library
 ------------------------
@@ -43,14 +47,18 @@ Recording Events Asynchronously
 
 Sometimes you want to record events in a non-blocking manner.  This is pretty simple:
 
-  `keenClient.AddEventAsync("purchases", aPurchase);`
+```
+  keenClient.AddEventAsync("purchases", aPurchase);
+```
 
 Using Global Properties
 -----------------------
 
 Static global properties are added with the KeenClient AddGlobalProperty method:
 
-  `keenClient.AddGlobalProperty("clienttype", "mobile");`
+```
+  keenClient.AddGlobalProperty("clienttype", "mobile");
+```
 
 Static global properties are added at the root level of all events just before they are sent or cached.
 
