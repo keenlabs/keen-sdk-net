@@ -4,10 +4,12 @@ keen-sdk-net
 Installation
 ------------
 
-The easiest way to get started with the .NET SDK is to use the NuGet package. That can be installed from the Package Manager Console in Visual Studio with the command :
+The easiest way to get started with the .NET SDK is to use the [KeenClient NuGet package](http://www.nuget.org/packages/KeenClient/). 
+
+That can be installed from the Package Manager Console in Visual Studio with the command :
 
 ```
-  Install-Package KeenClient -Version 0.1.3
+  PM> Install-Package KeenClient
 ```
 
 The most up to date code is available in this repo.
