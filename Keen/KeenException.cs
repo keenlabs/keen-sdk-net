@@ -79,6 +79,7 @@ namespace Keen.Core
     public class KeenBulkException : KeenException
     {
         private IEnumerable<CachedEvent> _failedEvents;
+        public IEnumerable<CachedEvent> FailedEvents { get { return _failedEvents; } protected set { ; } }
         public KeenBulkException(IEnumerable<CachedEvent> failedEvents) { _failedEvents = failedEvents; }
         public KeenBulkException(string message, IEnumerable<CachedEvent> failedEvents ) : base(message) { _failedEvents = failedEvents; }
     }

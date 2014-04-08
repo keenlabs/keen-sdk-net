@@ -789,7 +789,8 @@ namespace Keen.Net.Test
                     AddEvents: new Func<JObject, IProjectSettings, IEnumerable<CachedEvent>>((e, p) =>
                     {
                         if (p == settingsEnv)
-                            throw new KeenBulkException("Mock exception", new List<CachedEvent>());
+                            throw new KeenBulkException("Mock exception", 
+                                new List<CachedEvent>(){new CachedEvent("CachedEventTest", e, new Exception())});
                         else
                             throw new Exception("Unexpected value");
                     }));
@@ -800,7 +801,18 @@ namespace Keen.Net.Test
             
             anEvent.Add("keen", JObject.FromObject(new {invalidPropName = "value"} ));
             client.AddEvent("CachedEventTest", anEvent);
-            Assert.Throws<KeenBulkException>(() => client.SendCachedEvents());
+            Assert.DoesNotThrow(() => 
+                {
+                    try
+                    {
+                        client.SendCachedEvents();
+                    } 
+                    catch (KeenBulkException ex)
+                    {
+                        if (ex.FailedEvents.Count() != 1)
+                            throw new Exception("Expected 1 failed event.");
+                    }
+                });
         }
     }
 
