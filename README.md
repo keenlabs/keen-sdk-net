@@ -4,7 +4,12 @@ keen-sdk-net
 Usage
 -----
 
-The Keen IO .NET SDK is used to do custom analytics and event tracking for .NET applciations. Use this SDK to capture large volumes of event data such as user actions, errors, server interactions, or any arbitrary event you specify. The SDK posts your events to Keen IO, a highly available, scalable cloud datastore. See [Keen IO docs](https://keen.io/docs) for instructions on extracting, querying, and building custom analytics with your data.
+The Keen IO .NET SDK is used to do custom analytics and event tracking for .NET applications. Use this SDK to capture large volumes of event data such as user actions, errors, server interactions, or any arbitrary event you specify. The SDK posts your events to Keen IO, a highly available, scalable cloud datastore. See [Keen IO docs](https://keen.io/docs) for instructions on extracting, querying, and building custom analytics with your data.
+
+Requirements
+------------
+
+The SDK was written for .NET v4.5, though it may work with other versions.
 
 
 Installation
