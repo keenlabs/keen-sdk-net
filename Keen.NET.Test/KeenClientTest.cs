@@ -24,7 +24,7 @@ namespace Keen.Net.Test
         public IProjectSettings settingsEnv;
 
         [TestFixtureSetUp]
-        public void Setup()
+        public virtual void Setup()
         {
             if (UseMocks)
                 SetupEnv();
@@ -32,7 +32,7 @@ namespace Keen.Net.Test
         }
 
         [TestFixtureTearDown]
-        public void TearDown()
+        public virtual void TearDown()
         {
             if (UseMocks)
                 ResetEnv();

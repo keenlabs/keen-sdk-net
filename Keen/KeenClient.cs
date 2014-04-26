@@ -1,4 +1,5 @@
 ﻿using Keen.Core.EventCache;
+using Keen.Core.Query;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -28,7 +29,7 @@ namespace Keen.Core
 
         /// <summary>
         /// Event provides access to the Keen.IO Event API methods.
-        /// The default implementation can be overridden by setting a enw implementation here.
+        /// The default implementation can be overridden by setting a new implementation here.
         /// </summary>
         public IEvent Event { get; set; }
 
@@ -38,6 +39,12 @@ namespace Keen.Core
         /// maintenance policy, such as trimming old entries to avoid excessive cache size.
         /// </summary>
         public IEventCache EventCache { get; private set; }
+
+        /// <summary>
+        /// Queries provices access to the Keen.IO Queries API methods.
+        /// The default implementation can be overridden by setting a new implementation here.
+        /// </summary>
+        public IQueries Queries { get; set; }
 
         /// <summary>
         /// Add a static global property. This property will be added to
@@ -56,7 +63,7 @@ namespace Keen.Core
             if (dynProp != null)
                 // Execute the property once before it is needed to check the value
                 ExecDynamicPropertyValue(property, dynProp);
-            
+
             globalProperties.Add(property, value);
         }
 
@@ -71,15 +78,15 @@ namespace Keen.Core
             {
                 throw new KeenException(string.Format("Dynamic property \"{0}\" execution failure", propName), e);
             }
-            if (result==null)
+            if (result == null)
                 throw new KeenException(string.Format("Dynamic property \"{0}\" execution returned null", propName));
             return result;
         }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="prjSettings">A ProjectSettings instance containing the ProjectId and API keys</param>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="prjSettings">A ProjectSettings instance containing the ProjectId and API keys</param>
         public KeenClient(IProjectSettings prjSettings)
         {
             // Preconditions
@@ -99,7 +106,7 @@ namespace Keen.Core
             // may override these by injecting an implementation via the property.
             EventCollection = new EventCollection(_prjSettings);
             Event = new Event(_prjSettings);
-
+            Queries = new Queries(_prjSettings);
         }
 
         /// <summary>
@@ -107,7 +114,8 @@ namespace Keen.Core
         /// </summary>
         /// <param name="prjSettings">A ProjectSettings instance containing the ProjectId and API keys</param>
         /// <param name="eventCache">An IEventCache instance providing a caching strategy</param>
-        public KeenClient(IProjectSettings prjSettings, IEventCache eventCache) : this(prjSettings)
+        public KeenClient(IProjectSettings prjSettings, IEventCache eventCache)
+            : this(prjSettings)
         {
             EventCache = eventCache;
         }
@@ -168,7 +176,8 @@ namespace Keen.Core
             try
             {
                 return Event.GetSchemas().Result;
-            } catch (AggregateException ex)
+            }
+            catch (AggregateException ex)
             {
                 throw ex.TryUnwrap();
             }
@@ -190,11 +199,11 @@ namespace Keen.Core
                 .ConfigureAwait(continueOnCapturedContext: false);
         }
 
-		/// <summary>
-		/// Retrieve the schema for the specified collection. This requires
+        /// <summary>
+        /// Retrieve the schema for the specified collection. This requires
         /// a value for the project settings Master API key.
-		/// </summary>
-		/// <param name="collection"></param>
+        /// </summary>
+        /// <param name="collection"></param>
         public dynamic GetSchema(string collection)
         {
             try
@@ -267,8 +276,8 @@ namespace Keen.Core
             // add to the main cache if it exists, or if not to the local object list.
             foreach (var e in eventsInfo)
             {
-                var jEvent = PrepareUserObject(e); 
-                if (null!=mainCache)
+                var jEvent = PrepareUserObject(e);
+                if (null != mainCache)
                     await mainCache.Add(new CachedEvent(collection, jEvent))
                         .ConfigureAwait(continueOnCapturedContext: false);
                 else
@@ -350,7 +359,7 @@ namespace Keen.Core
 
             // Set the keen.timestamp if it has not already been set
             JObject keen = ((JObject)jEvent.Property("keen").Value);
-            if (null==keen.Property("timestamp"))
+            if (null == keen.Property("timestamp"))
                 keen.Add("timestamp", DateTime.Now);
 
             return jEvent;
@@ -360,7 +369,7 @@ namespace Keen.Core
         /// Add a single event to the specified collection.
         /// </summary>
         /// <param name="collection">Collection name</param>
-        /// <param name="eventProperties">The event to add. This should be a </param>
+        /// <param name="eventProperties">An object representing the event to be added.</param>
         public void AddEvent(string collection, object eventInfo)
         {
             try
@@ -398,14 +407,14 @@ namespace Keen.Core
         /// </summary>
         public async Task SendCachedEventsAsync()
         {
-            if (null==EventCache)
+            if (null == EventCache)
                 throw new KeenException("Event caching is not enabled");
 
             CachedEvent e;
             var batches = new Dictionary<string, List<CachedEvent>>();
             var failedEvents = new List<CachedEvent>();
 
-            Func<string, List<CachedEvent>> getListFor = c => 
+            Func<string, List<CachedEvent>> getListFor = c =>
             {
                 if (batches.ContainsKey(c))
                     return batches[c];
@@ -430,7 +439,7 @@ namespace Keen.Core
                     batch.Clear();
                 }
             }
-            
+
             // Send the remainder of all the collections
             foreach (var c in batches.Where(b => b.Value.Any()))
                 failedEvents.AddRange(await AddEventsBulkAsync(c.Key, c.Value.Select((n) => n.Event)).ConfigureAwait(continueOnCapturedContext: false));
@@ -440,5 +449,39 @@ namespace Keen.Core
                 throw new KeenBulkException("One or more cached events could not be submitted", failedEvents);
         }
 
+        /// <summary>
+        /// Retrieve a list of all the queries supported by the API.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IEnumerable<KeyValuePair<string, string>>> GetQueries()
+        {
+            return await Queries.AvailableQueries();
+        }
+
+        /// <summary>
+        /// Returns the number of resources in the event collection.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query</param>
+        /// <param name="filters">Filter to narrow down the events used in analysis</param>
+        /// <param name="relativeTimeframe">Specifies window of time from which to select events for analysis</param>
+        /// <returns></returns>
+        public async Task<int> QueryCount(string collection, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null)
+        {
+            return await Queries.Count(collection, timeframe, filters);
+        }
+
+        /// <summary>
+        /// Returns a series of counts of resources in the event collection.
+        /// Each item in the series represents one interval.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query</param>
+        /// <param name="filters">Filters to narrow down the events used in analysis</param>
+        /// <param name="relativeTimeframe">Specifies window of time from which to select events for analysis</param>
+        /// <param name="interval">The time interval size over which to calculate the count</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<QueryIntervalCount>> QueryCount(string collection, QueryTimeframe timeframe, QueryInterval interval, IEnumerable<QueryFilter> filters = null)
+        {
+            return await Queries.Count(collection, timeframe, interval, filters);
+        }
     }
 }

@@ -34,6 +34,13 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- A reference to the entire .NET Framework is automatically included -->
+    <Compile Include="Query\Queries.cs" />
+    <Compile Include="Query\QueryFilter.cs" />
+    <Compile Include="Query\QueryInterval.cs" />
+    <Compile Include="Query\QueryIntervalCount.cs" />
+    <Compile Include="Query\QueryRelativeTimeframe.cs" />
+    <Compile Include="Query\QueryAbsoluteTimeframe.cs" />
+    <Compile Include="Query\QueryTimeframe.cs" />
     <None Include="app.config" />
     <Compile Include="CachedEvent.cs" />
     <Compile Include="DynamicPropertyValue.cs" />
@@ -44,6 +51,7 @@
     <Compile Include="IEvent.cs" />
     <Compile Include="IEventCache.cs" />
     <Compile Include="IEventCollection.cs" />
+    <Compile Include="Query\IQueries.cs" />
     <Compile Include="KeenConstants.cs" />
     <Compile Include="KeenUtil.cs" />
     <Compile Include="ProjectSettingsProvider.cs" />

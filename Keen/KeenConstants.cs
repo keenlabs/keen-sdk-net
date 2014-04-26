@@ -13,6 +13,9 @@ namespace Keen.Core
         private const string eventsResource = "events";
         public static string EventsResource { get { return eventsResource; } protected set { ;} }
 
+        private const string queriesResource = "queries";
+        public static string QueriesResource { get { return queriesResource; } protected set { ;} }
+
         private const string apiVersion = "3.0";
         public static string ApiVersion { get { return apiVersion; } protected set { ;} }
 

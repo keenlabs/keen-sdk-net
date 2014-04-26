@@ -15,6 +15,11 @@ namespace Keen.Core
     {
         private static HashSet<string> validCollectionNames = new HashSet<string>();
 
+        public static string ToSafeString(this object obj)
+        {
+            return (obj ?? string.Empty).ToString();
+        }
+
         /// <summary>
         /// Apply property name restrictions. Throws KeenException with an 
         /// explanation if a collection name is unacceptable.
