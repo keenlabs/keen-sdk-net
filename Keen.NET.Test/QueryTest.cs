@@ -28,12 +28,12 @@ namespace Keen.Net.Test
             base.Setup();
 
             // If not using mocks, set up conditions on the server
-            if (!UseMocks)
-            {
-                var client = new KeenClient(settingsEnv);
-                client.DeleteCollection(testCol);
-                client.AddEvent(testCol, new { field1 = "value1" });
-            }
+            //if (!UseMocks)
+            //{
+            //    var client = new KeenClient(settingsEnv);
+            //    client.DeleteCollection(testCol);
+            //    client.AddEvent(testCol, new { field1 = "value1" });
+            //}
         }
 
         [Test]
@@ -83,7 +83,6 @@ namespace Keen.Net.Test
                 queryMock.Setup(m => m.Count(
                         It.Is<string>(c => c == null),
                         It.Is<QueryRelativeTimeframe>(t => t == timeframe),
-                        It.Is<QueryInterval>(i => i == null),
                         It.Is<IEnumerable<QueryFilter>>(f=>f==null)
                         ))
                         .Throws(new ArgumentNullException());
@@ -222,7 +221,7 @@ namespace Keen.Net.Test
         public async void Count_ValidFilter_Success()
         {
             var client = new KeenClient(settingsEnv);
-            var filters = new List<QueryFilter>(){ new QueryFilter("field1", QueryFilter.FilterOperator.eq, "value") };
+            var filters = new List<QueryFilter>(){ new QueryFilter("field1", QueryFilter.FilterOperator.gt, "1") };
 
             Mock<IQueries> queryMock = null;
             if (UseMocks)

@@ -66,7 +66,6 @@ namespace Keen.Core.Query
         public async Task<int> Count(string collection, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null)
         {
             var result = await CountInternal(collection, filters, timeframe.ToSafeString());
-            Debug.WriteLine(result);
             return result.Value<int>("result");
         }
         
@@ -80,7 +79,7 @@ namespace Keen.Core.Query
         /// <returns></returns>
         public async Task<IEnumerable<QueryIntervalCount>> Count(string collection, QueryTimeframe timeframe, QueryInterval interval, IEnumerable<QueryFilter> filters = null)
         {
-            if (null==interval)
+            if (null == interval)
                 throw new ArgumentNullException("interval", "interval must be specified for a series query");
             if (null == timeframe)
                 throw new ArgumentException("timeframe", "Timeframe must be specified for a series query.");
@@ -106,15 +105,19 @@ namespace Keen.Core.Query
             if (string.IsNullOrWhiteSpace(collection))
                 throw new ArgumentNullException("collection");
 
+            Debug.WriteLine("filters: " + JArray.FromObject(filters).ToString());
+
             // construct the parameter list for the 'count' request
             var parms = ("?event_collection=" + collection)+
-                        (filters == null ? "" : "&filters=" + Uri.EscapeDataString(JObject.FromObject(filters).ToString()))+
+                        (filters == null ? "" : "&filters=" + Uri.EscapeDataString(JArray.FromObject(filters).ToString()))+
                         (timeframe == "" ? "" : "&timeframe=" + Uri.EscapeDataString(timeframe))+
                         (interval == "" ? "" : "&interval=" + Uri.EscapeDataString(interval));
 
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Add("Authorization", _prjSettings.MasterKey);
+
+                Debug.WriteLine(_serverUrl + "/count" + parms);
 
                 var responseMsg = await client.GetAsync(_serverUrl + "/count" + parms).ConfigureAwait(false);
                 var responseString = await responseMsg.Content.ReadAsStringAsync().ConfigureAwait(false);
