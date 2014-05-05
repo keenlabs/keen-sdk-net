@@ -13,7 +13,7 @@ namespace Keen.Core.Query
     /// </summary>
     public sealed class QueryFilter
     {
-        public class OperatoConverter : JsonConverter
+        public class OperatorConverter : JsonConverter
         {
             public override bool CanConvert(Type objectType)
             {
@@ -22,7 +22,7 @@ namespace Keen.Core.Query
 
             public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
             {
-                //return serializer.Deserialize<Tycoon>(reader);
+                // Don't need deserialization
                 throw new NotImplementedException();
             }
 
@@ -31,7 +31,8 @@ namespace Keen.Core.Query
                 writer.WriteValue( value.ToString());
             }
         }
-        [JsonConverter(typeof(OperatoConverter))]
+
+        [JsonConverter(typeof(OperatorConverter))]
         public sealed class FilterOperator
         {
             private readonly string _value;
@@ -104,89 +105,6 @@ namespace Keen.Core.Query
         }
 
 
-        ///// <summary>
-        ///// Operators that may be used with a filter.
-        ///// </summary>
-        //public enum FilterOperator
-        //{
-        //    /// <summary>
-        //    /// Equal to.
-        //    /// <para>Use with string, number, boolean</para>
-        //    /// </summary>
-        //    [JsonProperty(PropertyName = "eq")]
-        //    Equal,
-
-        //    /// <summary>
-        //    /// Not equal to.
-        //    /// <para>Use with string, number</para>
-        //    /// </summary>
-        //    [JsonProperty(PropertyName = "ne")]
-        //    NotEqual,
-
-        //    /// <summary>
-        //    /// Less than.
-        //    /// <para>Use with string, number</para>
-        //    /// </summary>
-        //    [JsonProperty(PropertyName = "lt")]
-        //    LessThan,
-
-        //    /// <summary>
-        //    /// Less than or equal to.
-        //    /// <para>Use with number</para>
-        //    /// </summary>
-        //    [JsonProperty(PropertyName = "lte")]
-        //    LesserOrEqual,
-
-        //    /// <summary>
-        //    /// Greater than.
-        //    /// <para>Use with string, number</para>
-        //    /// </summary>
-        //    [JsonProperty(PropertyName = "gt")]
-        //    GreaterThan,
-
-        //    /// <summary>
-        //    /// Greater than or equal to.
-        //    /// <para>Use with number</para>
-        //    /// </summary>
-        //    [JsonProperty(PropertyName = "gte")]
-        //    GreaterOrEqual,
-
-        //    /// <summary>
-        //    /// Whether a specific property exists on an event record.
-        //    /// The Value property must be set to "true" or "false"
-        //    /// <para>Use with string, number, boolean</para>
-        //    /// </summary>
-        //    [JsonProperty(PropertyName = "exists")]
-        //    Exists,
-
-        //    /// <summary>
-        //    /// Whether the property value is in a give set of values.
-        //    /// The Value property must be a JSON array of values, e.g.: "[1,2,4,5]"
-        //    /// <para>Use with string, number, boolean</para>
-        //    /// </summary>
-        //    [JsonProperty(PropertyName = "in")]
-        //    In,
-
-        //    /// <summary>
-        //    /// Whether the property value contains the give set of characters.
-        //    /// <para>Use with strings</para>
-        //    /// </summary>
-        //    [JsonProperty(PropertyName = "contains")]
-        //    Contains,
-
-        //    /// <summary>
-        //    /// Used to select events within a certain radius of the provided geo coordinate.
-        //    /// <para>Use with geo analysis</para>
-        //    /// </summary>
-        //    [JsonProperty(PropertyName="within")]
-        //    Within,
-        //}
-
-        /// <summary>
-        /// Represents a value for a geo filter. Event coordinates must be recorded in the
-        /// event property "keen.location".
-        /// <para>Use with property "keen.location.coordinates" and operator "within"</para>
-        /// </summary>
         public class GeoValue
         {
             [JsonProperty(PropertyName = "coordinates")]
@@ -212,7 +130,6 @@ namespace Keen.Core.Query
         /// The filter operator to use
         /// </summary>
         [JsonProperty( PropertyName = "operator")]
-        //[JsonConverter(typeof(StringEnumConverter))]
         public FilterOperator Operator { get; private set; }
 
         /// <summary>
