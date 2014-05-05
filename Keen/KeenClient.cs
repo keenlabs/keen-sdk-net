@@ -461,27 +461,538 @@ namespace Keen.Core
         /// <summary>
         /// Returns the number of resources in the event collection.
         /// </summary>
-        /// <param name="collection">Name of event collection to query</param>
-        /// <param name="filters">Filter to narrow down the events used in analysis</param>
-        /// <param name="relativeTimeframe">Specifies window of time from which to select events for analysis</param>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="filters">Filter to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public async Task<int> QueryCount(string collection, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null)
+        public async Task<int> QueryCount(string collection, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
-            return await Queries.Count(collection, timeframe, filters);
+            return await Queries.Metric<int>("count", collection, "-", timeframe, filters, timezone);
+        }
+
+        /// <summary>
+        /// Returns the number of resources in the event collection, grouped by the specified field.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="groupBy">Name of a collection field by which to group counts.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="filters">Filter to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<QueryGroupValue<int>>> QueryCountGroup(string collection, string groupBy, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            return await Queries.Metric<int>("count", collection, "-", groupBy, timeframe, filters, timezone);
+        }
+
+        /// <summary>
+        /// Returns counts of resources in the event collection.
+        /// Each item represents one interval.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="interval">The block size for partitioning the specified timeframe. Optional, may be null.</param>
+        /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<QueryIntervalValue<int>>> QueryCountInterval(string collection, QueryTimeframe timeframe, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            return await Queries.Metric<int>("count", collection, "-", timeframe, interval, filters, timezone);
         }
 
         /// <summary>
         /// Returns a series of counts of resources in the event collection.
-        /// Each item in the series represents one interval.
+        /// Each item contains information about the groupings in that interval.
         /// </summary>
-        /// <param name="collection">Name of event collection to query</param>
-        /// <param name="filters">Filters to narrow down the events used in analysis</param>
-        /// <param name="relativeTimeframe">Specifies window of time from which to select events for analysis</param>
-        /// <param name="interval">The time interval size over which to calculate the count</param>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="groupBy">Name of field by which to group results.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="interval">The block size for partitioning the specified timeframe. Optional, may be null.</param>
+        /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<QueryIntervalCount>> QueryCount(string collection, QueryTimeframe timeframe, QueryInterval interval, IEnumerable<QueryFilter> filters = null)
+        public async Task<IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<int>>>>> QueryCountIntervalGroup(string collection, string groupBy, QueryTimeframe timeframe, QueryInterval interval, IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
-            return await Queries.Count(collection, timeframe, interval, filters);
+            return await Queries.Metric<int>("count", collection, "-", groupBy, timeframe, interval, filters, timezone);
         }
+
+
+        /// <summary>
+        /// Returns the number of unique resources in the event collection.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="targetProperty">Name of property to analyse.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="filters">Filter to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<int> QueryCountUnique(string collection, string targetProperty, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            return await Queries.Metric<int>("count_unique",collection, targetProperty, timeframe, filters, timezone );
+        }
+
+        /// <summary>
+        /// Returns the number of resources in the event collection, 
+        /// grouped by the specified field.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="targetProperty">Name of property to analyse.</param>
+        /// <param name="groupBy">Name of a collection field by which to group results.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="filters">Filter to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<QueryGroupValue<int>>> QueryCountUniqueGroup(string collection, string targetProperty, string groupBy, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            return await Queries.Metric<int>("count_unique",collection, targetProperty, groupBy, timeframe, filters, timezone);
+        }
+
+        /// <summary>
+        /// Returns counts of unique resources in the event collection.
+        /// Each item represents one interval.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="targetProperty">Name of property to analyse.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="interval">The block size for partitioning the specified timeframe. Optional, may be null.</param>
+        /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<QueryIntervalValue<int>>> QueryCountUniqueInterval(string collection, string targetProperty, QueryTimeframe timeframe, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            return await Queries.Metric<int>("count_unique",collection, targetProperty, timeframe, interval, filters, timezone);
+        }
+
+        /// <summary>
+        /// Returns counts of unique resources in the event collection.
+        /// Each item contains information about the groupings in that interval.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="targetProperty">Name of property to analyse.</param>
+        /// <param name="groupBy">Name of field by which to group results.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="interval">The block size for partitioning the specified timeframe. Optional, may be null.</param>
+        /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<int>>>>> QueryCountUniqueIntervalGroup(string collection, string targetProperty, string groupBy, QueryTimeframe timeframe, QueryInterval interval, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            return await Queries.Metric<int>("count_unique",collection, targetProperty, groupBy, timeframe, interval, filters, timezone);
+        }
+
+
+        /// <summary>
+        /// Returns the minimum value for the target property in the event collection.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="targetProperty">Name of property to analyse.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="filters">Filter to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<string> QueryMinimum(string collection, string targetProperty, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            return await Queries.Metric<string>("minimum", collection, targetProperty, timeframe, filters, timezone);
+        }
+
+        /// <summary>
+        /// Returns the minimum value for the target property in the event collection.
+        /// Results are grouped by the value of the groupBy field.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="targetProperty">Name of property to analyse.</param>
+        /// <param name="groupBy">Name of a collection field by which to group results.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="filters">Filter to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<QueryGroupValue<string>>> QueryMinimumGroup(string collection, string targetProperty, string groupBy, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            return await Queries.Metric<string>("minimum", collection, targetProperty, groupBy, timeframe, filters, timezone);
+        }
+
+        /// <summary>
+        /// Returns the minimum value for the target property in the event collection.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="targetProperty">Name of property to analyse.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="interval">The block size for partitioning the specified timeframe. Optional, may be null.</param>
+        /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<QueryIntervalValue<string>>> QueryMinimumInterval(string collection, string targetProperty, QueryTimeframe timeframe, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            return await Queries.Metric<string>("minimum", collection, targetProperty, timeframe, interval, filters, timezone);
+        }
+
+        /// <summary>
+        /// Returns the minimum value for the target property in the event collection.
+        /// Within each interval results are grouped by the value of the groupBy field.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="targetProperty">Name of property to analyse.</param>
+        /// <param name="groupBy">Name of field by which to group results.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="interval">The block size for partitioning the specified timeframe. Optional, may be null.</param>
+        /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>>> QueryMinimumIntervalGroup(string collection, string targetProperty, string groupBy, QueryTimeframe timeframe, QueryInterval interval, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            return await Queries.Metric<string>("minimum", collection, targetProperty, groupBy, timeframe, interval, filters, timezone);
+        }
+
+
+        /// <summary>
+        /// Returns the maximum value for the target property in the event collection.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="targetProperty">Name of property to analyse.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="filters">Filter to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<string> QueryMaximum(string collection, string targetProperty, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            return await Queries.Metric<string>("maximum", collection, targetProperty, timeframe, filters, timezone);
+        }
+
+        /// <summary>
+        /// Returns the maximum value for the target property, grouped by the specified field.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="targetProperty">Name of property to analyse.</param>
+        /// <param name="groupBy">Name of a collection field by which to group results.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="filters">Filter to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<QueryGroupValue<string>>> QueryMaximumGroup(string collection, string targetProperty, string groupBy, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            return await Queries.Metric<string>("maximum", collection, targetProperty, groupBy, timeframe, filters, timezone);
+        }
+
+        /// <summary>
+        /// Returns the maximum value for the target property.
+        /// Each item represents one interval.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="targetProperty">Name of property to analyse.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="interval">The block size for partitioning the specified timeframe. Optional, may be null.</param>
+        /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<QueryIntervalValue<string>>> QueryMaximumInterval(string collection, string targetProperty, QueryTimeframe timeframe, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string groupBy = "", string timezone = "")
+        {
+            return await Queries.Metric<string>("maximum", collection, targetProperty, timeframe, interval, filters, timezone);
+        }
+
+        /// <summary>
+        /// Returns the maximum value for the target property.
+        /// Each item contains information about the groupings in that interval.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="targetProperty">Name of property to analyse.</param>
+        /// <param name="groupBy">Name of field by which to group results.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="interval">The block size for partitioning the specified timeframe. Optional, may be null.</param>
+        /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>>> QueryMaximumIntervalGroup(string collection, string targetProperty, string groupBy, QueryTimeframe timeframe, QueryInterval interval, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            return await Queries.Metric<string>("maximum", collection, targetProperty, groupBy, timeframe, interval, filters, timezone);
+        }
+
+
+        /// <summary>
+        /// Returns the average across all numeric values for the target property.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="targetProperty">Name of property to analyse.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="filters">Filter to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<double?> QueryAverage(string collection, string targetProperty, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            return await Queries.Metric<double?>("average", collection, targetProperty, timeframe, filters, timezone);
+        }
+
+        /// <summary>
+        /// Returns the average across all numeric values for the target property.
+        /// grouped by the specified field.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="targetProperty">Name of property to analyse.</param>
+        /// <param name="groupBy">Name of a collection field by which to group results.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="filters">Filter to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<QueryGroupValue<double?>>> QueryAverageGroup(string collection, string targetProperty, string groupBy, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            return await Queries.Metric<double?>("average", collection, targetProperty, groupBy, timeframe, filters, timezone);
+        }
+
+        /// <summary>
+        /// Returns the average across all numeric values for the target property.
+        /// Each item represents one interval.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="targetProperty">Name of property to analyse.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="interval">The block size for partitioning the specified timeframe. Optional, may be null.</param>
+        /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<QueryIntervalValue<double?>>> QueryAverageInterval(string collection, string targetProperty, QueryTimeframe timeframe, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string groupBy = "", string timezone = "")
+        {
+            return await Queries.Metric<double?>("average", collection, targetProperty, timeframe, interval, filters, timezone);
+        }
+
+        /// <summary>
+        /// Returns the average across all numeric values for the target property.
+        /// Each item contains information about the groupings in that interval.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="targetProperty">Name of property to analyse.</param>
+        /// <param name="groupBy">Name of field by which to group results.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="interval">The block size for partitioning the specified timeframe. Optional, may be null.</param>
+        /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<double?>>>>> QueryAverageIntervalGroup(string collection, string targetProperty, string groupBy, QueryTimeframe timeframe, QueryInterval interval, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            return await Queries.Metric<double?>("average", collection, targetProperty, groupBy, timeframe, interval, filters, timezone);
+        }
+
+
+
+        /// <summary>
+        /// Returns the sum of all numeric resources in the event collection.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="targetProperty">Name of property to analyse.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="filters">Filter to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<double?> QuerySum(string collection, string targetProperty, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            return await Queries.Metric<double?>("sum", collection, targetProperty, timeframe, filters, timezone);
+        }
+
+        /// <summary>
+        /// Returns the sum of all numeric resources in the event collection.
+        /// grouped by the specified field.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="targetProperty">Name of property to analyse.</param>
+        /// <param name="groupBy">Name of a collection field by which to group results.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="filters">Filter to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<QueryGroupValue<double?>>> QuerySumGroup(string collection, string targetProperty, string groupBy, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            return await Queries.Metric<double?>("sum", collection, targetProperty, groupBy, timeframe, filters, timezone);
+        }
+
+        /// <summary>
+        /// Returns the sum of all numeric resources in the event collection.
+        /// Each item represents one interval.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="targetProperty">Name of property to analyse.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="interval">The block size for partitioning the specified timeframe. Optional, may be null.</param>
+        /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<QueryIntervalValue<double?>>> QuerySumInterval(string collection, string targetProperty, QueryTimeframe timeframe, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string groupBy = "", string timezone = "")
+        {
+            return await Queries.Metric<double?>("sum", collection, targetProperty, timeframe, interval, filters, timezone);
+        }
+
+        /// <summary>
+        /// Returns the sum of all numeric resources in the event collection.
+        /// Each item contains information about the groupings in that interval.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="targetProperty">Name of property to analyse.</param>
+        /// <param name="groupBy">Name of field by which to group results.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="interval">The block size for partitioning the specified timeframe. Optional, may be null.</param>
+        /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<double?>>>>> QuerySumIntervalGroup(string collection, string targetProperty, string groupBy, QueryTimeframe timeframe, QueryInterval interval, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            return await Queries.Metric<double?>("sum", collection, targetProperty, groupBy, timeframe, interval, filters, timezone);
+        }
+
+
+
+        /// <summary>
+        /// Returns a list of unique resources in the event collection.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="targetProperty">Name of property to analyse.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="filters">Filter to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<string>> QuerySelectUnique(string collection, string targetProperty, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string groupBy = "", string timezone = "")
+        {
+            return await Queries.Metric<IEnumerable<string>>("select_unique", collection, targetProperty, timeframe, filters, timezone);
+        }
+
+        /// <summary>
+        /// Returns a list of unique resources in the event collection
+        /// grouped by the specified field.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="targetProperty">Name of property to analyse.</param>
+        /// <param name="groupBy">Name of a collection field by which to group results.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="filters">Filter to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<QueryGroupValue<IEnumerable<string>>>> QuerySelectUniqueGroup(string collection, string targetProperty, string groupBy, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            return await Queries.Metric<IEnumerable<string>>("select_unique", collection, targetProperty, groupBy, timeframe, filters, timezone);
+        }
+
+        /// <summary>
+        /// Returns a list of unique resources in the event collection.
+        /// Each item represents one interval.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="targetProperty">Name of property to analyse.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="interval">The block size for partitioning the specified timeframe. Optional, may be null.</param>
+        /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<QueryIntervalValue<IEnumerable<string>>>> QuerySelectUniqueInterval(string collection, string targetProperty, QueryTimeframe timeframe, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            return await Queries.Metric<IEnumerable<string>>("select_unique", collection, targetProperty, timeframe, interval, filters, timezone);
+        }
+
+        /// <summary>
+        /// Returns a list of unique resources in the event collection.
+        /// Each item contains information about the groupings in that interval.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="targetProperty">Name of property to analyse.</param>
+        /// <param name="groupBy">Name of field by which to group results.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="interval">The block size for partitioning the specified timeframe. Optional, may be null.</param>
+        /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<IEnumerable<string>>>>>> QuerySelectUniqueIntervalGroup(string collection, string targetProperty, string groupBy, QueryTimeframe timeframe, QueryInterval interval, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            return await Queries.Metric<IEnumerable<string>>("select_unique", collection, targetProperty, groupBy, timeframe, interval, filters, timezone);
+        }
+
+
+        /// <summary>
+        /// Extract full-form event data with all property values. 
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="filters">Filter to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="latest">Request up to 100 of the most recent events added to a given collection.</param>
+        /// <param name="email">If specified, email will be sent when the data is ready for download. Otherwise, it will be returned directly.</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<dynamic>> ExtractResource(string collection, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, int latest = 0, string email = "")
+        {
+            return await Queries.Extract(collection, timeframe, filters, latest, email);
+        }
+
+
+        /// <summary>
+        /// Funnels count relevant events in succession. See API documentation for details.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="steps">Analysis steps for funnel.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<int>> Funnel(string collection, IEnumerable<FunnelStep> steps, QueryTimeframe timeframe = null, string timezone = "")
+        {
+            return await Queries.Funnel(collection, steps, timeframe, timezone);
+        }
+
+
+        /// <summary>
+        /// Run multiple types of analysis over the same data.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="analysisParams">Defines the multiple types of analyses to perform.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="filters">Filter to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<IDictionary<string, string>> MultiAnalysis(string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            return await Queries.MultiAnalysis(collection, analysisParams, timeframe, filters, timezone );
+        }
+
+        /// <summary>
+        /// Run multiple types of analysis over the same data,
+        /// grouped by the specified field.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="analysisParams">Defines the multiple types of analyses to perform.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="filters">Filter to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="groupBy">Name of a collection field by which to group results.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<QueryGroupValue<IDictionary<string, string>>>> MultiAnalysis(string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string groupby = "", string timezone = "")
+        {
+            return await Queries.MultiAnalysis(collection, analysisParams, timeframe, filters, groupby, timezone);
+        }
+
+        /// <summary>
+        /// Run multiple types of analysis over the same data.
+        /// Each item represents one interval.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="analysisParams">Defines the multiple types of analyses to perform.</param>
+        /// <param name="targetProperty">Name of property to analyse.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="interval">The block size for partitioning the specified timeframe. Optional, may be null.</param>
+        /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<QueryIntervalValue<IDictionary<string, string>>>> MultiAnalysisSeries(string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string timeZone = "")
+        {
+            return await Queries.MultiAnalysis(collection, analysisParams, timeframe, interval, filters, timeZone);
+        }
+
+        /// <summary>
+        /// Run multiple types of analysis over the same data.
+        /// Each item contains information about the groupings in that interval.
+        /// </summary>
+        /// <param name="collection">Name of event collection to query.</param>
+        /// <param name="analysisParams">Defines the multiple types of analyses to perform.</param>
+        /// <param name="groupBy">Name of field by which to group results.</param>
+        /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
+        /// <param name="interval">The block size for partitioning the specified timeframe. Optional, may be null.</param>
+        /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
+        /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<IDictionary<string, string>>>>>> MultiAnalysis(string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string groupby = "", string timezone = "")
+        {
+            return await Queries.MultiAnalysis(collection, analysisParams, timeframe, interval, filters, groupby, timezone);
+        }
+
     }
 }

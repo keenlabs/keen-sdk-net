@@ -13,73 +13,174 @@ namespace Keen.Core.Query
     /// </summary>
     public sealed class QueryFilter
     {
-        /// <summary>
-        /// Operators that may be used with a filter.
-        /// </summary>
-        public enum FilterOperator
+        public class OperatoConverter : JsonConverter
         {
+            public override bool CanConvert(Type objectType)
+            {
+                return (objectType == typeof(FilterOperator));
+            }
+
+            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            {
+                //return serializer.Deserialize<Tycoon>(reader);
+                throw new NotImplementedException();
+            }
+
+            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+            {
+                writer.WriteValue( value.ToString());
+            }
+        }
+        [JsonConverter(typeof(OperatoConverter))]
+        public sealed class FilterOperator
+        {
+            private readonly string _value;
+            private FilterOperator(string value) { _value = value; }
+            public override string ToString() { return _value; }
+            public static implicit operator string(FilterOperator value) { return value.ToString(); }
             /// <summary>
             /// Equal to.
             /// <para>Use with string, number, boolean</para>
             /// </summary>
-            eq,
+            public static FilterOperator Equals() { return new FilterOperator("eq"); }
+
 
             /// <summary>
             /// Not equal to.
             /// <para>Use with string, number</para>
             /// </summary>
-            ne,
+            public static FilterOperator NotEqual() { return new FilterOperator("ne"); }
 
             /// <summary>
             /// Less than.
             /// <para>Use with string, number</para>
             /// </summary>
-            lt,
+            public static FilterOperator LessThan() { return new FilterOperator("lt"); }
 
             /// <summary>
             /// Less than or equal to.
             /// <para>Use with number</para>
             /// </summary>
-            lte,
+            public static FilterOperator LessThanOrEqual() { return new FilterOperator("lte"); }
 
             /// <summary>
             /// Greater than.
             /// <para>Use with string, number</para>
             /// </summary>
-            gt,
+            public static FilterOperator GreaterThan() { return new FilterOperator("gt"); }
 
             /// <summary>
             /// Greater than or equal to.
             /// <para>Use with number</para>
             /// </summary>
-            gte,
+            public static FilterOperator GreaterThanOrEqual() { return new FilterOperator("gte"); }
 
             /// <summary>
             /// Whether a specific property exists on an event record.
             /// The Value property must be set to "true" or "false"
             /// <para>Use with string, number, boolean</para>
             /// </summary>
-            exists,
+            public static FilterOperator Exists() { return new FilterOperator("exists"); }
 
             /// <summary>
             /// Whether the property value is in a give set of values.
             /// The Value property must be a JSON array of values, e.g.: "[1,2,4,5]"
             /// <para>Use with string, number, boolean</para>
             /// </summary>
-            @in,
+            public static FilterOperator In() { return new FilterOperator("in"); }
 
             /// <summary>
             /// Whether the property value contains the give set of characters.
             /// <para>Use with strings</para>
             /// </summary>
-            contains,
+            public static FilterOperator Contains() { return new FilterOperator("contains"); }
 
             /// <summary>
             /// Used to select events within a certain radius of the provided geo coordinate.
             /// <para>Use with geo analysis</para>
             /// </summary>
-            within,
+            public static FilterOperator Within() { return new FilterOperator("within"); }
+
         }
+
+
+        ///// <summary>
+        ///// Operators that may be used with a filter.
+        ///// </summary>
+        //public enum FilterOperator
+        //{
+        //    /// <summary>
+        //    /// Equal to.
+        //    /// <para>Use with string, number, boolean</para>
+        //    /// </summary>
+        //    [JsonProperty(PropertyName = "eq")]
+        //    Equal,
+
+        //    /// <summary>
+        //    /// Not equal to.
+        //    /// <para>Use with string, number</para>
+        //    /// </summary>
+        //    [JsonProperty(PropertyName = "ne")]
+        //    NotEqual,
+
+        //    /// <summary>
+        //    /// Less than.
+        //    /// <para>Use with string, number</para>
+        //    /// </summary>
+        //    [JsonProperty(PropertyName = "lt")]
+        //    LessThan,
+
+        //    /// <summary>
+        //    /// Less than or equal to.
+        //    /// <para>Use with number</para>
+        //    /// </summary>
+        //    [JsonProperty(PropertyName = "lte")]
+        //    LesserOrEqual,
+
+        //    /// <summary>
+        //    /// Greater than.
+        //    /// <para>Use with string, number</para>
+        //    /// </summary>
+        //    [JsonProperty(PropertyName = "gt")]
+        //    GreaterThan,
+
+        //    /// <summary>
+        //    /// Greater than or equal to.
+        //    /// <para>Use with number</para>
+        //    /// </summary>
+        //    [JsonProperty(PropertyName = "gte")]
+        //    GreaterOrEqual,
+
+        //    /// <summary>
+        //    /// Whether a specific property exists on an event record.
+        //    /// The Value property must be set to "true" or "false"
+        //    /// <para>Use with string, number, boolean</para>
+        //    /// </summary>
+        //    [JsonProperty(PropertyName = "exists")]
+        //    Exists,
+
+        //    /// <summary>
+        //    /// Whether the property value is in a give set of values.
+        //    /// The Value property must be a JSON array of values, e.g.: "[1,2,4,5]"
+        //    /// <para>Use with string, number, boolean</para>
+        //    /// </summary>
+        //    [JsonProperty(PropertyName = "in")]
+        //    In,
+
+        //    /// <summary>
+        //    /// Whether the property value contains the give set of characters.
+        //    /// <para>Use with strings</para>
+        //    /// </summary>
+        //    [JsonProperty(PropertyName = "contains")]
+        //    Contains,
+
+        //    /// <summary>
+        //    /// Used to select events within a certain radius of the provided geo coordinate.
+        //    /// <para>Use with geo analysis</para>
+        //    /// </summary>
+        //    [JsonProperty(PropertyName="within")]
+        //    Within,
+        //}
 
         /// <summary>
         /// Represents a value for a geo filter. Event coordinates must be recorded in the
@@ -110,8 +211,8 @@ namespace Keen.Core.Query
         /// <summary>
         /// The filter operator to use
         /// </summary>
-        [JsonProperty(PropertyName = "operator")]
-        [JsonConverter(typeof(StringEnumConverter))]
+        [JsonProperty( PropertyName = "operator")]
+        //[JsonConverter(typeof(StringEnumConverter))]
         public FilterOperator Operator { get; private set; }
 
         /// <summary>

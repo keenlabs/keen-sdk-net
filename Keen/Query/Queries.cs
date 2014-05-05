@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -27,99 +28,23 @@ namespace Keen.Core.Query
                 _prjSettings.KeenUrl, _prjSettings.ProjectId, KeenConstants.QueriesResource);
         }
 
-        /// <summary>
-        /// Add all events in a single request.
-        /// </summary>
-        /// <param name="events"></param>
-        /// <returns></returns>
-        public async Task<IEnumerable<KeyValuePair<string,string>>> AvailableQueries()
+
+        private async Task<JObject> KeenWebApiRequest(string operation = "", Dictionary<string, string> parms = null)
         {
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Add("Authorization", _prjSettings.MasterKey);
-                var responseMsg = await client.GetAsync(_serverUrl)
-                    .ConfigureAwait(continueOnCapturedContext: false);
-                var responseString = await responseMsg.Content.ReadAsStringAsync()
-                    .ConfigureAwait(continueOnCapturedContext: false);
-                var response = JObject.Parse(responseString);
+            var parmVals = parms == null ? "" : string.Join("&", from p in parms.Keys
+                                                                 where !string.IsNullOrEmpty(parms[p])
+                                                                 select string.Format("{0}={1}", p, Uri.EscapeDataString(parms[p])));
 
-                // error checking, throw an exception with information from the json 
-                // response if available, then check the HTTP response.
-                KeenUtil.CheckApiErrorCode((dynamic)response);
-                if (!responseMsg.IsSuccessStatusCode)
-                    throw new KeenException("AvailableQueries failed with status: " + responseMsg.StatusCode);
-
-                return from j in response.Children()
-                       let p = j as JProperty
-                       where p != null
-                       select new KeyValuePair<string, string>(p.Name, (string)p.Value);
-            }
-        }
-
-        /// <summary>
-        /// Returns the number of resources in the event collection.
-        /// </summary>
-        /// <param name="collection">Name of event collection to query</param>
-        /// <param name="timeframe">Specifies window of time from which to select events for analysis</param>
-        /// <param name="filters">Filter to narrow down the events used in analysis</param>
-        /// <returns></returns>
-        public async Task<int> Count(string collection, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null)
-        {
-            var result = await CountInternal(collection, filters, timeframe.ToSafeString());
-            return result.Value<int>("result");
-        }
-        
-        /// <summary>
-        /// Returns a series of counts of the number of resources in the event collection.
-        /// </summary>
-        /// <param name="collection">Name of the event collection to query</param>
-        /// <param name="timeframe">Specifies the overall window of time from which to select events for analysis</param>
-        /// <param name="interval">The size of the intervals within the window</param>
-        /// <param name="filters">Filters to narrow down the events used in the analysis</param>
-        /// <returns></returns>
-        public async Task<IEnumerable<QueryIntervalCount>> Count(string collection, QueryTimeframe timeframe, QueryInterval interval, IEnumerable<QueryFilter> filters = null)
-        {
-            if (null == interval)
-                throw new ArgumentNullException("interval", "interval must be specified for a series query");
-            if (null == timeframe)
-                throw new ArgumentException("timeframe", "Timeframe must be specified for a series query.");
-
-            var result = await CountInternal(collection, filters, timeframe.ToSafeString(), interval.ToSafeString());
-
-            // project the json response into a series of 
-            return from i in result.Value<JArray>("result")
-                   let v = i.Value<int>("value")
-                   let t = i.Value<JObject>("timeframe")
-                   select new QueryIntervalCount(v, t.Value<DateTime>("start"), t.Value<DateTime>("end"));
-        }
-
-        /// <summary>
-        /// Internal implementation of Count
-        /// </summary>
-        /// <param name="collection"></param>
-        /// <param name="filters"></param>
-        /// <param name="timeframe"></param>
-        /// <returns></returns>
-        private async Task<JObject> CountInternal(string collection, IEnumerable<QueryFilter> filters = null, string timeframe = "", string interval = "")
-        {
-            if (string.IsNullOrWhiteSpace(collection))
-                throw new ArgumentNullException("collection");
-
-            Debug.WriteLine("filters: " + JArray.FromObject(filters).ToString());
-
-            // construct the parameter list for the 'count' request
-            var parms = ("?event_collection=" + collection)+
-                        (filters == null ? "" : "&filters=" + Uri.EscapeDataString(JArray.FromObject(filters).ToString()))+
-                        (timeframe == "" ? "" : "&timeframe=" + Uri.EscapeDataString(timeframe))+
-                        (interval == "" ? "" : "&interval=" + Uri.EscapeDataString(interval));
+            var url = string.Format("{0}{1}{2}",
+                _serverUrl,
+                string.IsNullOrWhiteSpace(operation) ? "" : "/" + operation,
+                string.IsNullOrWhiteSpace(parmVals) ? "" : "?" + parmVals);
 
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Add("Authorization", _prjSettings.MasterKey);
 
-                Debug.WriteLine(_serverUrl + "/count" + parms);
-
-                var responseMsg = await client.GetAsync(_serverUrl + "/count" + parms).ConfigureAwait(false);
+                var responseMsg = await client.GetAsync(url).ConfigureAwait(false);
                 var responseString = await responseMsg.Content.ReadAsStringAsync().ConfigureAwait(false);
                 var response = JObject.Parse(responseString);
 
@@ -127,10 +52,340 @@ namespace Keen.Core.Query
                 // response if available, then check the HTTP response.
                 KeenUtil.CheckApiErrorCode((dynamic)response);
                 if (!responseMsg.IsSuccessStatusCode)
-                    throw new KeenException("Count query failed with status: " + responseMsg.StatusCode);
+                    throw new KeenException("Request failed with status: " + responseMsg.StatusCode);
 
                 return response;
             }
+        }
+
+        public async Task<IEnumerable<KeyValuePair<string,string>>> AvailableQueries()
+        {
+            var reply = await KeenWebApiRequest();
+            return from j in reply.Children()
+                   let p = j as JProperty
+                   where p != null
+                   select new KeyValuePair<string, string>(p.Name, (string)p.Value);
+        }
+
+        #region metric
+        public async Task<T> Metric<T>(string metric, string collection, string targetProperty, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            if (string.IsNullOrWhiteSpace(collection))
+                throw new ArgumentNullException("collection");
+            if (string.IsNullOrWhiteSpace(targetProperty))
+                throw new ArgumentNullException("targetProperty");
+
+            var parms = new Dictionary<string, string>();
+            parms.Add("event_collection", collection);
+            parms.Add("target_property", targetProperty == "-" ? "" : targetProperty);
+            parms.Add("timeframe", timeframe.ToSafeString());
+            parms.Add("timezone", timezone);
+            parms.Add("filters", filters == null ? "" : JArray.FromObject(filters).ToString());
+
+            var reply = await KeenWebApiRequest(metric, parms);
+
+            T result;
+            if ((reply.GetValue("result") is JArray) &&  (typeof(T)==(typeof(IEnumerable<string>))))
+                // This is specifically to support SelectUnique which will call with T as IEnumerable<string>
+                result = (T)(IEnumerable<string>)(reply.Value<JArray>("result").Values<string>());
+            else
+                result = reply.Value<T>("result");
+            return result;
+        }
+
+        public async Task<IEnumerable<QueryGroupValue<T>>> Metric<T>(string metric, string collection, string targetProperty, string groupBy, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            if (string.IsNullOrWhiteSpace(collection))
+                throw new ArgumentNullException("collection");
+            if (string.IsNullOrWhiteSpace(targetProperty))
+                throw new ArgumentNullException("targetProperty");
+            if (string.IsNullOrWhiteSpace(groupBy))
+                throw new ArgumentNullException("groupBy", "groupby field name must be specified for a goupby query");
+
+            var parms = new Dictionary<string, string>();
+            parms.Add("event_collection", collection);
+            parms.Add("target_property", targetProperty == "-" ? "" : targetProperty);
+            parms.Add("group_by", groupBy);
+            parms.Add("timeframe", timeframe.ToSafeString());
+            parms.Add("timezone", timezone);
+            parms.Add("filters", filters == null ? "" : JArray.FromObject(filters).ToString());
+
+            var reply = await KeenWebApiRequest(metric, parms);
+
+            IEnumerable<QueryGroupValue<T>> result;
+            if ((reply.GetValue("result") is JArray)
+            && (typeof(T) == (typeof(IEnumerable<string>))))
+            {
+                // This is specifically to support SelectUnique which will call with T as IEnumerable<string>
+                result = from r in reply.Value<JArray>("result")
+                         let c = (T)r.Value<JArray>("result").Values<string>()
+                         let g = r.Value<string>(groupBy)
+                         select new QueryGroupValue<T>(c, g);
+            }
+            else
+            {
+                result = from r in reply.Value<JArray>("result")
+                         let c = (T)r.Value<T>("result")
+                         let g = r.Value<string>(groupBy)
+                         select new QueryGroupValue<T>(c, g);
+            }
+            return result;
+        }
+
+        public async Task<IEnumerable<QueryIntervalValue<T>>> Metric<T>(string metric, string collection, string targetProperty, QueryTimeframe timeframe, QueryInterval interval, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            if (string.IsNullOrWhiteSpace(collection))
+                throw new ArgumentNullException("collection");
+            if (string.IsNullOrWhiteSpace(targetProperty))
+                throw new ArgumentNullException("targetProperty");
+            if (null == timeframe)
+                throw new ArgumentException("timeframe", "Timeframe must be specified for a series query.");
+            if (null == interval)
+                throw new ArgumentNullException("interval", "interval must be specified for a series query");
+
+            var parms = new Dictionary<string, string>();
+            parms.Add("event_collection", collection);
+            parms.Add("target_property", targetProperty == "-" ? "" : targetProperty);
+            parms.Add("timeframe", timeframe.ToSafeString());
+            parms.Add("interval", interval.ToSafeString());
+            parms.Add("timezone", timezone);
+            parms.Add("filters", filters == null ? "" : JArray.FromObject(filters).ToString());
+
+            var reply = await KeenWebApiRequest(metric, parms);
+
+            IEnumerable<QueryIntervalValue<T>> result;
+            if ((reply.GetValue("result") is JArray)
+            && (typeof(T) == (typeof(IEnumerable<string>))))
+            {
+                // This is specifically to support SelectUnique which will call with T as IEnumerable<string>
+                result = from i in reply.Value<JArray>("result")
+                         let v = (T)i.Value<JArray>("value").Values<string>()
+                         let t = i.Value<JObject>("timeframe")
+                         select new QueryIntervalValue<T>(v, t.Value<DateTime>("start"), t.Value<DateTime>("end"));
+            }
+            else
+            {
+                result = from i in reply.Value<JArray>("result")
+                         let v = i.Value<T>("value")
+                         let t = i.Value<JObject>("timeframe")
+                         select new QueryIntervalValue<T>(v, t.Value<DateTime>("start"), t.Value<DateTime>("end"));
+            }
+
+            return result;
+        }
+
+        public async Task<IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<T>>>>> Metric<T>(string metric, string collection, string targetProperty, string groupBy, QueryTimeframe timeframe, QueryInterval interval, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            if (string.IsNullOrWhiteSpace(collection))
+                throw new ArgumentNullException("collection");
+            if (string.IsNullOrWhiteSpace(targetProperty))
+                throw new ArgumentNullException("targetProperty");
+            if (null == timeframe)
+                throw new ArgumentException("timeframe", "Timeframe must be specified for a series query.");
+            if (null == interval)
+                throw new ArgumentNullException("interval", "interval must be specified for a series query");
+            if (string.IsNullOrWhiteSpace(groupBy))
+                throw new ArgumentNullException("groupBy", "groupby field name must be specified for a goupby query");
+
+            var parms = new Dictionary<string, string>();
+            parms.Add("event_collection", collection);
+            parms.Add("target_property", targetProperty == "-" ? "" : targetProperty);
+            parms.Add("group_by", groupBy);
+            parms.Add("timeframe", timeframe.ToSafeString());
+            parms.Add("interval", interval.ToSafeString());
+            parms.Add("timezone", timezone);
+            parms.Add("filters", filters == null ? "" : JArray.FromObject(filters).ToString());
+
+            var reply = await KeenWebApiRequest(metric, parms);
+
+            IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<T>>>> result;
+            if ((reply.GetValue("result") is JArray)
+            && (typeof(T) == (typeof(IEnumerable<string>))))
+            {
+                // This is specifically to support SelectUnique which will call with T as IEnumerable<string>
+                result = from i in reply.Value<JArray>("result")
+                         let v = (from r in i.Value<JArray>("value")
+                                  let c = (T)r.Value<JArray>("result").Values<string>()
+                                  let g = r.Value<string>(groupBy)
+                                  select new QueryGroupValue<T>(c, g))
+                         let t = i.Value<JObject>("timeframe")
+                         select new QueryIntervalValue<IEnumerable<QueryGroupValue<T>>>(v, t.Value<DateTime>("start"), t.Value<DateTime>("end"));
+            }
+            else
+            {
+                result = from i in reply.Value<JArray>("result")
+                         let v = (from r in i.Value<JArray>("value")
+                                  let c = (T)r.Value<T>("result")
+                                  let g = r.Value<string>(groupBy)
+                                  select new QueryGroupValue<T>(c, g))
+                         let t = i.Value<JObject>("timeframe")
+                         select new QueryIntervalValue<IEnumerable<QueryGroupValue<T>>>(v, t.Value<DateTime>("start"), t.Value<DateTime>("end"));
+            }
+            return result;
+        }
+        #endregion metric
+
+        
+        public async Task<IEnumerable<dynamic>> Extract(string collection, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, int latest = 0, string email = "")
+        {
+            var parms = new Dictionary<string, string>();
+             parms.Add("event_collection", collection);
+             parms.Add("timeframe", timeframe.ToSafeString());
+             parms.Add("filters", filters == null ? "" : JArray.FromObject(filters).ToString());
+             parms.Add("email", email);
+             parms.Add("latest", latest>0?latest.ToString():"");
+
+            var reply = await KeenWebApiRequest("extraction", parms);
+
+            return from i in reply.Value<JArray>("result") select (dynamic)i;
+        }
+
+
+
+        public async Task<IEnumerable<int>> Funnel(string collection, IEnumerable<FunnelStep> steps, QueryTimeframe timeframe = null, string timezone = "")
+        {
+            var jObs = steps.Select(i=>JObject.FromObject(i));
+            var stepsJson = new JArray( jObs ).ToString();
+
+            var parms = new Dictionary<string, string>();
+            parms.Add("timeframe", timeframe.ToSafeString());
+            parms.Add("timezone", timezone);
+            parms.Add("steps", stepsJson);
+
+            var reply = await KeenWebApiRequest("funnel", parms);
+
+            return from i in reply.Value<JArray>("result") select (int)i;
+        }
+
+
+
+        public async Task<IDictionary<string,string>> MultiAnalysis(string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            var jObs = analysisParams.Select(x => 
+                new JProperty( x.Label, JObject.FromObject( new {analysis_type = x.Analysis, target_property = x.TargetProperty })));
+            var parmsJson = JsonConvert.SerializeObject(new JObject(jObs), Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+
+            var parms = new Dictionary<string, string>();
+            parms.Add("event_collection", collection);
+            parms.Add("timeframe", timeframe.ToSafeString());
+            parms.Add("timezone", timezone);
+            parms.Add("filters", filters == null ? "" : JArray.FromObject(filters).ToString());
+            parms.Add("analyses", parmsJson);
+
+            var reply = await KeenWebApiRequest("multi_analysis", parms);
+
+            var result = new Dictionary<string, string>();
+            foreach (JProperty i in reply.Value<JObject>("result").Children())
+                result.Add(i.Name, (string)i.Value);
+
+            return result;
+        }
+
+        public async Task<IEnumerable<QueryGroupValue<IDictionary<string, string>>>> MultiAnalysis(string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string groupby = "", string timezone = "")
+        {
+            var jObs = analysisParams.Select(x =>
+                new JProperty(x.Label, JObject.FromObject(new { analysis_type = x.Analysis, target_property = x.TargetProperty })));
+            var parmsJson = JsonConvert.SerializeObject(new JObject(jObs), Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+
+            var parms = new Dictionary<string, string>();
+            parms.Add("event_collection", collection);
+            parms.Add("timeframe", timeframe.ToSafeString());
+            parms.Add("timezone", timezone);
+            parms.Add("filters", filters == null ? "" : JArray.FromObject(filters).ToString());
+            parms.Add("group_by", groupby);
+            parms.Add("analyses", parmsJson);
+
+            var reply = await KeenWebApiRequest("multi_analysis", parms);
+
+            var result = new List<QueryGroupValue<IDictionary<string,string>>>();
+            foreach (JObject i in reply.Value<JArray>("result"))
+            {
+                var d = new Dictionary<string, string>();
+                string grpVal = "";
+                foreach (JProperty p in i.Values<JProperty>())
+                {
+                    if (p.Name == groupby)
+                        grpVal = (string)p.Value;
+                    else
+                        d.Add(p.Name, (string)p.Value);
+                }
+                var qg = new QueryGroupValue<IDictionary<string, string>>(d, grpVal);
+                result.Add(qg);
+            }
+
+            return result;
+        }
+
+        public async Task<IEnumerable<QueryIntervalValue<IDictionary<string,string>>>> MultiAnalysis(string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            var jObs = analysisParams.Select(x => new JProperty(x.Label, JObject.FromObject(new { analysis_type = x.Analysis, target_property = x.TargetProperty })));
+            var parmsJson = JsonConvert.SerializeObject(new JObject(jObs), Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+
+            var parms = new Dictionary<string, string>();
+            parms.Add("event_collection", collection);
+            parms.Add("timeframe", timeframe.ToSafeString());
+            parms.Add("interval", interval.ToSafeString());
+            parms.Add("timezone", timezone);
+            parms.Add("filters", filters == null ? "" : JArray.FromObject(filters).ToString());
+            parms.Add("analyses", parmsJson);
+
+            var reply = await KeenWebApiRequest("multi_analysis", parms);
+
+            var result = new List<QueryIntervalValue<IDictionary<string, string>>>();
+            foreach (JObject i in reply.Value<JArray>("result"))
+            {
+                var d = new Dictionary<string, string>();
+                foreach (JProperty p in i.Value<JObject>("value").Values<JProperty>())
+                    d.Add(p.Name, (string)p.Value);
+
+                var t = i.Value<JObject>("timeframe");
+                var qv = new QueryIntervalValue<IDictionary<string, string>>(d , t.Value<DateTime>("start"), t.Value<DateTime>("end"));
+                result.Add(qv);
+            }
+
+            return result;
+        }
+
+        public async Task<IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<IDictionary<string, string>>>>>> MultiAnalysis(string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string groupby = "", string timezone = "")
+        {
+            var jObs = analysisParams.Select(x => new JProperty(x.Label, JObject.FromObject(new { analysis_type = x.Analysis, target_property = x.TargetProperty })));
+            var parmsJson = JsonConvert.SerializeObject(new JObject(jObs), Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+
+            var parms = new Dictionary<string, string>();
+            parms.Add("event_collection", collection);
+            parms.Add("timeframe", timeframe.ToSafeString());
+            parms.Add("interval", interval.ToSafeString());
+            parms.Add("timezone", timezone);
+            parms.Add("group_by", groupby);
+            parms.Add("filters", filters == null ? "" : JArray.FromObject(filters).ToString());
+            parms.Add("analyses", parmsJson);
+
+            var reply = await KeenWebApiRequest("multi_analysis", parms);
+
+            var result = new List<QueryIntervalValue<IEnumerable<QueryGroupValue<IDictionary<string, string>>>>>();
+            foreach (JObject i in reply.Value<JArray>("result"))
+            {
+                var qgl = new List<QueryGroupValue<IDictionary<string, string>>>();
+                foreach (JObject o in i.Value<JArray>("value"))
+                {
+                    var d = new Dictionary<string, string>();
+                    string grpVal = "";
+                    foreach (JProperty p in o.Values<JProperty>())
+                    {
+
+                        if (p.Name == groupby)
+                            grpVal = (string)p.Value;
+                        else
+                            d.Add(p.Name, (string)p.Value);
+                    }
+                    qgl.Add( new QueryGroupValue<IDictionary<string, string>>(d, grpVal));
+                }
+
+                var t = i.Value<JObject>("timeframe");
+                var qv = new QueryIntervalValue<IEnumerable<QueryGroupValue<IDictionary<string, string>>>>(qgl, t.Value<DateTime>("start"), t.Value<DateTime>("end"));
+                result.Add(qv);
+            }
+            return result;
         }
     }
 }

@@ -20,7 +20,6 @@ namespace Keen.Core.Query
         public override string ToString()
         {
             return JObject.FromObject(this).ToString();
-                            //: JObject.FromObject(new {start = absoluteTimeframe.Start, end= absoluteTimeframe.End}).ToString();
         }
 
         public QueryAbsoluteTimeframe(DateTime start, DateTime end)

@@ -20,6 +20,18 @@ namespace Keen.Core
             return (obj ?? string.Empty).ToString();
         }
 
+        public static int? TryGetInt(this string s)
+        {
+            int i;
+            return int.TryParse(s, out i) ? (int?)i : null;
+        }
+
+        public static double? TryGetDouble(this string s)
+        {
+            double i;
+            return double.TryParse(s, out i) ? (double?)i : null;
+        }
+
         /// <summary>
         /// Apply property name restrictions. Throws KeenException with an 
         /// explanation if a collection name is unacceptable.
