@@ -6,6 +6,9 @@ using System.Text;
 
 namespace Keen.Core.Query
 {
+    /// <summary>
+    /// Represents one step in a funnel query. See the Keen.IO API for details on how to perform a funnel query.
+    /// </summary>
     public class FunnelStep
     {
         /// <summary>
