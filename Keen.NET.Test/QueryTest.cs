@@ -94,7 +94,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var count = await client.QueryCount(null, timeframe, null);
+            var count = await client.QueryCountAsync(null, timeframe, null);
             Assert.IsNotNull(count);
         }
 
@@ -120,7 +120,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var count = await client.QueryCount(testCol, timeframe, null);
+            var count = await client.QueryCountAsync(testCol, timeframe, null);
             Assert.IsNotNull(count, "expected valid count");
 
             if (null != queryMock)
@@ -156,7 +156,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var count = await client.QueryCountGroup(testCol, groupby, timeframe);
+            var count = await client.QueryCountGroupAsync(testCol, groupby, timeframe);
             Assert.IsNotNull(count);
 
             if (null != queryMock)
@@ -219,7 +219,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var count = await client.QueryCountIntervalGroup(testCol, groupby, timeframe, interval);
+            var count = await client.QueryCountIntervalGroupAsync(testCol, groupby, timeframe, interval);
             Assert.IsNotNull(count);
 
             if (null != queryMock)
@@ -264,7 +264,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var counts = await client.QueryCountInterval(testCol, timeframe, interval);
+            var counts = await client.QueryCountIntervalAsync(testCol, timeframe, interval);
             Assert.IsNotNull(counts);
 
             if (null != queryMock)
@@ -293,7 +293,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var count = await client.QueryCount(testCol, timeframe, null);
+            var count = await client.QueryCountAsync(testCol, timeframe, null);
             Assert.IsNotNull(count);
 
             if (null != queryMock)
@@ -335,7 +335,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var counts = await client.QueryCountInterval(testCol, timeframe, interval);
+            var counts = await client.QueryCountIntervalAsync(testCol, timeframe, interval);
             Assert.IsNotNull(counts);
 
             if (null != queryMock)
@@ -364,7 +364,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var count = await client.QueryCount(testCol, null, filters);
+            var count = await client.QueryCountAsync(testCol, null, filters);
             Assert.IsNotNull(count);
 
             if (null != queryMock)
@@ -405,7 +405,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var count = await client.QueryCountUnique(testCol, prop, timeframe);
+            var count = await client.QueryCountUniqueAsync(testCol, prop, timeframe);
             Assert.IsNotNull(count);
 
             if (null != queryMock)
@@ -436,7 +436,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var count = await client.QueryCountUnique(testCol, prop, timeframe);
+            var count = await client.QueryCountUniqueAsync(testCol, prop, timeframe);
             Assert.IsNotNull(count);
 
             if (null != queryMock)
@@ -467,7 +467,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var count = await client.QueryCountUnique(testCol, prop, null, filters);
+            var count = await client.QueryCountUniqueAsync(testCol, prop, null, filters);
             Assert.IsNotNull(count);
 
             if (null != queryMock)
@@ -502,7 +502,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var counts = await client.QueryCountUniqueInterval(testCol, prop, timeframe, interval);
+            var counts = await client.QueryCountUniqueIntervalAsync(testCol, prop, timeframe, interval);
             Assert.IsNotNull(counts);
 
             if (null != queryMock)
@@ -537,7 +537,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var counts = await client.QueryCountUniqueInterval(testCol, prop, timeframe, interval);
+            var counts = await client.QueryCountUniqueIntervalAsync(testCol, prop, timeframe, interval);
             Assert.IsNotNull(counts);
 
             if (null != queryMock)
@@ -568,7 +568,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var count = await client.QueryMinimum(testCol, prop, timeframe);
+            var count = await client.QueryMinimumAsync(testCol, prop, timeframe);
             Assert.IsNotNull(count);
 
             if (null != queryMock)
@@ -599,7 +599,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            await client.QueryMinimum(testCol, prop, timeframe);            
+            await client.QueryMinimumAsync(testCol, prop, timeframe);            
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -629,7 +629,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            await client.QueryMinimum(testCol, prop, null, filters);
+            await client.QueryMinimumAsync(testCol, prop, null, filters);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -663,7 +663,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var counts = await client.QueryMinimumInterval(testCol, prop, timeframe, interval);
+            var counts = await client.QueryMinimumIntervalAsync(testCol, prop, timeframe, interval);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -697,7 +697,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            await client.QueryMinimumInterval(testCol, prop, timeframe, interval);
+            await client.QueryMinimumIntervalAsync(testCol, prop, timeframe, interval);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -727,7 +727,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var count = await client.QueryMaximum(testCol, prop, timeframe);
+            var count = await client.QueryMaximumAsync(testCol, prop, timeframe);
             Assert.IsNotNull(count);
 
             if (null != queryMock)
@@ -758,7 +758,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            await client.QueryMaximum(testCol, prop, timeframe);
+            await client.QueryMaximumAsync(testCol, prop, timeframe);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -788,7 +788,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            await client.QueryMaximum(testCol, prop, null, filters);
+            await client.QueryMaximumAsync(testCol, prop, null, filters);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -822,7 +822,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var counts = await client.QueryMaximumInterval(testCol, prop, timeframe, interval);
+            var counts = await client.QueryMaximumIntervalAsync(testCol, prop, timeframe, interval);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -856,7 +856,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            await client.QueryMaximumInterval(testCol, prop, timeframe, interval);
+            await client.QueryMaximumIntervalAsync(testCol, prop, timeframe, interval);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -886,7 +886,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            await client.QueryAverage(testCol, prop, timeframe);
+            await client.QueryAverageAsync(testCol, prop, timeframe);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -916,7 +916,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            await client.QueryAverage(testCol, prop, timeframe);
+            await client.QueryAverageAsync(testCol, prop, timeframe);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -946,7 +946,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            await client.QueryAverage(testCol, prop, null, filters);
+            await client.QueryAverageAsync(testCol, prop, null, filters);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -980,7 +980,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var counts = await client.QueryAverageInterval(testCol, prop, timeframe, interval);
+            var counts = await client.QueryAverageIntervalAsync(testCol, prop, timeframe, interval);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1014,7 +1014,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            await client.QueryAverageInterval(testCol, prop, timeframe, interval);
+            await client.QueryAverageIntervalAsync(testCol, prop, timeframe, interval);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1045,7 +1045,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            await client.QuerySum(testCol, prop, timeframe);
+            await client.QuerySumAsync(testCol, prop, timeframe);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1075,7 +1075,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            await client.QuerySum(testCol, prop, timeframe);
+            await client.QuerySumAsync(testCol, prop, timeframe);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1105,7 +1105,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            await client.QuerySum(testCol, prop, null, filters);
+            await client.QuerySumAsync(testCol, prop, null, filters);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1139,7 +1139,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var counts = await client.QuerySumInterval(testCol, prop, timeframe, interval);
+            var counts = await client.QuerySumIntervalAsync(testCol, prop, timeframe, interval);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1173,7 +1173,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            await client.QuerySumInterval(testCol, prop, timeframe, interval);
+            await client.QuerySumIntervalAsync(testCol, prop, timeframe, interval);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1205,7 +1205,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var reply = await client.QuerySelectUnique(testCol, prop, timeframe);
+            var reply = await client.QuerySelectUniqueAsync(testCol, prop, timeframe);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1236,7 +1236,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            await client.QuerySelectUnique(testCol, prop, timeframe);
+            await client.QuerySelectUniqueAsync(testCol, prop, timeframe);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1273,7 +1273,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            await client.QuerySelectUniqueGroup(testCol, prop, groupby, timeframe, null);
+            await client.QuerySelectUniqueGroupAsync(testCol, prop, groupby, timeframe, null);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1304,7 +1304,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            await client.QuerySelectUnique(testCol, prop, null, filters);
+            await client.QuerySelectUniqueAsync(testCol, prop, null, filters);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1339,7 +1339,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var counts = await client.QuerySelectUniqueInterval(testCol, prop, timeframe, interval);
+            var counts = await client.QuerySelectUniqueIntervalAsync(testCol, prop, timeframe, interval);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1393,7 +1393,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var counts = await client.QuerySelectUniqueIntervalGroup(testCol, prop, groupby, timeframe, interval);
+            var counts = await client.QuerySelectUniqueIntervalGroupAsync(testCol, prop, groupby, timeframe, interval);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1429,7 +1429,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var reply = await client.QuerySelectUniqueInterval(testCol, prop, timeframe, interval);
+            var reply = await client.QuerySelectUniqueIntervalAsync(testCol, prop, timeframe, interval);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1463,7 +1463,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var reply = await client.ExtractResource(testCol, timeframe);
+            var reply = await client.QueryExtractResourceAsync(testCol, timeframe);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1494,7 +1494,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var reply = await client.ExtractResource(testCol, timeframe);
+            var reply = await client.QueryExtractResourceAsync(testCol, timeframe);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1525,7 +1525,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var reply = await client.ExtractResource(testCol, null, filters);
+            var reply = await client.QueryExtractResourceAsync(testCol, null, filters);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1590,8 +1590,8 @@ namespace Keen.Net.Test
 
                 client.Queries = queryMock.Object;
             }
-            
-            var reply = await client.Funnel(testCol, funnelsteps, null);
+
+            var reply = await client.QueryFunnelAsync(testCol, funnelsteps, null);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1628,7 +1628,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var reply = await client.MultiAnalysis(testCol, param, null, null, "");
+            var reply = await client.QueryMultiAnalysisAsync(testCol, param, null, null, "");
 
             if (null != queryMock)
             {
@@ -1669,7 +1669,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var reply = await client.MultiAnalysis(testCol, param, timeframe, null, "");
+            var reply = await client.QueryMultiAnalysisAsync(testCol, param, timeframe, null, "");
 
             if (null != queryMock)
             {
@@ -1717,7 +1717,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var reply = await client.MultiAnalysis(testCol, param, null, null, groupby, "");
+            var reply = await client.QueryMultiAnalysisAsync(testCol, param, null, null, groupby, "");
 
             if (null != queryMock)
             {
@@ -1782,7 +1782,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var reply = await client.MultiAnalysis(testCol, param, timeframe, interval, null, groupby, "");
+            var reply = await client.QueryMultiAnalysisAsync(testCol, param, timeframe, interval, null, groupby, "");
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1829,7 +1829,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var reply = await client.MultiAnalysisSeries(testCol, param, timeframe, interval);
+            var reply = await client.QueryMultiAnalysisAsync(testCol, param, timeframe, interval);
 
             if (null != queryMock)
             {
