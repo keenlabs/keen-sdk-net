@@ -1717,7 +1717,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var reply = await client.QueryMultiAnalysisAsync(testCol, param, null, null, groupby, "");
+            var reply = await client.QueryMultiAnalysisGroupAsync(testCol, param, null, null, groupby, "");
 
             if (null != queryMock)
             {
@@ -1782,7 +1782,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var reply = await client.QueryMultiAnalysisAsync(testCol, param, timeframe, interval, null, groupby, "");
+            var reply = await client.QueryMultiAnalysisIntervalGroupAsync(testCol, param, timeframe, interval, null, groupby, "");
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1829,12 +1829,12 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var reply = await client.QueryMultiAnalysisAsync(testCol, param, timeframe, interval);
+            var reply = await client.QueryMultiAnalysisIntervalAsync(testCol, param, timeframe, interval);
 
             if (null != queryMock)
             {
-                Assert.AreEqual(reply.Count(), result.Count());
                 queryMock.VerifyAll();
+                Assert.AreEqual(reply.Count(), result.Count());
             }
         }
 

@@ -1645,7 +1645,7 @@ namespace Keen.Core
         /// <param name="groupBy">Name of a collection field by which to group results.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<QueryGroupValue<IDictionary<string, string>>>> QueryMultiAnalysisAsync(string collection,IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string groupBy = "", string timezone = "")
+        public async Task<IEnumerable<QueryGroupValue<IDictionary<string, string>>>> QueryMultiAnalysisGroupAsync(string collection,IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string groupBy = "", string timezone = "")
         {
             return await Queries.MultiAnalysis(collection, analysisParams, timeframe, filters, groupBy, timezone).ConfigureAwait(false);
         }
@@ -1661,11 +1661,11 @@ namespace Keen.Core
         /// <param name="groupBy">Name of a collection field by which to group results.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public IEnumerable<QueryGroupValue<IDictionary<string, string>>> QueryMultiAnalysis(string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string groupBy = "", string timezone = "")
+        public IEnumerable<QueryGroupValue<IDictionary<string, string>>> QueryMultiAnalysisGroup(string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string groupBy = "", string timezone = "")
         {
             try
             {
-                return QueryMultiAnalysisAsync(collection, analysisParams, timeframe, filters, groupBy, timezone).Result;
+                return QueryMultiAnalysisGroupAsync(collection, analysisParams, timeframe, filters, groupBy, timezone).Result;
             }
             catch (AggregateException ex)
             {
@@ -1684,7 +1684,7 @@ namespace Keen.Core
         /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<QueryIntervalValue<IDictionary<string, string>>>> QueryMultiAnalysisSeriesAsync(string collection,IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        public async Task<IEnumerable<QueryIntervalValue<IDictionary<string, string>>>> QueryMultiAnalysisIntervalAsync(string collection,IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
             return await Queries.MultiAnalysis(collection, analysisParams, timeframe, interval, filters, timezone).ConfigureAwait(false);
         }
@@ -1700,11 +1700,11 @@ namespace Keen.Core
         /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public IEnumerable<QueryIntervalValue<IDictionary<string, string>>> QueryMultiAnalysisSeries(string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        public IEnumerable<QueryIntervalValue<IDictionary<string, string>>> QueryMultiAnalysisInterval(string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
             try
             {
-                return QueryMultiAnalysisSeriesAsync(collection, analysisParams, timeframe, interval, filters, timezone).Result;
+                return QueryMultiAnalysisIntervalAsync(collection, analysisParams, timeframe, interval, filters, timezone).Result;
             }
             catch (AggregateException ex)
             {
@@ -1724,7 +1724,7 @@ namespace Keen.Core
         /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<IDictionary<string, string>>>>>> QueryMultiAnalysisAsync(string collection,IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string groupBy = "", string timezone = "")
+        public async Task<IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<IDictionary<string, string>>>>>> QueryMultiAnalysisIntervalGroupAsync(string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string groupBy = "", string timezone = "")
         {
             return await Queries.MultiAnalysis(collection, analysisParams, timeframe, interval, filters, groupBy, timezone).ConfigureAwait(false);
         }
@@ -1741,11 +1741,11 @@ namespace Keen.Core
         /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<IDictionary<string, string>>>>> QueryMultiAnalysis(string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string groupBy = "", string timezone = "")
+        public IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<IDictionary<string, string>>>>> QueryMultiAnalysisIntervalGroup(string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string groupBy = "", string timezone = "")
         {
             try
             {
-                return QueryMultiAnalysisAsync(collection, analysisParams, timeframe, interval, filters, groupBy, timezone).Result;
+                return QueryMultiAnalysisIntervalGroupAsync(collection, analysisParams, timeframe, interval, filters, groupBy, timezone).Result;
             }
             catch (AggregateException ex)
             {
