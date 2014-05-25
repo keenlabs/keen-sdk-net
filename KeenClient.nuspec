@@ -14,12 +14,12 @@
     <summary>Keen IO is an analytics API that stores events in arbitrary JSON format.</summary>
     <tags>keen.io analytics api rest client stats statistics phone wp8</tags>
     <dependencies>
-      <dependency id="Microsoft.Net.Http" version="2.2.18" />
-      <dependency id="Newtonsoft.Json" version="6.0.2" />
-      <dependency id="Microsoft.Bcl" version="1.1.6" />
-      <dependency id="Microsoft.Bcl.Build" version="1.0.13" />
-      <dependency id="Microsoft.Bcl.Async" version="1.0.165" />
-      <dependency id="PCLStorage" version="0.9.4" />
+      <dependency id="Microsoft.Net.Http" version="2.2.22" />
+      <dependency id="Newtonsoft.Json" version="6.0.3" />
+      <dependency id="Microsoft.Bcl" version="1.1.9" />
+      <dependency id="Microsoft.Bcl.Build" version="1.0.14" />
+      <dependency id="Microsoft.Bcl.Async" version="1.0.168" />
+      <dependency id="PCLStorage" version="0.9.6" />
     </dependencies>
   </metadata>
     <files>                
