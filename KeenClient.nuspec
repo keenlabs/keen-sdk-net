@@ -12,7 +12,7 @@
 	<title>Keen.IO Client - .Net SDK</title>
     <description>Keen IO is an analytics API for modern developers. Track any event: signups, upgrades, impressions, purchases, powerups, errors, shares... Keen IO stores events in arbitrary JSON format, automatically ingesting any new events and rich custom properties you send. Our elegant query APIs make it straightforward to run counts, sums, segmentation, and more.</description>
     <summary>Keen IO is an analytics API that stores events in arbitrary JSON format.</summary>
-    <tags>keen.io analytics api rest client stats statistics phone wp8</tags>
+    <tags>keen.io analytics api rest client stats statistics phone wp8 and wp8.1</tags>
     <dependencies>
       <dependency id="Microsoft.Net.Http" version="2.2.22" />
       <dependency id="Newtonsoft.Json" version="6.0.3" />
