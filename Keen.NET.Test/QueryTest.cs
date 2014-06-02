@@ -72,7 +72,7 @@ namespace Keen.Net.Test
 
         [Test]
         [ExpectedException(ExpectedException = typeof(ArgumentNullException))]
-        public async void Count_InvalidCollection_Throws()
+        public async void Query_InvalidCollection_Throws()
         {
             var client = new KeenClient(settingsEnv);
             var timeframe = QueryRelativeTimeframe.PreviousHour();
@@ -81,12 +81,12 @@ namespace Keen.Net.Test
             if (UseMocks)
             {
                 queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<int>(
-                        It.Is<string>(me => me == "count"),
+                queryMock.Setup(m => m.Metric(
+                        It.Is<QueryType>(q => q == QueryType.Count()),
                         It.Is<string>(c => c == null),
-                        It.Is<string>(p => p == "-"),
+                        It.Is<string>(p => p == ""),
                         It.Is<QueryRelativeTimeframe>(t => t == timeframe),
-                        It.Is<IEnumerable<QueryFilter>>(f=>f==null),
+                        It.Is<IEnumerable<QueryFilter>>(f => f == null),
                         It.Is<string>(z => z == "")
                         ))
                         .Throws(new ArgumentNullException());
@@ -94,12 +94,12 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var count = await client.QueryCountAsync(null, timeframe, null);
+            var count = await client.QueryAsync(QueryType.Count(), null, "", timeframe, null);
             Assert.IsNotNull(count);
         }
 
         [Test]
-        public async void Count_ValidAbsolute_Success()
+        public async void Query_ValidAbsolute_Success()
         {
             var client = new KeenClient(settingsEnv);
             var timeframe = new QueryAbsoluteTimeframe(DateTime.Now.AddDays(-1), DateTime.Now);
@@ -108,19 +108,19 @@ namespace Keen.Net.Test
             if (UseMocks)
             {
                 queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<int>(
-                        It.Is<string>(me => me == "count"),
+                queryMock.Setup(m => m.Metric(
+                        It.Is<QueryType>(q => q == QueryType.Count()),
                         It.Is<string>(c => c == testCol),
-                        It.Is<string>(p => p == "-"),
+                        It.Is<string>(p => p == ""),
                         It.Is<QueryAbsoluteTimeframe>(t => t == timeframe),
                         It.Is<IEnumerable<QueryFilter>>(f=>f==null),
                         It.Is<string>(z => z == "")))
-                    .Returns(Task.FromResult(0));
+                    .Returns(Task.FromResult("0"));
 
                 client.Queries = queryMock.Object;
             }
 
-            var count = await client.QueryCountAsync(testCol, timeframe, null);
+            var count = await client.QueryAsync(QueryType.Count(), testCol, "", timeframe, null);
             Assert.IsNotNull(count, "expected valid count");
 
             if (null != queryMock)
@@ -128,25 +128,25 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void Count_ValidRelativeGroup_Success()
+        public async void Query_ValidRelativeGroup_Success()
         {
             var client = new KeenClient(settingsEnv);
             var timeframe = QueryRelativeTimeframe.PreviousNDays(2);
             var groupby = "field1";
-            IEnumerable<QueryGroupValue<int>> reply = new List<QueryGroupValue<int>>()
+            IEnumerable<QueryGroupValue<string>> reply = new List<QueryGroupValue<string>>()
             {
-                new QueryGroupValue<int>( 0, "field1" ),
-                new QueryGroupValue<int>( 0, "field1" ),
+                new QueryGroupValue<string>( "0", "field1" ),
+                new QueryGroupValue<string>( "0", "field1" ),
             };
 
             Mock<IQueries> queryMock = null;
             if (UseMocks)
             {
                 queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<int>(
-                        It.Is<string>(me => me == "count"),
+                queryMock.Setup(m => m.Metric(
+                        It.Is<QueryType>(q => q == QueryType.Count()),
                         It.Is<string>(c => c == testCol),
-                        It.Is<string>(p => p == "-"),
+                        It.Is<string>(p => p == ""),
                         It.Is<string>(g => g == groupby),
                         It.Is<QueryTimeframe>(t => t == timeframe),
                         It.Is<IEnumerable<QueryFilter>>(f => f == null),
@@ -156,46 +156,36 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var count = await client.QueryCountGroupAsync(testCol, groupby, timeframe);
+            var count = (await client.QueryGroupAsync(QueryType.Count(), testCol, "", groupby, timeframe)).ToList();
             Assert.IsNotNull(count);
 
             if (null != queryMock)
-            {
-                queryMock.Verify(m => m.Metric<int>(
-                    It.Is<string>(me => me == "count"),
-                    It.Is<string>(c => c == testCol),
-                    It.Is<string>(p => p == "-"),
-                    It.Is<string>(g => g == groupby),
-                    It.Is<QueryTimeframe>(t => t == timeframe),
-                    It.Is<IEnumerable<QueryFilter>>(f => f == null),
-                    It.Is<string>(z => z == "")),
-                    Times.Once());
-            }
+                queryMock.VerifyAll();
         }
 
         [Test]
-        public async void Count_ValidRelativeGroupInterval_Success()
+        public async void Query_ValidRelativeGroupInterval_Success()
         {
             var client = new KeenClient(settingsEnv);
             var timeframe = QueryRelativeTimeframe.PreviousNDays(2);
             var interval = QueryInterval.EveryNHours(2);
             var groupby = "field1";
 
-            IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<int>>>> reply = new List<QueryIntervalValue<IEnumerable<QueryGroupValue<int>>>>()
+            IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>> reply = new List<QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>>()
             {
-                new QueryIntervalValue<IEnumerable<QueryGroupValue<int>>>( 
-                    new List<QueryGroupValue<int>>()
+                new QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>( 
+                    new List<QueryGroupValue<string>>()
                     {
-                        new QueryGroupValue<int>( 1, "field1" ),
-                        new QueryGroupValue<int>( 1, "field1" ),
+                        new QueryGroupValue<string>( "1", "field1" ),
+                        new QueryGroupValue<string>( "1", "field1" ),
                     }, 
                     DateTime.Now, DateTime.Now.AddSeconds(2)
                 ),
-                new QueryIntervalValue<IEnumerable<QueryGroupValue<int>>>( 
-                    new List<QueryGroupValue<int>>()
+                new QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>( 
+                    new List<QueryGroupValue<string>>()
                     {
-                        new QueryGroupValue<int>( 2, "field1" ),
-                        new QueryGroupValue<int>( 2, "field1" ),
+                        new QueryGroupValue<string>( "2", "field1" ),
+                        new QueryGroupValue<string>( "2", "field1" ),
                     }, 
                     DateTime.Now, DateTime.Now.AddSeconds(2)
                 ),
@@ -205,10 +195,10 @@ namespace Keen.Net.Test
             if (UseMocks)
             {
                 queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<int>(
-                        It.Is<string>(me => me == "count"),
+                queryMock.Setup(m => m.Metric(
+                        It.Is<QueryType>(q => q == QueryType.Count()),
                         It.Is<string>(c => c == testCol),
-                        It.Is<string>(p => p == "-"),
+                        It.Is<string>(p => p == ""),
                         It.Is<string>(g => g == groupby),
                         It.Is<QueryTimeframe>(t => t == timeframe),
                         It.Is<QueryInterval>(i => i == interval),
@@ -219,42 +209,33 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var count = await client.QueryCountIntervalGroupAsync(testCol, groupby, timeframe, interval);
+            var count = (await client.QueryIntervalGroupAsync(QueryType.Count(), testCol, "", groupby, timeframe, interval)).ToList();
             Assert.IsNotNull(count);
 
             if (null != queryMock)
             {
-                queryMock.Verify(m => m.Metric<int>(
-                    It.Is<string>(me => me == "count"),
-                    It.Is<string>(c => c == testCol),
-                    It.Is<string>(p => p == "-"),
-                    It.Is<string>(g => g == groupby),
-                    It.Is<QueryTimeframe>(t => t == timeframe),
-                    It.Is<QueryInterval>(i => i == interval),
-                    It.Is<IEnumerable<QueryFilter>>(f => f == null),
-                    It.Is<string>(z => z == "")),
-                    Times.Once());
+                queryMock.VerifyAll();
             }
         }
 
 
         [Test]
-        public async void Count_ValidAbsoluteInterval_Success()
+        public async void Query_ValidAbsoluteInterval_Success()
         {
             var client = new KeenClient(settingsEnv);
             var timeframe = new QueryAbsoluteTimeframe(DateTime.Now.AddDays(-1), DateTime.Now);
             var interval = QueryInterval.EveryNMinutes(5);
-            IEnumerable<QueryIntervalValue<int>> result =
-                new List<QueryIntervalValue<int>>() { new QueryIntervalValue<int>(0, timeframe.Start, timeframe.End) };
+            IEnumerable<QueryIntervalValue<string>> result =
+                new List<QueryIntervalValue<string>>() { new QueryIntervalValue<string>("0", timeframe.Start, timeframe.End) };
 
             Mock<IQueries> queryMock = null;
             if (UseMocks)
             {
                 queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<int>(
-                        It.Is<string>(me => me == "count"),
+                queryMock.Setup(m => m.Metric(
+                        It.Is<QueryType>(q => q == QueryType.Count()),
                         It.Is<string>(c => c == testCol),
-                        It.Is<string>(p => p == "-"),
+                        It.Is<string>(p => p == ""),
                         It.Is<QueryAbsoluteTimeframe>(t => t == timeframe),
                         It.Is<QueryInterval>(i => i == interval),
                         It.IsAny<IEnumerable<QueryFilter>>(),
@@ -264,7 +245,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var counts = await client.QueryCountIntervalAsync(testCol, timeframe, interval);
+            var counts = (await client.QueryIntervalAsync(QueryType.Count(), testCol, "", timeframe, interval)).ToList();
             Assert.IsNotNull(counts);
 
             if (null != queryMock)
@@ -272,7 +253,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void Count_ValidRelative_Success()
+        public async void Query_ValidRelative_Success()
         {
             var client = new KeenClient(settingsEnv);
             var timeframe = QueryRelativeTimeframe.ThisMinute();
@@ -281,51 +262,44 @@ namespace Keen.Net.Test
             if (UseMocks)
             {
                 queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<int>(
-                        It.Is<string>(me => me == "count"),
+                queryMock.Setup(m => m.Metric(
+                        It.Is<QueryType>(q => q == QueryType.Count()),
                         It.Is<string>(c => c == testCol),
-                        It.Is<string>(p => p == "-"),
+                        It.Is<string>(p => p == ""),
                         It.Is<QueryTimeframe>(t => t == timeframe),
                         It.Is<IEnumerable<QueryFilter>>(f => f == null),
                         It.Is<string>(z => z == "")))
-                    .Returns(Task.FromResult(0));
+                    .Returns(Task.FromResult("0"));
 
                 client.Queries = queryMock.Object;
             }
 
-            var count = await client.QueryCountAsync(testCol, timeframe, null);
+            var count = await client.QueryAsync(QueryType.Count(), testCol, "", timeframe, null);
             Assert.IsNotNull(count);
 
             if (null != queryMock)
             {
-                queryMock.Verify(m => m.Metric<int>(
-                    It.Is<string>(me => me == "count"),
-                    It.Is<string>(c => c == testCol),
-                    It.Is<string>(p => p == "-"),
-                    It.Is<QueryTimeframe>(t => t == timeframe),
-                    It.Is<IEnumerable<QueryFilter>>(f => f == null),
-                    It.Is<string>(z => z == "")),
-                    Times.Once());
+                queryMock.VerifyAll();
             }
         }
 
         [Test]
-        public async void Count_ValidRelativeInterval_Success()
+        public async void Query_ValidRelativeInterval_Success()
         {
             var client = new KeenClient(settingsEnv);
             var interval = QueryInterval.EveryNMinutes(5);
             var timeframe = QueryRelativeTimeframe.ThisMinute();
-            IEnumerable<QueryIntervalValue<int>> result =
-                new List<QueryIntervalValue<int>>() { new QueryIntervalValue<int>(0, DateTime.Now.AddMinutes(-5), DateTime.Now) };
+            IEnumerable<QueryIntervalValue<string>> result =
+                new List<QueryIntervalValue<string>>() { new QueryIntervalValue<string>("0", DateTime.Now.AddMinutes(-5), DateTime.Now) };
 
             Mock<IQueries> queryMock = null;
             if (UseMocks)
             {
                 queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<int>(
-                        It.Is<string>(me => me == "count"),
+                queryMock.Setup(m => m.Metric(
+                        It.Is<QueryType>(q => q == QueryType.Count()),
                         It.Is<string>(c => c == testCol),
-                        It.Is<string>(p => p == "-"),
+                        It.Is<string>(p => p == ""),
                         It.Is<QueryTimeframe>(t => t == timeframe),
                         It.Is<QueryInterval>(i => i == interval),
                         It.Is<IEnumerable<QueryFilter>>(f => f == null),
@@ -335,7 +309,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var counts = await client.QueryCountIntervalAsync(testCol, timeframe, interval);
+            var counts = (await client.QueryIntervalAsync(QueryType.Count(), testCol, "", timeframe, interval)).ToList();
             Assert.IsNotNull(counts);
 
             if (null != queryMock)
@@ -343,7 +317,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void Count_ValidFilter_Success()
+        public async void Query_ValidFilter_Success()
         {
             var client = new KeenClient(settingsEnv);
             var filters = new List<QueryFilter>(){ new QueryFilter("field1", QueryFilter.FilterOperator.GreaterThan(), "1") };
@@ -352,31 +326,24 @@ namespace Keen.Net.Test
             if (UseMocks)
             {
                 queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<int>(
-                        It.Is<string>(me => me == "count"),
+                queryMock.Setup(m => m.Metric(
+                        It.Is<QueryType>(q => q == QueryType.Count()),
                         It.Is<string>(c => c == testCol),
-                        It.Is<string>(p => p == "-"),
+                        It.Is<string>(p => p == ""),
                         It.Is<QueryTimeframe>(t => t == null),
                         It.Is<IEnumerable<QueryFilter>>(f => f == filters),
                         It.Is<string>(z => z == "")))
-                    .Returns(Task.FromResult(1));
+                    .Returns(Task.FromResult("1"));
 
                 client.Queries = queryMock.Object;
             }
 
-            var count = await client.QueryCountAsync(testCol, null, filters);
+            var count = await client.QueryAsync(QueryType.Count(), testCol, "", null, filters);
             Assert.IsNotNull(count);
 
             if (null != queryMock)
             {
-                queryMock.Verify(m => m.Metric<int>(
-                    It.Is<string>(me => me == "count"),
-                    It.Is<string>(c => c == testCol),
-                    It.Is<string>(p => p == "-"),
-                    It.Is<QueryTimeframe>(t => t == null),
-                    It.Is<IEnumerable<QueryFilter>>(f => f == filters),
-                    It.Is<string>(z => z == "")),
-                    Times.Once());
+                queryMock.VerifyAll();
             }
         }
 
@@ -392,153 +359,21 @@ namespace Keen.Net.Test
             if (UseMocks)
             {
                 queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<int>(
-                        It.Is<string>(me => me == "count_unique"),
+                queryMock.Setup(m => m.Metric(
+                        It.Is<QueryType>(q => q == QueryType.CountUnique()),
                         It.Is<string>(c => c == testCol),
                         It.Is<string>(p=> p == prop),
                         It.Is<QueryAbsoluteTimeframe>(t => t == timeframe),
                         It.Is<IEnumerable<QueryFilter>>(f => f == null),
                         It.Is<string>(t=>t=="")
                         ))
-                    .Returns(Task.FromResult(0));
+                    .Returns(Task.FromResult("0"));
 
                 client.Queries = queryMock.Object;
             }
 
-            var count = await client.QueryCountUniqueAsync(testCol, prop, timeframe);
+            var count = await client.QueryAsync(QueryType.CountUnique(), testCol, prop, timeframe);
             Assert.IsNotNull(count);
-
-            if (null != queryMock)
-                queryMock.VerifyAll();
-        }
-
-        [Test]
-        public async void CountUnique_ValidRelative_Success()
-        {
-            var client = new KeenClient(settingsEnv);
-            var prop = "field1";
-            var timeframe = QueryRelativeTimeframe.ThisMinute();
-
-            Mock<IQueries> queryMock = null;
-            if (UseMocks)
-            {
-                queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<int>(
-                        It.Is<string>(me => me == "count_unique"),
-                        It.Is<string>(c => c == testCol),
-                        It.Is<string>(p => p == prop),
-                        It.Is<QueryRelativeTimeframe>(t => t == timeframe),
-                        It.Is<IEnumerable<QueryFilter>>(f => f == null),
-                        It.Is<string>(t => t == "")
-                        ))
-                    .Returns(Task.FromResult(0));
-
-                client.Queries = queryMock.Object;
-            }
-
-            var count = await client.QueryCountUniqueAsync(testCol, prop, timeframe);
-            Assert.IsNotNull(count);
-
-            if (null != queryMock)
-                queryMock.VerifyAll();
-        }
-
-        [Test]
-        public async void CountUnique_ValidFilter_Success()
-        {
-            var client = new KeenClient(settingsEnv);
-            var prop = "field1";
-            var filters = new List<QueryFilter>() { new QueryFilter("field1", QueryFilter.FilterOperator.GreaterThan(), "1") };
-
-            Mock<IQueries> queryMock = null;
-            if (UseMocks)
-            {
-                queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<int>(
-                        It.Is<string>(me => me == "count_unique"),
-                      It.Is<string>(c => c == testCol),
-                      It.Is<string>(p => p == prop),
-                      It.Is<QueryRelativeTimeframe>(t => t == null),
-                      It.Is<IEnumerable<QueryFilter>>(f => f == filters),
-                      It.Is<string>(t => t == "")
-                      ))
-                  .Returns(Task.FromResult(0));
-
-                client.Queries = queryMock.Object;
-            }
-
-            var count = await client.QueryCountUniqueAsync(testCol, prop, null, filters);
-            Assert.IsNotNull(count);
-
-            if (null != queryMock)
-                queryMock.VerifyAll();
-        }
-
-        [Test]
-        public async void CountUnique_ValidAbsoluteInterval_Success()
-        {
-            var client = new KeenClient(settingsEnv);
-            var prop = "field1";
-            var timeframe = new QueryAbsoluteTimeframe(DateTime.Now.AddDays(-1), DateTime.Now);
-            var interval = QueryInterval.EveryNMinutes(5);
-            IEnumerable<QueryIntervalValue<int>> result =
-                new List<QueryIntervalValue<int>>() { new QueryIntervalValue<int>(0, timeframe.Start, timeframe.End) };
-
-            Mock<IQueries> queryMock = null;
-            if (UseMocks)
-            {
-                queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<int>(
-                        It.Is<string>(me => me == "count_unique"),
-                        It.Is<string>(c => c == testCol),
-                        It.Is<string>(p=> p == prop),
-                        It.Is<QueryAbsoluteTimeframe>(t => t == timeframe),
-                        It.Is<QueryInterval>(i=>i==interval),
-                        It.Is<IEnumerable<QueryFilter>>(f => f == null),
-                        It.Is<string>(t=>t=="")
-                        ))
-                    .Returns(Task.FromResult(result));
-
-                client.Queries = queryMock.Object;
-            }
-
-            var counts = await client.QueryCountUniqueIntervalAsync(testCol, prop, timeframe, interval);
-            Assert.IsNotNull(counts);
-
-            if (null != queryMock)
-                queryMock.VerifyAll();
-        }
-
-        [Test]
-        public async void CountUnique_ValidRelativeInterval_Success()
-        {
-            var client = new KeenClient(settingsEnv);
-            var prop = "field1";
-            var interval = QueryInterval.EveryNMinutes(5);
-            var timeframe = QueryRelativeTimeframe.ThisMinute();
-            IEnumerable<QueryIntervalValue<int>> result =
-                new List<QueryIntervalValue<int>>() { new QueryIntervalValue<int>(0, DateTime.Now.AddMinutes(-5), DateTime.Now) };
-
-            Mock<IQueries> queryMock = null;
-            if (UseMocks)
-            {
-                queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<int>(
-                        It.Is<string>(me => me == "count_unique"),
-                        It.Is<string>(c => c == testCol),
-                        It.Is<string>(p => p == prop),
-                        It.Is<QueryRelativeTimeframe>(t => t == timeframe),
-                        It.Is<QueryInterval>(i => i == interval),
-                        It.Is<IEnumerable<QueryFilter>>(f => f == null),
-                        It.Is<string>(t => t == "")
-                        ))
-                    .Returns(Task.FromResult(result));
-
-                client.Queries = queryMock.Object;
-            }
-
-            var counts = await client.QueryCountUniqueIntervalAsync(testCol, prop, timeframe, interval);
-            Assert.IsNotNull(counts);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -555,8 +390,8 @@ namespace Keen.Net.Test
             if (UseMocks)
             {
                 queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<string>(
-                        It.Is<string>(me => me == "minimum"),
+                queryMock.Setup(m => m.Metric(
+                        It.Is<QueryType>(q => q == QueryType.Minimum()),
                         It.Is<string>(c => c == testCol),
                         It.Is<string>(p => p == prop),
                         It.Is<QueryAbsoluteTimeframe>(t => t == timeframe),
@@ -568,140 +403,13 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var count = await client.QueryMinimumAsync(testCol, prop, timeframe);
+            var count = await client.QueryAsync(QueryType.Minimum(), testCol, prop, timeframe);
             Assert.IsNotNull(count);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
         }
 
-        [Test]
-        public async void Minimum_ValidRelative_Success()
-        {
-            var client = new KeenClient(settingsEnv);
-            var prop = "field1";
-            var timeframe = QueryRelativeTimeframe.ThisMinute();
-
-            Mock<IQueries> queryMock = null;
-            if (UseMocks)
-            {
-                queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<string>(
-                        It.Is<string>(me => me == "minimum"),
-                        It.Is<string>(c => c == testCol),
-                        It.Is<string>(p => p == prop),
-                        It.Is<QueryRelativeTimeframe>(t => t == timeframe),
-                        It.Is<IEnumerable<QueryFilter>>(f => f == null),
-                        It.Is<string>(t => t == "")
-                        ))
-                    .Returns(Task.FromResult("0"));
-
-                client.Queries = queryMock.Object;
-            }
-
-            await client.QueryMinimumAsync(testCol, prop, timeframe);            
-
-            if (null != queryMock)
-                queryMock.VerifyAll();
-        }
-
-        [Test]
-        public async void Minimum_ValidFilter_Success()
-        {
-            var client = new KeenClient(settingsEnv);
-            var prop = "field1";
-            var filters = new List<QueryFilter>() { new QueryFilter("field1", QueryFilter.FilterOperator.GreaterThan(), "1") };
-
-            Mock<IQueries> queryMock = null;
-            if (UseMocks)
-            {
-                queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<string>(
-                      It.Is<string>(me => me == "minimum"),
-                      It.Is<string>(c => c == testCol),
-                      It.Is<string>(p => p == prop),
-                      It.Is<QueryRelativeTimeframe>(t => t == null),
-                      It.Is<IEnumerable<QueryFilter>>(f => f == filters),
-                      It.Is<string>(t => t == "")
-                      ))
-                  .Returns(Task.FromResult("0"));
-
-                client.Queries = queryMock.Object;
-            }
-
-            await client.QueryMinimumAsync(testCol, prop, null, filters);
-
-            if (null != queryMock)
-                queryMock.VerifyAll();
-        }
-
-        [Test]
-        public async void Minimum_ValidAbsoluteInterval_Success()
-        {
-            var client = new KeenClient(settingsEnv);
-            var prop = "field1";
-            var timeframe = new QueryAbsoluteTimeframe(DateTime.Now.AddDays(-1), DateTime.Now);
-            var interval = QueryInterval.EveryNMinutes(5);
-            IEnumerable<QueryIntervalValue<string>> result =
-                new List<QueryIntervalValue<string>>() { new QueryIntervalValue<string>("0", timeframe.Start, timeframe.End) };
-
-            Mock<IQueries> queryMock = null;
-            if (UseMocks)
-            {
-                queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<string>(
-                        It.Is<string>(me => me == "minimum"),
-                        It.Is<string>(c => c == testCol),
-                        It.Is<string>(p => p == prop),
-                        It.Is<QueryAbsoluteTimeframe>(t => t == timeframe),
-                        It.Is<QueryInterval>(i => i == interval),
-                        It.Is<IEnumerable<QueryFilter>>(f => f == null),
-                        It.Is<string>(t => t == "")
-                        ))
-                    .Returns(Task.FromResult(result));
-
-                client.Queries = queryMock.Object;
-            }
-
-            var counts = await client.QueryMinimumIntervalAsync(testCol, prop, timeframe, interval);
-
-            if (null != queryMock)
-                queryMock.VerifyAll();
-        }
-
-        [Test]
-        public async void Minimum_ValidRelativeInterval_Success()
-        {
-            var client = new KeenClient(settingsEnv);
-            var prop = "field1";
-            var interval = QueryInterval.EveryNMinutes(5);
-            var timeframe = QueryRelativeTimeframe.ThisMinute();
-            IEnumerable<QueryIntervalValue<string>> result =
-                new List<QueryIntervalValue<string>>() { new QueryIntervalValue<string>("0", DateTime.Now.AddMinutes(-5), DateTime.Now) };
-
-            Mock<IQueries> queryMock = null;
-            if (UseMocks)
-            {
-                queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<string>(
-                        It.Is<string>(me => me == "minimum"),
-                        It.Is<string>(c => c == testCol),
-                        It.Is<string>(p => p == prop),
-                        It.Is<QueryRelativeTimeframe>(t => t == timeframe),
-                        It.Is<QueryInterval>(i => i == interval),
-                        It.Is<IEnumerable<QueryFilter>>(f => f == null),
-                        It.Is<string>(t => t == "")
-                        ))
-                    .Returns(Task.FromResult(result));
-
-                client.Queries = queryMock.Object;
-            }
-
-            await client.QueryMinimumIntervalAsync(testCol, prop, timeframe, interval);
-
-            if (null != queryMock)
-                queryMock.VerifyAll();
-        }
 
         [Test]
         public async void Maximum_ValidAbsolute_Success()
@@ -714,8 +422,8 @@ namespace Keen.Net.Test
             if (UseMocks)
             {
                 queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<string>(
-                        It.Is<string>(me => me == "maximum"),
+                queryMock.Setup(m => m.Metric(
+                        It.Is<QueryType>(q => q == QueryType.Maximum()),
                         It.Is<string>(c => c == testCol),
                         It.Is<string>(p => p == prop),
                         It.Is<QueryAbsoluteTimeframe>(t => t == timeframe),
@@ -727,136 +435,8 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var count = await client.QueryMaximumAsync(testCol, prop, timeframe);
+            var count = await client.QueryAsync(QueryType.Maximum(), testCol, prop, timeframe);
             Assert.IsNotNull(count);
-
-            if (null != queryMock)
-                queryMock.VerifyAll();
-        }
-
-        [Test]
-        public async void Maximum_ValidRelative_Success()
-        {
-            var client = new KeenClient(settingsEnv);
-            var prop = "field1";
-            var timeframe = QueryRelativeTimeframe.ThisMinute();
-
-            Mock<IQueries> queryMock = null;
-            if (UseMocks)
-            {
-                queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<string>(
-                        It.Is<string>(me => me == "maximum"),
-                        It.Is<string>(c => c == testCol),
-                        It.Is<string>(p => p == prop),
-                        It.Is<QueryRelativeTimeframe>(t => t == timeframe),
-                        It.Is<IEnumerable<QueryFilter>>(f => f == null),
-                        It.Is<string>(t => t == "")
-                        ))
-                    .Returns(Task.FromResult("0"));
-
-                client.Queries = queryMock.Object;
-            }
-
-            await client.QueryMaximumAsync(testCol, prop, timeframe);
-
-            if (null != queryMock)
-                queryMock.VerifyAll();
-        }
-
-        [Test]
-        public async void Maximum_ValidFilter_Success()
-        {
-            var client = new KeenClient(settingsEnv);
-            var prop = "field1";
-            var filters = new List<QueryFilter>() { new QueryFilter("field1", QueryFilter.FilterOperator.GreaterThan(), "1") };
-
-            Mock<IQueries> queryMock = null;
-            if (UseMocks)
-            {
-                queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<string>(
-                      It.Is<string>(me => me == "maximum"),
-                      It.Is<string>(c => c == testCol),
-                      It.Is<string>(p => p == prop),
-                      It.Is<QueryRelativeTimeframe>(t => t == null),
-                      It.Is<IEnumerable<QueryFilter>>(f => f == filters),
-                      It.Is<string>(t => t == "")
-                      ))
-                  .Returns(Task.FromResult("0"));
-
-                client.Queries = queryMock.Object;
-            }
-
-            await client.QueryMaximumAsync(testCol, prop, null, filters);
-
-            if (null != queryMock)
-                queryMock.VerifyAll();
-        }
-
-        [Test]
-        public async void Maximum_ValidAbsoluteInterval_Success()
-        {
-            var client = new KeenClient(settingsEnv);
-            var prop = "field1";
-            var timeframe = new QueryAbsoluteTimeframe(DateTime.Now.AddDays(-1), DateTime.Now);
-            var interval = QueryInterval.EveryNMinutes(5);
-            IEnumerable<QueryIntervalValue<string>> result =
-                new List<QueryIntervalValue<string>>() { new QueryIntervalValue<string>("0", timeframe.Start, timeframe.End) };
-
-            Mock<IQueries> queryMock = null;
-            if (UseMocks)
-            {
-                queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<string>(
-                        It.Is<string>(me => me == "maximum"),
-                        It.Is<string>(c => c == testCol),
-                        It.Is<string>(p => p == prop),
-                        It.Is<QueryAbsoluteTimeframe>(t => t == timeframe),
-                        It.Is<QueryInterval>(i => i == interval),
-                        It.Is<IEnumerable<QueryFilter>>(f => f == null),
-                        It.Is<string>(t => t == "")
-                        ))
-                    .Returns(Task.FromResult(result));
-
-                client.Queries = queryMock.Object;
-            }
-
-            var counts = await client.QueryMaximumIntervalAsync(testCol, prop, timeframe, interval);
-
-            if (null != queryMock)
-                queryMock.VerifyAll();
-        }
-
-        [Test]
-        public async void Maximum_ValidRelativeInterval_Success()
-        {
-            var client = new KeenClient(settingsEnv);
-            var prop = "field1";
-            var interval = QueryInterval.EveryNMinutes(5);
-            var timeframe = QueryRelativeTimeframe.ThisMinute();
-            IEnumerable<QueryIntervalValue<string>> result =
-                new List<QueryIntervalValue<string>>() { new QueryIntervalValue<string>("0", DateTime.Now.AddMinutes(-5), DateTime.Now) };
-
-            Mock<IQueries> queryMock = null;
-            if (UseMocks)
-            {
-                queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<string>(
-                        It.Is<string>(me => me == "maximum"),
-                        It.Is<string>(c => c == testCol),
-                        It.Is<string>(p => p == prop),
-                        It.Is<QueryRelativeTimeframe>(t => t == timeframe),
-                        It.Is<QueryInterval>(i => i == interval),
-                        It.Is<IEnumerable<QueryFilter>>(f => f == null),
-                        It.Is<string>(t => t == "")
-                        ))
-                    .Returns(Task.FromResult(result));
-
-                client.Queries = queryMock.Object;
-            }
-
-            await client.QueryMaximumIntervalAsync(testCol, prop, timeframe, interval);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -873,152 +453,25 @@ namespace Keen.Net.Test
             if (UseMocks)
             {
                 queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<double?>(
-                        It.Is<string>(me => me == "average"),
+                queryMock.Setup(m => m.Metric(
+                        It.Is<QueryType>(q => q == QueryType.Average()),
                         It.Is<string>(c => c == testCol),
                         It.Is<string>(p => p == prop),
                         It.Is<QueryAbsoluteTimeframe>(t => t == timeframe),
                         It.Is<IEnumerable<QueryFilter>>(f => f == null),
                         It.Is<string>(t => t == "")
                         ))
-                    .Returns(Task.FromResult((double?)0.0));
+                    .Returns(Task.FromResult("0.0"));
 
                 client.Queries = queryMock.Object;
             }
 
-            await client.QueryAverageAsync(testCol, prop, timeframe);
+            await client.QueryAsync(QueryType.Average(), testCol, prop, timeframe);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
         }
 
-        [Test]
-        public async void Average_ValidRelative_Success()
-        {
-            var client = new KeenClient(settingsEnv);
-            var prop = "field1";
-            var timeframe = QueryRelativeTimeframe.ThisMinute();
-
-            Mock<IQueries> queryMock = null;
-            if (UseMocks)
-            {
-                queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<double?>(
-                      It.Is<string>(me => me == "average"),
-                        It.Is<string>(c => c == testCol),
-                        It.Is<string>(p => p == prop),
-                        It.Is<QueryRelativeTimeframe>(t => t == timeframe),
-                        It.Is<IEnumerable<QueryFilter>>(f => f == null),
-                        It.Is<string>(t => t == "")
-                        ))
-                    .Returns(Task.FromResult((double?)0.0));
-
-                client.Queries = queryMock.Object;
-            }
-
-            await client.QueryAverageAsync(testCol, prop, timeframe);
-
-            if (null != queryMock)
-                queryMock.VerifyAll();
-        }
-
-        [Test]
-        public async void Average_ValidFilter_Success()
-        {
-            var client = new KeenClient(settingsEnv);
-            var prop = "field1";
-            var filters = new List<QueryFilter>() { new QueryFilter("field1", QueryFilter.FilterOperator.GreaterThan(), "1") };
-
-            Mock<IQueries> queryMock = null;
-            if (UseMocks)
-            {
-                queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<double?>(
-                      It.Is<string>(me => me == "average"),
-                      It.Is<string>(c => c == testCol),
-                      It.Is<string>(p => p == prop),
-                      It.Is<QueryRelativeTimeframe>(t => t == null),
-                      It.Is<IEnumerable<QueryFilter>>(f => f == filters),
-                      It.Is<string>(t => t == "")
-                      ))
-                  .Returns(Task.FromResult((double?)0.0));
-
-                client.Queries = queryMock.Object;
-            }
-
-            await client.QueryAverageAsync(testCol, prop, null, filters);
-
-            if (null != queryMock)
-                queryMock.VerifyAll();
-        }
-
-        [Test]
-        public async void Average_ValidAbsoluteInterval_Success()
-        {
-            var client = new KeenClient(settingsEnv);
-            var prop = "field1";
-            var timeframe = new QueryAbsoluteTimeframe(DateTime.Now.AddDays(-1), DateTime.Now);
-            var interval = QueryInterval.EveryNMinutes(5);
-            IEnumerable<QueryIntervalValue<double?>> result =
-                new List<QueryIntervalValue<double?>>() { new QueryIntervalValue<double?>(0.0, timeframe.Start, timeframe.End) };
-
-            Mock<IQueries> queryMock = null;
-            if (UseMocks)
-            {
-                queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<double?>(
-                        It.Is<string>(me => me == "average"),
-                        It.Is<string>(c => c == testCol),
-                        It.Is<string>(p => p == prop),
-                        It.Is<QueryAbsoluteTimeframe>(t => t == timeframe),
-                        It.Is<QueryInterval>(i => i == interval),
-                        It.Is<IEnumerable<QueryFilter>>(f => f == null),
-                        It.Is<string>(t => t == "")
-                        ))
-                    .Returns(Task.FromResult(result));
-
-                client.Queries = queryMock.Object;
-            }
-
-            var counts = await client.QueryAverageIntervalAsync(testCol, prop, timeframe, interval);
-
-            if (null != queryMock)
-                queryMock.VerifyAll();
-        }
-
-        [Test]
-        public async void Average_ValidRelativeInterval_Success()
-        {
-            var client = new KeenClient(settingsEnv);
-            var prop = "field1";
-            var interval = QueryInterval.EveryNMinutes(5);
-            var timeframe = QueryRelativeTimeframe.ThisMinute();
-            IEnumerable<QueryIntervalValue<double?>> result =
-                new List<QueryIntervalValue<double?>>() { new QueryIntervalValue<double?>((double?)0.0, DateTime.Now.AddMinutes(-5), DateTime.Now) };
-
-            Mock<IQueries> queryMock = null;
-            if (UseMocks)
-            {
-                queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<double?>(
-                      It.Is<string>(me => me == "average"),
-                        It.Is<string>(c => c == testCol),
-                        It.Is<string>(p => p == prop),
-                        It.Is<QueryRelativeTimeframe>(t => t == timeframe),
-                        It.Is<QueryInterval>(i => i == interval),
-                        It.Is<IEnumerable<QueryFilter>>(f => f == null),
-                        It.Is<string>(t => t == "")
-                        ))
-                    .Returns(Task.FromResult(result));
-
-                client.Queries = queryMock.Object;
-            }
-
-            await client.QueryAverageIntervalAsync(testCol, prop, timeframe, interval);
-
-            if (null != queryMock)
-                queryMock.VerifyAll();
-        }
 
 
         [Test]
@@ -1032,153 +485,24 @@ namespace Keen.Net.Test
             if (UseMocks)
             {
                 queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<double?>(
-                        It.Is<string>(me => me == "sum"),
+                queryMock.Setup(m => m.Metric(
+                        It.Is<QueryType>(q => q == QueryType.Sum()),
                         It.Is<string>(c => c == testCol),
                         It.Is<string>(p => p == prop),
                         It.Is<QueryAbsoluteTimeframe>(t => t == timeframe),
                         It.Is<IEnumerable<QueryFilter>>(f => f == null),
                         It.Is<string>(t => t == "")
                         ))
-                    .Returns(Task.FromResult((double?)0.0));
+                    .Returns(Task.FromResult("0.0"));
 
                 client.Queries = queryMock.Object;
             }
 
-            await client.QuerySumAsync(testCol, prop, timeframe);
+            await client.QueryAsync(QueryType.Sum(), testCol, prop, timeframe);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
         }
-
-        [Test]
-        public async void Sum_ValidRelative_Success()
-        {
-            var client = new KeenClient(settingsEnv);
-            var prop = "field1";
-            var timeframe = QueryRelativeTimeframe.ThisMinute();
-
-            Mock<IQueries> queryMock = null;
-            if (UseMocks)
-            {
-                queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<double?>(
-                        It.Is<string>(me => me == "sum"),
-                        It.Is<string>(c => c == testCol),
-                        It.Is<string>(p => p == prop),
-                        It.Is<QueryRelativeTimeframe>(t => t == timeframe),
-                        It.Is<IEnumerable<QueryFilter>>(f => f == null),
-                        It.Is<string>(t => t == "")
-                        ))
-                    .Returns(Task.FromResult((double?)0.0));
-
-                client.Queries = queryMock.Object;
-            }
-
-            await client.QuerySumAsync(testCol, prop, timeframe);
-
-            if (null != queryMock)
-                queryMock.VerifyAll();
-        }
-
-        [Test]
-        public async void Sum_ValidFilter_Success()
-        {
-            var client = new KeenClient(settingsEnv);
-            var prop = "field1";
-            var filters = new List<QueryFilter>() { new QueryFilter("field1", QueryFilter.FilterOperator.GreaterThan(), "1") };
-
-            Mock<IQueries> queryMock = null;
-            if (UseMocks)
-            {
-                queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<double?>(
-                      It.Is<string>(me => me == "sum"),
-                      It.Is<string>(c => c == testCol),
-                      It.Is<string>(p => p == prop),
-                      It.Is<QueryRelativeTimeframe>(t => t == null),
-                      It.Is<IEnumerable<QueryFilter>>(f => f == filters),
-                      It.Is<string>(t => t == "")
-                      ))
-                  .Returns(Task.FromResult((double?)0.0));
-
-                client.Queries = queryMock.Object;
-            }
-
-            await client.QuerySumAsync(testCol, prop, null, filters);
-
-            if (null != queryMock)
-                queryMock.VerifyAll();
-        }
-
-        [Test]
-        public async void Sum_ValidAbsoluteInterval_Success()
-        {
-            var client = new KeenClient(settingsEnv);
-            var prop = "field1";
-            var timeframe = new QueryAbsoluteTimeframe(DateTime.Now.AddDays(-1), DateTime.Now);
-            var interval = QueryInterval.EveryNMinutes(5);
-            IEnumerable<QueryIntervalValue<double?>> result =
-                new List<QueryIntervalValue<double?>>() { new QueryIntervalValue<double?>(0.0, timeframe.Start, timeframe.End) };
-
-            Mock<IQueries> queryMock = null;
-            if (UseMocks)
-            {
-                queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<double?>(
-                        It.Is<string>(me => me == "sum"),
-                        It.Is<string>(c => c == testCol),
-                        It.Is<string>(p => p == prop),
-                        It.Is<QueryAbsoluteTimeframe>(t => t == timeframe),
-                        It.Is<QueryInterval>(i => i == interval),
-                        It.Is<IEnumerable<QueryFilter>>(f => f == null),
-                        It.Is<string>(t => t == "")
-                        ))
-                    .Returns(Task.FromResult(result));
-
-                client.Queries = queryMock.Object;
-            }
-
-            var counts = await client.QuerySumIntervalAsync(testCol, prop, timeframe, interval);
-
-            if (null != queryMock)
-                queryMock.VerifyAll();
-        }
-
-        [Test]
-        public async void Sum_ValidRelativeInterval_Success()
-        {
-            var client = new KeenClient(settingsEnv);
-            var prop = "field1";
-            var interval = QueryInterval.EveryNMinutes(5);
-            var timeframe = QueryRelativeTimeframe.ThisMinute();
-            IEnumerable<QueryIntervalValue<double?>> result =
-                new List<QueryIntervalValue<double?>>() { new QueryIntervalValue<double?>((double?)0.0, DateTime.Now.AddMinutes(-5), DateTime.Now) };
-
-            Mock<IQueries> queryMock = null;
-            if (UseMocks)
-            {
-                queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<double?>(
-                        It.Is<string>(me => me == "sum"),
-                        It.Is<string>(c => c == testCol),
-                        It.Is<string>(p => p == prop),
-                        It.Is<QueryRelativeTimeframe>(t => t == timeframe),
-                        It.Is<QueryInterval>(i => i == interval),
-                        It.Is<IEnumerable<QueryFilter>>(f => f == null),
-                        It.Is<string>(t => t == "")
-                        ))
-                    .Returns(Task.FromResult(result));
-
-                client.Queries = queryMock.Object;
-            }
-
-            await client.QuerySumIntervalAsync(testCol, prop, timeframe, interval);
-
-            if (null != queryMock)
-                queryMock.VerifyAll();
-        }
-
 
         [Test]
         public async void SelectUnique_ValidAbsolute_Success()
@@ -1186,14 +510,14 @@ namespace Keen.Net.Test
             var client = new KeenClient(settingsEnv);
             var timeframe = new QueryAbsoluteTimeframe(DateTime.Now.AddDays(-1), DateTime.Now);
             var prop = "field1";
-            IEnumerable<string> result = new List<string>() { "hello", "goodbye", "I'm late" };
+            var result = "hello,goodbye,I'm late";
 
             Mock<IQueries> queryMock = null;
             if (UseMocks)
             {
                 queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<IEnumerable<string>>(
-                        It.Is<string>(me => me == "select_unique"),
+                queryMock.Setup(m => m.Metric(
+                        It.Is<QueryType>(q => q == QueryType.SelectUnique()),
                         It.Is<string>(c => c == testCol),
                         It.Is<string>(p => p == prop),
                         It.Is<QueryAbsoluteTimeframe>(t => t == timeframe),
@@ -1205,7 +529,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var reply = await client.QuerySelectUniqueAsync(testCol, prop, timeframe);
+            var reply = await client.QueryAsync(QueryType.SelectUnique(), testCol, prop, timeframe);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1217,14 +541,14 @@ namespace Keen.Net.Test
             var client = new KeenClient(settingsEnv);
             var prop = "field1";
             var timeframe = QueryRelativeTimeframe.ThisMinute();
-            IEnumerable<string> result = new List<string>() { "hello", "goodbye", "I'm late" };
+            var result = "hello,goodbye,I'm late";
 
             Mock<IQueries> queryMock = null;
             if (UseMocks)
             {
                 queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<IEnumerable<string>>(
-                        It.Is<string>(me => me == "select_unique"),
+                queryMock.Setup(m => m.Metric(
+                        It.Is<QueryType>(q => q == QueryType.SelectUnique()),
                         It.Is<string>(c => c == testCol),
                         It.Is<string>(p => p == prop),
                         It.Is<QueryRelativeTimeframe>(t => t == timeframe),
@@ -1236,7 +560,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            await client.QuerySelectUniqueAsync(testCol, prop, timeframe);
+            await client.QueryAsync(QueryType.SelectUnique(), testCol, prop, timeframe);
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1249,18 +573,18 @@ namespace Keen.Net.Test
             var prop = "field1";
             var groupby = "field1";
             var timeframe = QueryRelativeTimeframe.PreviousNDays(5);
-            IEnumerable<QueryGroupValue<IEnumerable<string>>> reply = new List<QueryGroupValue<IEnumerable<string>>>()
+            IEnumerable<QueryGroupValue<string>> reply = new List<QueryGroupValue<string>>()
             {
-                new QueryGroupValue<IEnumerable<string>>( new List<string>() { "hello", "goodbye", "I'm late" }, "field1" ),
-                new QueryGroupValue<IEnumerable<string>>( new List<string>() { "hello", "goodbye", "I'm late" }, "field1" ),
+                new QueryGroupValue<string>( "hello,goodbye,I'm late", "field1" ),
+                new QueryGroupValue<string>( "hello,goodbye,I'm late", "field1" ),
             };
 
             Mock<IQueries> queryMock = null;
             if (UseMocks)
             {
                 queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<IEnumerable<string>>(
-                        It.Is<string>(me => me == "select_unique"),
+                queryMock.Setup(m => m.Metric(
+                        It.Is<QueryType>(q => q == QueryType.SelectUnique()),
                         It.Is<string>(c => c == testCol),
                         It.Is<string>(p => p == prop),
                         It.Is<string>(g => g == groupby),
@@ -1273,7 +597,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            await client.QuerySelectUniqueGroupAsync(testCol, prop, groupby, timeframe, null);
+            (await client.QueryGroupAsync(QueryType.SelectUnique(), testCol, prop, groupby, timeframe, null)).ToList();
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1285,14 +609,14 @@ namespace Keen.Net.Test
             var client = new KeenClient(settingsEnv);
             var prop = "field1";
             var filters = new List<QueryFilter>() { new QueryFilter("field1", QueryFilter.FilterOperator.GreaterThan(), "1") };
-            IEnumerable<string> result = new List<string>() { "hello", "goodbye", "I'm late" };
+            var result = "hello,goodbye,I'm late";
 
             Mock<IQueries> queryMock = null;
             if (UseMocks)
             {
                 queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<IEnumerable<string>>(
-                      It.Is<string>(me => me == "select_unique"),
+                queryMock.Setup(m => m.Metric(
+                      It.Is<QueryType>(q => q == QueryType.SelectUnique()),
                       It.Is<string>(c => c == testCol),
                       It.Is<string>(p => p == prop),
                       It.Is<QueryRelativeTimeframe>(t => t == null),
@@ -1304,7 +628,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            await client.QuerySelectUniqueAsync(testCol, prop, null, filters);
+            var reply = (await client.QueryAsync(QueryType.SelectUnique(), testCol, prop, null, filters)).ToList();
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1317,16 +641,16 @@ namespace Keen.Net.Test
             var prop = "field1";
             var timeframe = new QueryAbsoluteTimeframe(DateTime.Now.AddDays(-1), DateTime.Now);
             var interval = QueryInterval.EveryNMinutes(5);
-            IEnumerable<string> resultl = new List<string>() { "hello", "goodbye", "I'm late" };
-            IEnumerable<QueryIntervalValue<IEnumerable<string>>> result =
-                new List<QueryIntervalValue<IEnumerable<string>>>() { new QueryIntervalValue<IEnumerable<string>>(resultl, timeframe.Start, timeframe.End) };
+            var resultl = "hello,goodbye,I'm late";
+            IEnumerable<QueryIntervalValue<string>> result =
+                new List<QueryIntervalValue<string>>() { new QueryIntervalValue<string>(resultl, timeframe.Start, timeframe.End) };
 
             Mock<IQueries> queryMock = null;
             if (UseMocks)
             {
                 queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<IEnumerable<string>>(
-                        It.Is<string>(me => me == "select_unique"),
+                queryMock.Setup(m => m.Metric(
+                        It.Is<QueryType>(q => q == QueryType.SelectUnique()),
                         It.Is<string>(c => c == testCol),
                         It.Is<string>(p => p == prop),
                         It.Is<QueryAbsoluteTimeframe>(t => t == timeframe),
@@ -1339,7 +663,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var counts = await client.QuerySelectUniqueIntervalAsync(testCol, prop, timeframe, interval);
+            var counts = (await client.QueryIntervalAsync(QueryType.SelectUnique(), testCol, prop, timeframe, interval)).ToList();
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1353,22 +677,22 @@ namespace Keen.Net.Test
             var timeframe = new QueryAbsoluteTimeframe(DateTime.Now.AddDays(-1), DateTime.Now);
             var interval = QueryInterval.EveryNHours(4);
             var groupby = "field1";
-            IEnumerable<string> resultl = new List<string>() { "hello", "goodbye", "I'm late" };
+            var resultl = "hello,goodbye,I'm late";
 
-            IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<IEnumerable<string>>>>> result =
-                new List<QueryIntervalValue<IEnumerable<QueryGroupValue<IEnumerable<string>>>>>() 
+            IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>> result =
+                new List<QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>>() 
                 { 
-                    new QueryIntervalValue<IEnumerable<QueryGroupValue<IEnumerable<string>>>>(
-                        new List<QueryGroupValue<IEnumerable<string>>>(){
-                            new QueryGroupValue<IEnumerable<string>>(resultl, "abc"),
-                            new QueryGroupValue<IEnumerable<string>>(resultl, "def")
+                    new QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>(
+                        new List<QueryGroupValue<string>>(){
+                            new QueryGroupValue<string>(resultl, "abc"),
+                            new QueryGroupValue<string>(resultl, "def")
                         }, 
                         timeframe.Start, timeframe.End
                         ),
-                    new QueryIntervalValue<IEnumerable<QueryGroupValue<IEnumerable<string>>>>(
-                        new List<QueryGroupValue<IEnumerable<string>>>(){
-                            new QueryGroupValue<IEnumerable<string>>(resultl, "abc"),
-                            new QueryGroupValue<IEnumerable<string>>(resultl, "def")
+                    new QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>(
+                        new List<QueryGroupValue<string>>(){
+                            new QueryGroupValue<string>(resultl, "abc"),
+                            new QueryGroupValue<string>(resultl, "def")
                         }, 
                         timeframe.Start, timeframe.End
                         ),
@@ -1378,8 +702,8 @@ namespace Keen.Net.Test
             if (UseMocks)
             {
                 queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<IEnumerable<string>>(
-                        It.Is<string>(me => me == "select_unique"),
+                queryMock.Setup(m => m.Metric(
+                        It.Is<QueryType>(q => q == QueryType.SelectUnique()),
                         It.Is<string>(c => c == testCol),
                         It.Is<string>(p => p == prop),
                         It.Is<string>(g => g == groupby),
@@ -1393,7 +717,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var counts = await client.QuerySelectUniqueIntervalGroupAsync(testCol, prop, groupby, timeframe, interval);
+            var counts = (await client.QueryIntervalGroupAsync(QueryType.SelectUnique(), testCol, prop, groupby, timeframe, interval)).ToList();
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1407,16 +731,16 @@ namespace Keen.Net.Test
             var prop = "field1";
             var interval = QueryInterval.EveryNMinutes(5);
             var timeframe = QueryRelativeTimeframe.ThisMinute();
-            IEnumerable<string> resultl = new List<string>() { "hello", "goodbye", "I'm late" };
-            IEnumerable<QueryIntervalValue<IEnumerable<string>>> result =
-                new List<QueryIntervalValue<IEnumerable<string>>>() { new QueryIntervalValue<IEnumerable<string>>(resultl, DateTime.Now.AddMinutes(-5), DateTime.Now) };
+            var resultl = "hello,goodbye,I'm late";
+            IEnumerable<QueryIntervalValue<string>> result =
+                new List<QueryIntervalValue<string>>() { new QueryIntervalValue<string>(resultl, DateTime.Now.AddMinutes(-5), DateTime.Now) };
 
             Mock<IQueries> queryMock = null;
             if (UseMocks)
             {
                 queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Metric<IEnumerable<string>>(
-                        It.Is<string>(me => me == "select_unique"),
+                queryMock.Setup(m => m.Metric(
+                        It.Is<QueryType>(q => q == QueryType.SelectUnique()),
                         It.Is<string>(c => c == testCol),
                         It.Is<string>(p => p == prop),
                         It.Is<QueryRelativeTimeframe>(t => t == timeframe),
@@ -1429,7 +753,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var reply = await client.QuerySelectUniqueIntervalAsync(testCol, prop, timeframe, interval);
+            var reply = (await client.QueryIntervalAsync(QueryType.SelectUnique(), testCol, prop, timeframe, interval)).ToList();
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1463,7 +787,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var reply = await client.QueryExtractResourceAsync(testCol, timeframe);
+            var reply = (await client.QueryExtractResourceAsync(testCol, timeframe)).ToList();
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1494,7 +818,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var reply = await client.QueryExtractResourceAsync(testCol, timeframe);
+            var reply = (await client.QueryExtractResourceAsync(testCol, timeframe)).ToList();
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1525,7 +849,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var reply = await client.QueryExtractResourceAsync(testCol, null, filters);
+            var reply = (await client.QueryExtractResourceAsync(testCol, null, filters)).ToList();
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1591,7 +915,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var reply = await client.QueryFunnelAsync(testCol, funnelsteps, null);
+            var reply = (await client.QueryFunnelAsync(testCol, funnelsteps, null)).ToList();
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1717,7 +1041,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var reply = await client.QueryMultiAnalysisGroupAsync(testCol, param, null, null, groupby, "");
+            var reply = (await client.QueryMultiAnalysisGroupAsync(testCol, param, null, null, groupby, "")).ToList();
 
             if (null != queryMock)
             {
@@ -1782,7 +1106,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var reply = await client.QueryMultiAnalysisIntervalGroupAsync(testCol, param, timeframe, interval, null, groupby, "");
+            var reply = (await client.QueryMultiAnalysisIntervalGroupAsync(testCol, param, timeframe, interval, null, groupby, "")).ToList();
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -1829,7 +1153,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var reply = await client.QueryMultiAnalysisIntervalAsync(testCol, param, timeframe, interval);
+            var reply = (await client.QueryMultiAnalysisIntervalAsync(testCol, param, timeframe, interval)).ToList();
 
             if (null != queryMock)
             {

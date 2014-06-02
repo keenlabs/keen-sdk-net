@@ -63,80 +63,97 @@ namespace Keen.Core.Query
             var reply = await KeenWebApiRequest();
             return from j in reply.Children()
                    let p = j as JProperty
-                   where p != null
+                   where p != null 
                    select new KeyValuePair<string, string>(p.Name, (string)p.Value);
         }
 
         #region metric
-        public async Task<T> Metric<T>(string metric, string collection, string targetProperty, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+
+
+        public async Task<JObject> Metric(string queryName, Dictionary<string,string> parms)
         {
+            if (string.IsNullOrEmpty(queryName))
+                throw new ArgumentNullException("queryName");
+            if (null==parms)
+                throw new ArgumentNullException("parms");
+
+            return await KeenWebApiRequest(queryName, parms);
+        }
+
+        public async Task<string> Metric(QueryType queryType, string collection, string targetProperty, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        {
+            if (queryType == null)
+                throw new ArgumentNullException("queryType");
             if (string.IsNullOrWhiteSpace(collection))
                 throw new ArgumentNullException("collection");
-            if (string.IsNullOrWhiteSpace(targetProperty))
+            if (string.IsNullOrWhiteSpace(targetProperty) && (queryType!=QueryType.Count()))
                 throw new ArgumentNullException("targetProperty");
 
             var parms = new Dictionary<string, string>();
             parms.Add(KeenConstants.QueryParmEventCollection, collection);
-            parms.Add(KeenConstants.QueryParmTargetProperty, targetProperty == "-" ? "" : targetProperty);
+            parms.Add(KeenConstants.QueryParmTargetProperty, targetProperty);
             parms.Add(KeenConstants.QueryParmTimeframe, timeframe.ToSafeString());
             parms.Add(KeenConstants.QueryParmTimezone, timezone);
             parms.Add(KeenConstants.QueryParmFilters, filters == null ? "" : JArray.FromObject(filters).ToString());
 
-            var reply = await KeenWebApiRequest(metric, parms);
+            var reply = await KeenWebApiRequest(queryType.ToString(), parms);
 
-            T result;
-            if ((reply.GetValue("result") is JArray) &&  (typeof(T)==(typeof(IEnumerable<string>))))
-                // This is specifically to support SelectUnique which will call with T as IEnumerable<string>
-                result = (T)(IEnumerable<string>)(reply.Value<JArray>("result").Values<string>());
+            string result;
+            if (queryType == QueryType.SelectUnique())
+                // This is to support SelectUnique which is the only query type with a list-type result.
+                result = string.Join(",", (reply.Value<JArray>("result").Values<string>()));
             else
-                result = reply.Value<T>("result");
+                result = reply.Value<string>("result");
             return result;
         }
 
-        public async Task<IEnumerable<QueryGroupValue<T>>> Metric<T>(string metric, string collection, string targetProperty, string groupby, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        public async Task<IEnumerable<QueryGroupValue<string>>> Metric(QueryType queryType, string collection, string targetProperty, string groupby, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
+            if (queryType == null)
+                throw new ArgumentNullException("queryType");
             if (string.IsNullOrWhiteSpace(collection))
                 throw new ArgumentNullException("collection");
-            if (string.IsNullOrWhiteSpace(targetProperty))
+            if (string.IsNullOrWhiteSpace(targetProperty) && (queryType != QueryType.Count()))
                 throw new ArgumentNullException("targetProperty");
             if (string.IsNullOrWhiteSpace(groupby))
-                throw new ArgumentNullException("groupby", "groupby field name must be specified for a goupby query");
+                throw new ArgumentNullException("groupby", "groupby field name must be specified for a groupby query");
 
             var parms = new Dictionary<string, string>();
             parms.Add(KeenConstants.QueryParmEventCollection, collection);
-            parms.Add(KeenConstants.QueryParmTargetProperty, targetProperty == "-" ? "" : targetProperty);
+            parms.Add(KeenConstants.QueryParmTargetProperty, targetProperty);
             parms.Add(KeenConstants.QueryParmGroupBy, groupby);
             parms.Add(KeenConstants.QueryParmTimeframe, timeframe.ToSafeString());
             parms.Add(KeenConstants.QueryParmTimezone, timezone);
             parms.Add(KeenConstants.QueryParmFilters, filters == null ? "" : JArray.FromObject(filters).ToString());
 
-            var reply = await KeenWebApiRequest(metric, parms);
+            var reply = await KeenWebApiRequest(queryType.ToString(), parms);
 
-            IEnumerable<QueryGroupValue<T>> result;
-            if ((reply.GetValue("result") is JArray)
-            && (typeof(T) == (typeof(IEnumerable<string>))))
+            IEnumerable<QueryGroupValue<string>> result;
+            if (queryType == QueryType.SelectUnique())
             {
-                // This is specifically to support SelectUnique which will call with T as IEnumerable<string>
+                // This is to support SelectUnique which is the only query type with a list-type result.
                 result = from r in reply.Value<JArray>("result")
-                         let c = (T)r.Value<JArray>("result").Values<string>()
+                         let c = string.Join(",", r.Value<JArray>("result").Values<string>())
                          let g = r.Value<string>(groupby)
-                         select new QueryGroupValue<T>(c, g);
+                         select new QueryGroupValue<string>(c, g);
             }
             else
             {
                 result = from r in reply.Value<JArray>("result")
-                         let c = (T)r.Value<T>("result")
+                         let c = r.Value<string>("result")
                          let g = r.Value<string>(groupby)
-                         select new QueryGroupValue<T>(c, g);
+                         select new QueryGroupValue<string>(c, g);
             }
             return result;
         }
 
-        public async Task<IEnumerable<QueryIntervalValue<T>>> Metric<T>(string metric, string collection, string targetProperty, QueryTimeframe timeframe, QueryInterval interval, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        public async Task<IEnumerable<QueryIntervalValue<string>>> Metric(QueryType queryType, string collection, string targetProperty, QueryTimeframe timeframe, QueryInterval interval, IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
+            if (queryType == null)
+                throw new ArgumentNullException("queryType");
             if (string.IsNullOrWhiteSpace(collection))
                 throw new ArgumentNullException("collection");
-            if (string.IsNullOrWhiteSpace(targetProperty))
+            if (string.IsNullOrWhiteSpace(targetProperty) && (queryType != QueryType.Count()))
                 throw new ArgumentNullException("targetProperty");
             if (null == timeframe)
                 throw new ArgumentException("timeframe", "Timeframe must be specified for a series query.");
@@ -145,40 +162,41 @@ namespace Keen.Core.Query
 
             var parms = new Dictionary<string, string>();
             parms.Add(KeenConstants.QueryParmEventCollection, collection);
-            parms.Add(KeenConstants.QueryParmTargetProperty, targetProperty == "-" ? "" : targetProperty);
+            parms.Add(KeenConstants.QueryParmTargetProperty, targetProperty);
             parms.Add(KeenConstants.QueryParmTimeframe, timeframe.ToSafeString());
             parms.Add(KeenConstants.QueryParmInterval, interval.ToSafeString());
             parms.Add(KeenConstants.QueryParmTimezone, timezone);
             parms.Add(KeenConstants.QueryParmFilters, filters == null ? "" : JArray.FromObject(filters).ToString());
 
-            var reply = await KeenWebApiRequest(metric, parms);
+            var reply = await KeenWebApiRequest(queryType.ToString(), parms);
 
-            IEnumerable<QueryIntervalValue<T>> result;
-            if ((reply.GetValue("result") is JArray)
-            && (typeof(T) == (typeof(IEnumerable<string>))))
+            IEnumerable<QueryIntervalValue<string>> result;
+            if (queryType == QueryType.SelectUnique())
             {
-                // This is specifically to support SelectUnique which will call with T as IEnumerable<string>
+                // This is to support SelectUnique which is the only query type with a list-type result.
                 result = from i in reply.Value<JArray>("result")
-                         let v = (T)i.Value<JArray>("value").Values<string>()
+                         let v = string.Join(",", i.Value<JArray>("value").Values<string>())
                          let t = i.Value<JObject>("timeframe")
-                         select new QueryIntervalValue<T>(v, t.Value<DateTime>("start"), t.Value<DateTime>("end"));
+                         select new QueryIntervalValue<string>(v, t.Value<DateTime>("start"), t.Value<DateTime>("end"));
             }
             else
             {
                 result = from i in reply.Value<JArray>("result")
-                         let v = i.Value<T>("value")
+                         let v = i.Value<string>("value")
                          let t = i.Value<JObject>("timeframe")
-                         select new QueryIntervalValue<T>(v, t.Value<DateTime>("start"), t.Value<DateTime>("end"));
+                         select new QueryIntervalValue<string>(v, t.Value<DateTime>("start"), t.Value<DateTime>("end"));
             }
 
             return result;
         }
 
-        public async Task<IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<T>>>>> Metric<T>(string metric, string collection, string targetProperty, string groupby, QueryTimeframe timeframe, QueryInterval interval, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        public async Task<IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>>> Metric(QueryType queryType, string collection, string targetProperty, string groupby, QueryTimeframe timeframe, QueryInterval interval, IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
+            if (queryType == null)
+                throw new ArgumentNullException("queryType");
             if (string.IsNullOrWhiteSpace(collection))
                 throw new ArgumentNullException("collection");
-            if (string.IsNullOrWhiteSpace(targetProperty))
+            if (string.IsNullOrWhiteSpace(targetProperty) && (queryType != QueryType.Count()))
                 throw new ArgumentNullException("targetProperty");
             if (null == timeframe)
                 throw new ArgumentException("timeframe", "Timeframe must be specified for a series query.");
@@ -189,43 +207,41 @@ namespace Keen.Core.Query
 
             var parms = new Dictionary<string, string>();
             parms.Add(KeenConstants.QueryParmEventCollection, collection);
-            parms.Add(KeenConstants.QueryParmTargetProperty, targetProperty == "-" ? "" : targetProperty);
+            parms.Add(KeenConstants.QueryParmTargetProperty, targetProperty);
             parms.Add(KeenConstants.QueryParmGroupBy, groupby);
             parms.Add(KeenConstants.QueryParmTimeframe, timeframe.ToSafeString());
             parms.Add(KeenConstants.QueryParmInterval, interval.ToSafeString());
             parms.Add(KeenConstants.QueryParmTimezone, timezone);
             parms.Add(KeenConstants.QueryParmFilters, filters == null ? "" : JArray.FromObject(filters).ToString());
 
-            var reply = await KeenWebApiRequest(metric, parms);
+            var reply = await KeenWebApiRequest(queryType.ToString(), parms);
 
-            IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<T>>>> result;
-            if ((reply.GetValue("result") is JArray)
-            && (typeof(T) == (typeof(IEnumerable<string>))))
+            IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>> result;
+            if (queryType == QueryType.SelectUnique())
             {
-                // This is specifically to support SelectUnique which will call with T as IEnumerable<string>
+                // This is to support SelectUnique which is the only query type with a list-type result.
                 result = from i in reply.Value<JArray>("result")
                          let v = (from r in i.Value<JArray>("value")
-                                  let c = (T)r.Value<JArray>("result").Values<string>()
+                                  let c = string.Join(",", r.Value<JArray>("result").Values<string>())
                                   let g = r.Value<string>(groupby)
-                                  select new QueryGroupValue<T>(c, g))
+                                  select new QueryGroupValue<string>(c, g))
                          let t = i.Value<JObject>("timeframe")
-                         select new QueryIntervalValue<IEnumerable<QueryGroupValue<T>>>(v, t.Value<DateTime>("start"), t.Value<DateTime>("end"));
+                         select new QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>(v, t.Value<DateTime>("start"), t.Value<DateTime>("end"));
             }
             else
             {
                 result = from i in reply.Value<JArray>("result")
                          let v = (from r in i.Value<JArray>("value")
-                                  let c = (T)r.Value<T>("result")
+                                  let c = r.Value<string>("result")
                                   let g = r.Value<string>(groupby)
-                                  select new QueryGroupValue<T>(c, g))
+                                  select new QueryGroupValue<string>(c, g))
                          let t = i.Value<JObject>("timeframe")
-                         select new QueryIntervalValue<IEnumerable<QueryGroupValue<T>>>(v, t.Value<DateTime>("start"), t.Value<DateTime>("end"));
+                         select new QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>(v, t.Value<DateTime>("start"), t.Value<DateTime>("end"));
             }
             return result;
         }
         #endregion metric
-
-        
+       
         public async Task<IEnumerable<dynamic>> Extract(string collection, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, int latest = 0, string email = "")
         {
             var parms = new Dictionary<string, string>();

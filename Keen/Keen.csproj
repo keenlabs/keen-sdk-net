@@ -45,6 +45,7 @@
     <Compile Include="Query\QueryRelativeTimeframe.cs" />
     <Compile Include="Query\QueryAbsoluteTimeframe.cs" />
     <Compile Include="Query\QueryTimeframe.cs" />
+    <Compile Include="Query\QueryType.cs" />
     <None Include="app.config" />
     <Compile Include="CachedEvent.cs" />
     <Compile Include="DynamicPropertyValue.cs" />

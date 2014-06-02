@@ -46,7 +46,6 @@ namespace Keen.Core
         private const string queryMultiAnalysis = "multi_analysis";
         public static string QueryMultiAnalysis { get { return queryMultiAnalysis; } protected set { ;} }
 
-
         private const string queryParmEventCollection = "event_collection";
         public static string QueryParmEventCollection { get { return queryParmEventCollection; } protected set { ;} }
 
