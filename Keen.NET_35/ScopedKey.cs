@@ -1,13 +1,11 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Security.Cryptography;
 using System.IO;
-using System.Diagnostics;
 
-namespace Keen.Core
+namespace Keen.NET_35
 {
     /// <summary>
     /// ScopedKey provides encryption and decryption functions which can be used to create 
@@ -97,7 +95,7 @@ namespace Keen.Core
             }
             catch (Exception ex)
             {
-                throw new KeenException("Decryption error", ex);
+                throw new KeenException("Decryption error" + ex.Message, ex);
             }
         }
 
@@ -143,7 +141,7 @@ namespace Keen.Core
 
         private static string ByteToHex(byte[] a)
         {
-            return String.Concat(a.ToArray().Select(b => b.ToString("X2")));
+            return String.Concat(a.Select(b => b.ToString("X2")).ToArray());
         }
 
         private static byte[] HexToByte(string hex)

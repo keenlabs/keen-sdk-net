@@ -102,7 +102,7 @@ namespace Keen.Net.Test
             var client = new KeenClient(settingsEnv, cache);
             if (UseMocks)
                 client.Event = new EventMock(settingsEnv,
-                    AddEvents: new Func<JObject, IProjectSettings, IEnumerable<CachedEvent>>((e, p) =>
+                    addEvents: new Func<JObject, IProjectSettings, IEnumerable<CachedEvent>>((e, p) =>
                     {
                         return new List<CachedEvent>();
                     }));

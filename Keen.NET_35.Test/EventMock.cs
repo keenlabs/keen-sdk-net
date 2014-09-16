@@ -1,14 +1,8 @@
-﻿using Keen.Core.EventCache;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Keen.Core
+namespace Keen.NET_35.Test
 {
     /// <summary>
     /// EventMock provides an implementation of IEvent with a constructor that 
@@ -22,14 +16,14 @@ namespace Keen.Core
         private readonly Func<IProjectSettings, JArray> _getSchemas;
         private readonly Func<JObject, IProjectSettings, IEnumerable<CachedEvent>> _addEvents;
 
-        public Task<JArray> GetSchemas()
+        public JArray GetSchemas()
         {
-            return Task.Run(() => _getSchemas(_settings));
+            return _getSchemas(_settings);
         }
 
-        public Task<IEnumerable<CachedEvent>> AddEvents(JObject events)
+        public IEnumerable<CachedEvent> AddEvents(JObject events)
         {
-            return Task.Run(() => _addEvents(events, _settings));
+            return _addEvents(events, _settings);
         }
 
         public EventMock(IProjectSettings prjSettings,
@@ -37,7 +31,7 @@ namespace Keen.Core
             Func<JObject, IProjectSettings, IEnumerable<CachedEvent>> addEvents = null)
         {
             _settings = prjSettings;
-            _getSchemas = getSchemas ?? ((p) => new JArray());
+            _getSchemas = getSchemas ?? (p => new JArray());
             _addEvents = addEvents ?? ((p, e) => new List<CachedEvent>());
         }
     }

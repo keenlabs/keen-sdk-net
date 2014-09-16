@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NUnit.Framework;
-using Keen.Core;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
-using System.Dynamic;
-using System.Collections;
 
-namespace Keen.Net.Test
+
+namespace Keen.NET_35.Test
 {
     [TestFixture]
     public class ScopedKeyTest : TestBase
@@ -39,16 +36,9 @@ namespace Keen.Net.Test
             {
                 var settings = new ProjectSettingsProviderEnv();
 
-                dynamic secOps = new ExpandoObject();
-
-                IDictionary<string, object> filter = new ExpandoObject();
-                filter.Add("property_name", "account_id" );
-                filter.Add("operator", "eq" );
-                filter.Add("property_value", 123 );
-                secOps.filters = new List<object>(){ filter };
-                secOps.allowed_operations = new List<string>(){ "read" };
-
-                var scopedKey = ScopedKey.Encrypt(settings.MasterKey, (object)secOps);
+                const string str = "{\"filters\": [{\"property_name\": \"account_id\",\"operator\": \"eq\",\"property_value\": 123}],\"allowed_operations\": [ \"read\" ]}";
+                var secOps = JObject.Parse(str);
+                var scopedKey = ScopedKey.Encrypt(settings.MasterKey, secOps);
             });
         }
 
@@ -57,20 +47,16 @@ namespace Keen.Net.Test
         {
             var settings = new ProjectSettingsProviderEnv();
 
-            IDictionary<string, object> filter = new ExpandoObject();
-            filter.Add("property_name", "account_id");
-            filter.Add("operator", "eq");
-            filter.Add("property_value", 123);
+            const string str = "{\"filters\": [{\"property_name\": \"account_id\",\"operator\": \"eq\",\"property_value\": 123}],\"allowed_operations\": [ \"read\" ]}";
+            var secOps = JObject.Parse(str);
 
-            dynamic secOpsIn = new ExpandoObject();
-            secOpsIn.filters = new List<object>() { filter };
-            secOpsIn.allowed_operations = new List<string>() { "read" };
             Assert.DoesNotThrow(() =>
             {
-                var scopedKey = ScopedKey.Encrypt(settings.MasterKey, (object)secOpsIn);
+                var scopedKey = ScopedKey.Encrypt(settings.MasterKey, secOps);
+                Console.WriteLine(scopedKey);
                 var decrypted = ScopedKey.Decrypt(settings.MasterKey, scopedKey);
                 var secOpsOut = JObject.Parse(decrypted); 
-                Assert.True(secOpsIn.allowed_operations[0] == (string)(secOpsOut["allowed_operations"].First()));
+                Assert.True((string)secOps["allowed_operations"].First() == (string)(secOpsOut["allowed_operations"].First()));
             });
         }
 
@@ -78,22 +64,17 @@ namespace Keen.Net.Test
         public void RoundTrip_PopulatedObject_WithIV_Success()
         {
             var settings = new ProjectSettingsProviderEnv();
-            var IV = "C0FFEEC0FFEEC0FFEEC0FFEEC0FFEEC0";
+            const string IV = "C0FFEEC0FFEEC0FFEEC0FFEEC0FFEEC0";
 
-            IDictionary<string, object> filter = new ExpandoObject();
-            filter.Add("property_name", "account_id");
-            filter.Add("operator", "eq");
-            filter.Add("property_value", 123);
-
-            dynamic secOpsIn = new ExpandoObject();
-            secOpsIn.filters = new List<object>() { filter };
-            secOpsIn.allowed_operations = new List<string>() { "read" };
+            const string str = "{\"filters\": [{\"property_name\": \"account_id\",\"operator\": \"eq\",\"property_value\": 123}],\"allowed_operations\": [ \"read\" ]}";
+            var secOps = JObject.Parse(str);
+            
             Assert.DoesNotThrow(() =>
             {
-                var scopedKey = ScopedKey.Encrypt(settings.MasterKey, (object)secOpsIn, IV);
+                var scopedKey = ScopedKey.Encrypt(settings.MasterKey, secOps, IV);
                 var decrypted = ScopedKey.Decrypt(settings.MasterKey, scopedKey);
                 var secOpsOut = JObject.Parse(decrypted);
-                Assert.True(secOpsIn.allowed_operations[0] == (string)(secOpsOut["allowed_operations"].First()));
+                Assert.True((string)secOps["allowed_operations"].First() == (string)(secOpsOut["allowed_operations"].First()));
             });
         }
 
@@ -111,17 +92,17 @@ namespace Keen.Net.Test
         [Test]
         public void Decrypt_WriteKey()
         {
-            var decrypted = ScopedKey.Decrypt(settingsEnv.MasterKey, settingsEnv.ReadKey);
+            var decrypted = ScopedKey.Decrypt(SettingsEnv.MasterKey, SettingsEnv.ReadKey);
             Trace.WriteLine(decrypted);
         }
 
         [Test]
         public void Roundtrip_RndIV_Success()
         {
-            var vendor_guid = "abc";
-            var isRead = true;
+            const string vendor_guid = "abc";
+            const bool isRead = false;
 
-            string str = "{\"filters\": [{\"property_name\": \"vendor_id\",\"operator\": \"eq\",\"property_value\": \"VENDOR_GUID\"}],\"allowed_operations\": [ \"READ_OR_WRITE\" ]}";
+            var str = "{\"filters\": [{\"property_name\": \"vendor_id\",\"operator\": \"eq\",\"property_value\": \"VENDOR_GUID\"}],\"allowed_operations\": [ \"READ_OR_WRITE\" ]}";
 
             str = str.Replace("VENDOR_GUID", vendor_guid);
 
@@ -134,11 +115,11 @@ namespace Keen.Net.Test
             
             var IV = String.Concat(bytes.Select(b => b.ToString("X2"))); Trace.WriteLine("IV: " + IV);
 
-            var scopedKey = ScopedKey.EncryptString(settingsEnv.MasterKey, str, IV );//System.Text.Encoding.Default.GetString(bytes));
-            var decrypted = ScopedKey.Decrypt(settingsEnv.MasterKey, scopedKey);
+            var scopedKey = ScopedKey.EncryptString(SettingsEnv.MasterKey, str, IV );//System.Text.Encoding.Default.GetString(bytes));
+            var decrypted = ScopedKey.Decrypt(SettingsEnv.MasterKey, scopedKey);
             Trace.WriteLine("decrypted: " + decrypted);
 
-            var settings = new ProjectSettingsProvider(projectId: settingsEnv.ProjectId, writeKey: scopedKey);
+            var settings = new ProjectSettingsProvider(SettingsEnv.ProjectId, writeKey: scopedKey);
             var client = new KeenClient(settings);
             client.AddEvent("X", new { vendor_id = "abc", X = "123" });
         }

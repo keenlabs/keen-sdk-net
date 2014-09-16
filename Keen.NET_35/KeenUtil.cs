@@ -2,18 +2,18 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
-namespace Keen.Core
+namespace Keen.NET_35
 {
     public static class KeenUtil
     {
-        private static HashSet<string> validCollectionNames = new HashSet<string>();
+        public static bool IsNullOrWhiteSpace(this string s)
+        {
+            return s == null || string.IsNullOrEmpty(s.Trim());
+        }
+
+        private static readonly HashSet<string> ValidCollectionNames = new HashSet<string>();
 
         public static string ToSafeString(this object obj)
         {
@@ -23,13 +23,13 @@ namespace Keen.Core
         public static int? TryGetInt(this string s)
         {
             int i;
-            return int.TryParse(s, out i) ? (int?)i : null;
+            return int.TryParse(s, out i) ? (int?) i : null;
         }
 
         public static double? TryGetDouble(this string s)
         {
             double i;
-            return double.TryParse(s, out i) ? (double?)i : null;
+            return double.TryParse(s, out i) ? (double?) i : null;
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Keen.Core
         /// <param name="property"></param>
         public static void ValidatePropertyName(string property)
         {
-            if (string.IsNullOrWhiteSpace(property))
+            if (property.IsNullOrWhiteSpace())
                 throw new KeenException("Property name may not be null or whitespace");
 
             if (property.Length >= 256)
@@ -62,12 +62,12 @@ namespace Keen.Core
             // Avoid cost of re-checking collection names that have already been validated.
             // There is a race condition here, but it's harmless and does not justify the
             // overhead of synchronization.
-            if (validCollectionNames.Contains(collection))
+            if (ValidCollectionNames.Contains(collection))
                 return;
 
             if (null == collection)
                 throw new KeenException("Event collection name may not be null.");
-            if (string.IsNullOrWhiteSpace(collection))
+            if (collection.IsNullOrWhiteSpace())
                 throw new KeenException("Event collection name may not be blank.");
             if (collection.Length > 64)
                 throw new KeenException("Event collection name may not be longer than 64 characters.");
@@ -78,7 +78,7 @@ namespace Keen.Core
             if (collection.StartsWith("_"))
                 throw new KeenException("Event collection name may not begin with \"_\".");
 
-            validCollectionNames.Add(collection);
+            ValidCollectionNames.Add(collection);
         }
 
         /// <summary>
@@ -124,7 +124,7 @@ namespace Keen.Core
                     return new KeenInvalidPropertyNameException(message);
 
                 default:
-                    Debug.WriteLine("Unhandled error_code \"{0}\" : \"{1}\"", errCode, message);
+                    Debug.WriteLine(string.Format("Unhandled error_code \"{0}\" : \"{1}\"", errCode, message));
                     return new KeenException(errCode + " : " + message);
             }
         }
@@ -134,58 +134,66 @@ namespace Keen.Core
         /// Check the 'error_code' field and throw the appropriate exception if non-null.
         /// </summary>
         /// <param name="apiResponse">Deserialized json response from a Keen API call.</param>
-        public static void CheckApiErrorCode(dynamic apiResponse)
+        public static void CheckApiErrorCode(JObject apiResponse)
         {
-            if (apiResponse is JArray) return;
+            if (apiResponse == null) return;
+            if (apiResponse["error_code"] == null) return;
 
-            if (apiResponse.error_code != null)
+            var err = apiResponse["error_code"].Value<string>();
+            var msg = apiResponse["message"].Value<string>();
+
+            switch (err)
             {
-                switch ((string)apiResponse.error_code)
-                {
-                    case "InvalidApiKeyError":
-                        throw new KeenInvalidApiKeyException((string)apiResponse.message);
+                case "InvalidApiKeyError":
+                    throw new KeenInvalidApiKeyException(msg);
 
-                    case "ResourceNotFoundError":
-                        throw new KeenResourceNotFoundException((string)apiResponse.message);
+                case "ResourceNotFoundError":
+                    throw new KeenResourceNotFoundException(msg);
 
-                    case "NamespaceTypeError":
-                        throw new KeenNamespaceTypeException((string)apiResponse.message);
+                case "NamespaceTypeError":
+                    throw new KeenNamespaceTypeException(msg);
 
-                    case "InvalidEventError":
-                        throw new KeenInvalidEventException((string)apiResponse.message);
+                case "InvalidEventError":
+                    throw new KeenInvalidEventException(msg);
 
-                    case "ListsOfNonPrimitivesNotAllowedError":
-                        throw new KeenListsOfNonPrimitivesNotAllowedException((string)apiResponse.message);
+                case "ListsOfNonPrimitivesNotAllowedError":
+                    throw new KeenListsOfNonPrimitivesNotAllowedException(msg);
 
-                    case "InvalidBatchError":
-                        throw new KeenInvalidBatchException((string)apiResponse.message);
+                case "InvalidBatchError":
+                    throw new KeenInvalidBatchException(msg);
 
-                    case "InternalServerError":
-                        throw new KeenInternalServerErrorException((string)apiResponse.message);
+                case "InternalServerError":
+                    throw new KeenInternalServerErrorException(msg);
 
-                    case "InvalidKeenNamespaceProperty":
-                        throw new KeenInvalidKeenNamespacePropertyException((string)apiResponse.message);
+                case "InvalidKeenNamespaceProperty":
+                    throw new KeenInvalidKeenNamespacePropertyException(msg);
 
-                    default:
-                        Debug.WriteLine("Unhandled error_code \"{0}\" : \"{1}\"", (string)apiResponse.error_code, (string)apiResponse.message);
-                        throw new KeenException((string)apiResponse.error_code + " : " + (string)apiResponse.message);
-                }
+                default:
+                    Debug.WriteLine(string.Format("Unhandled error_code \"{0}\" : \"{1}\"", err, msg));
+                    throw new KeenException(err + " : " + msg);
             }
         }
 
-        /// <summary>
-        /// Flatten an AggregateException and if only one exception instance is found 
-        /// in the innerexceptions, return it, otherwise return the original 
-        /// AggregateException unchanged.
-        /// </summary>
-        /// <param name="ex"></param>
-        /// <returns></returns>
-        internal static Exception TryUnwrap(this AggregateException ex)
+        public static IEnumerable<TResult> Zip<TFirst, TSecond, TResult>
+            (this IEnumerable<TFirst> first,
+                IEnumerable<TSecond> second,
+                Func<TFirst, TSecond, TResult> resultSelector)
         {
-            if (ex.Flatten().InnerExceptions.Count == 1)
-                return ex.Flatten().InnerExceptions[0];
-            else
-                return ex;
+            if (first == null) throw new ArgumentNullException("first");
+            if (second == null) throw new ArgumentNullException("second");
+            if (resultSelector == null) throw new ArgumentNullException("resultSelector");
+            return ZipIterator(first, second, resultSelector);
+        }
+
+        private static IEnumerable<TResult> ZipIterator<TFirst, TSecond, TResult>
+            (IEnumerable<TFirst> first,
+                IEnumerable<TSecond> second,
+                Func<TFirst, TSecond, TResult> resultSelector)
+        {
+            using (var e1 = first.GetEnumerator())
+            using (var e2 = second.GetEnumerator())
+                while (e1.MoveNext() && e2.MoveNext())
+                    yield return resultSelector(e1.Current, e2.Current);
         }
     }
 }

@@ -20,7 +20,7 @@ namespace Keen.Net.Test
 {
     public class TestBase
     {
-        public static bool UseMocks = true;
+        public static bool UseMocks = false;
         public IProjectSettings settingsEnv;
 
         [TestFixtureSetUp]
@@ -62,7 +62,7 @@ namespace Keen.Net.Test
             var client = new KeenClient(settings);
             if (UseMocks)
                 client.Event = new EventMock(settings,
-                    AddEvents: new Func<JObject, IProjectSettings, IEnumerable<CachedEvent>>((e, p) =>
+                    addEvents: new Func<JObject, IProjectSettings, IEnumerable<CachedEvent>>((e, p) =>
                     {
                         if ((p == settings)
                             &&(p.ProjectId=="X"))
@@ -80,7 +80,7 @@ namespace Keen.Net.Test
             var client = new KeenClient(settingsEnv);
             if (UseMocks)
                 client.Event = new EventMock(settingsEnv,
-                    AddEvents: new Func<JObject, IProjectSettings, IEnumerable<CachedEvent>>((e, p) =>
+                    addEvents: new Func<JObject, IProjectSettings, IEnumerable<CachedEvent>>((e, p) =>
                     {
                         var err = e.SelectToken("$.AddEventTest[2]") as JObject;
                         if (null == err)
@@ -106,7 +106,7 @@ namespace Keen.Net.Test
             var done = false;
             if (UseMocks)
                 client.Event = new EventMock(settingsEnv,
-                    AddEvents: new Func<JObject, IProjectSettings, IEnumerable<CachedEvent>>((e, p) =>
+                    addEvents: new Func<JObject, IProjectSettings, IEnumerable<CachedEvent>>((e, p) =>
                     {
                         done = true;
                         Assert.True(p == settingsEnv, "Incorrect settings");
@@ -130,7 +130,7 @@ namespace Keen.Net.Test
             var client = new KeenClient(settingsEnv, new EventCacheMemory());
             if (UseMocks)
                 client.Event = new EventMock(settingsEnv,
-                    AddEvents: new Func<JObject, IProjectSettings, IEnumerable<CachedEvent>>((e, p) =>
+                    addEvents: new Func<JObject, IProjectSettings, IEnumerable<CachedEvent>>((e, p) =>
                     {
                         // Should not be called with caching enabled
                         Assert.Fail();
@@ -145,7 +145,7 @@ namespace Keen.Net.Test
             // reset the AddEvents mock
             if (UseMocks)
                 client.Event = new EventMock(settingsEnv,
-                    AddEvents: new Func<JObject, IProjectSettings, IEnumerable<CachedEvent>>((e, p) =>
+                    addEvents: new Func<JObject, IProjectSettings, IEnumerable<CachedEvent>>((e, p) =>
                     {
                         Assert.True(p == settingsEnv, "Incorrect settings");
                         Assert.NotNull(e.Property("AddEventTest"), "Expected collection not found");
@@ -194,6 +194,13 @@ namespace Keen.Net.Test
             var settings = new ProjectSettingsProvider(projectId: "X", masterKey: settingsEnv.MasterKey);
             var client = new KeenClient(settings);
             Assert.Throws<KeenException>(() => client.GetSchema(""));
+        }
+
+        [Test]
+        public void GetCollectionSchemas_Success()
+        {
+            var client = new KeenClient(settingsEnv);
+            Assert.DoesNotThrow(() => client.GetSchemas());
         }
 
 
@@ -734,7 +741,7 @@ namespace Keen.Net.Test
             var client = new KeenClient(settingsEnv, new EventCacheMemory());
             if (UseMocks)
                 client.Event = new EventMock(settingsEnv,
-                    AddEvents: new Func<JObject, IProjectSettings, IEnumerable<CachedEvent>>((e, p) =>
+                    addEvents: new Func<JObject, IProjectSettings, IEnumerable<CachedEvent>>((e, p) =>
                     {
                         if ((p == settingsEnv) 
                             && (null!=e.Property("CachedEventTest"))
@@ -759,7 +766,7 @@ namespace Keen.Net.Test
             var total = 0;
             if (UseMocks)
                 client.Event = new EventMock(settingsEnv,
-                    AddEvents: new Func<JObject, IProjectSettings, IEnumerable<CachedEvent>>((e, p) =>
+                    addEvents: new Func<JObject, IProjectSettings, IEnumerable<CachedEvent>>((e, p) =>
                     {
                         if ((p == settingsEnv)
                             && (null != e.Property("CachedEventTest"))
@@ -786,7 +793,7 @@ namespace Keen.Net.Test
             var client = new KeenClient(settingsEnv, new EventCacheMemory());
             if (UseMocks)
                 client.Event = new EventMock(settingsEnv,
-                    AddEvents: new Func<JObject, IProjectSettings, IEnumerable<CachedEvent>>((e, p) =>
+                    addEvents: new Func<JObject, IProjectSettings, IEnumerable<CachedEvent>>((e, p) =>
                     {
                         if (p == settingsEnv)
                             throw new KeenBulkException("Mock exception", 
@@ -907,7 +914,7 @@ namespace Keen.Net.Test
             var client = new KeenClient(settingsEnv);
             if (UseMocks)
                 client.Event = new EventMock(settingsEnv,
-                    AddEvents: new Func<JObject, IProjectSettings, IEnumerable<CachedEvent>>((e, p) =>
+                    addEvents: new Func<JObject, IProjectSettings, IEnumerable<CachedEvent>>((e, p) =>
                     {
                         Assert.AreEqual(p, settingsEnv, "Unexpected settings object");
                         Assert.AreEqual(e.Property("AddEventTest").Value.AsEnumerable().Count(), 3, "Expected exactly 3 collection members");
@@ -926,7 +933,7 @@ namespace Keen.Net.Test
             var client = new KeenClient(settingsEnv, new EventCacheMemory());
             if (UseMocks)
                 client.Event = new EventMock(settingsEnv,
-                    AddEvents: new Func<JObject, IProjectSettings, IEnumerable<CachedEvent>>((e, p) =>
+                    addEvents: new Func<JObject, IProjectSettings, IEnumerable<CachedEvent>>((e, p) =>
                     {
                         Assert.AreEqual(p, settingsEnv, "Unexpected settings object");
                         Assert.AreEqual(e.Property("CachedEventTest").Value.AsEnumerable().Count(), 3, "Expected exactly 3 collection members");
@@ -948,7 +955,7 @@ namespace Keen.Net.Test
             var client = new KeenClient(settingsEnv, new EventCacheMemory());
             if (UseMocks)
                 client.Event = new EventMock(settingsEnv,
-                    AddEvents: new Func<JObject, IProjectSettings, IEnumerable<CachedEvent>>((e, p) =>
+                    addEvents: new Func<JObject, IProjectSettings, IEnumerable<CachedEvent>>((e, p) =>
                     {
                         var err = e.SelectToken("$.AddEventTest[2]") as JObject;
                         if (null == err)

@@ -23,7 +23,7 @@ namespace Keen.Core
         /// Get details of all schemas in the project.
         /// </summary>
         /// <returns></returns>
-        public async Task<JObject> GetSchemas()
+        public async Task<JArray> GetSchemas()
         {
             using (var client = new HttpClient())
             {
@@ -32,7 +32,7 @@ namespace Keen.Core
                     .ConfigureAwait(continueOnCapturedContext: false);
                 var responseString = await responseMsg.Content.ReadAsStringAsync()
                     .ConfigureAwait(continueOnCapturedContext: false);
-                dynamic response = JObject.Parse(responseString);
+                dynamic response = JArray.Parse(responseString);
 
                 // error checking, throw an exception with information from the json 
                 // response if available, then check the HTTP response.

@@ -1,12 +1,7 @@
-﻿using Keen.Core.EventCache;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Keen.Core
+namespace Keen.NET_35
 {
     public interface IEvent
     {
@@ -14,13 +9,13 @@ namespace Keen.Core
         /// Return schema information for all the event collections in this project.
         /// </summary>
         /// <returns></returns>
-        Task<JArray> GetSchemas();
+        JArray GetSchemas();
 
         /// <summary>
         /// Insert multiple events in one or more collections in a single request.
         /// </summary>
         /// <param name="events"></param>
         /// <returns>Enumerable containing any rejected events</returns>
-        Task<IEnumerable<CachedEvent>> AddEvents(JObject events);
+        IEnumerable<CachedEvent> AddEvents(JObject events);
     }
 }

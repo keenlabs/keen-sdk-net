@@ -161,7 +161,7 @@ namespace Keen.Core
         /// Return schema information for all the event collections in this project.
         /// </summary>
         /// <returns></returns>
-        public async Task<JObject> GetSchemasAsync()
+        public async Task<JArray> GetSchemasAsync()
         {
             // Preconditions
             if (string.IsNullOrWhiteSpace(_prjSettings.MasterKey))
@@ -175,7 +175,7 @@ namespace Keen.Core
         /// Return schema information for all the event collections in this project.
         /// </summary>
         /// <returns></returns>
-        public JObject GetSchemas()
+        public JArray GetSchemas()
         {
             try
             {
