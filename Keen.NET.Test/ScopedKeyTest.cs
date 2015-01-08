@@ -111,7 +111,7 @@ namespace Keen.Net.Test
         [Test]
         public void Decrypt_WriteKey()
         {
-            var decrypted = ScopedKey.Decrypt(settingsEnv.MasterKey, settingsEnv.ReadKey);
+            var decrypted = ScopedKey.Decrypt(SettingsEnv.MasterKey, SettingsEnv.ReadKey);
             Trace.WriteLine(decrypted);
         }
 
@@ -134,11 +134,11 @@ namespace Keen.Net.Test
             
             var IV = String.Concat(bytes.Select(b => b.ToString("X2"))); Trace.WriteLine("IV: " + IV);
 
-            var scopedKey = ScopedKey.EncryptString(settingsEnv.MasterKey, str, IV );//System.Text.Encoding.Default.GetString(bytes));
-            var decrypted = ScopedKey.Decrypt(settingsEnv.MasterKey, scopedKey);
+            var scopedKey = ScopedKey.EncryptString(SettingsEnv.MasterKey, str, IV );//System.Text.Encoding.Default.GetString(bytes));
+            var decrypted = ScopedKey.Decrypt(SettingsEnv.MasterKey, scopedKey);
             Trace.WriteLine("decrypted: " + decrypted);
 
-            var settings = new ProjectSettingsProvider(projectId: settingsEnv.ProjectId, writeKey: scopedKey);
+            var settings = new ProjectSettingsProvider(projectId: SettingsEnv.ProjectId, writeKey: scopedKey);
             var client = new KeenClient(settings);
             client.AddEvent("X", new { vendor_id = "abc", X = "123" });
         }

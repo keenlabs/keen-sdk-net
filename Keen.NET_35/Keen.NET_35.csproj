@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CachedEvent.cs" />
+    <Compile Include="DataEnrichment\EventAddOn.cs" />
     <Compile Include="DynamicPropertyValue.cs" />
     <Compile Include="Event.cs" />
     <Compile Include="EventCacheMemory.cs" />

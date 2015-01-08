@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Keen.NET_35.DataEnrichment;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,7 +54,7 @@ namespace Keen.NET_35
             _globalProperties.Add(property, value);
         }
 
-        private object ExecDynamicPropertyValue(string propName, IDynamicPropertyValue dynProp)
+        private void ExecDynamicPropertyValue(string propName, IDynamicPropertyValue dynProp)
         {
             object result;
             try
@@ -66,7 +67,6 @@ namespace Keen.NET_35
             }
             if (result == null)
                 throw new KeenException(string.Format("Dynamic property \"{0}\" execution returned null", propName));
-            return result;
         }
 
         /// <summary>
@@ -153,7 +153,8 @@ namespace Keen.NET_35
         /// </summary>
         /// <param name="collection">Collection name</param>
         /// <param name="eventsInfo">Collection of events to add</param>
-        public void AddEvents(string collection, IEnumerable<object> eventsInfo)
+        /// <param name="addOns">Optional collection of Data Enhancement Add-ons</param>
+        public void AddEvents(string collection, IEnumerable<object> eventsInfo, IEnumerable<AddOn> addOns = null)
         {
             if (null == eventsInfo)
                 throw new KeenException("AddEvents eventsInfo may not be null");
@@ -165,7 +166,7 @@ namespace Keen.NET_35
 
             // prepare each object to add global properties and timestamp, then either 
             // add to the main cache if it exists, or if not to the local object list.
-            foreach (var jEvent in eventsInfo.Select(PrepareUserObject))
+            foreach (var jEvent in eventsInfo.Select(e=>PrepareUserObject(e, addOns)))
             {
                 if (null != mainCache)
                     mainCache.Add(new CachedEvent(collection, jEvent));
@@ -178,8 +179,10 @@ namespace Keen.NET_35
             if (!localCache.Any()) return;
 
             var errs = AddEventsBulk(collection, localCache);
+            // ReSharper disable PossibleMultipleEnumeration
             if (errs.Any())
                 throw new KeenBulkException("One or more events was rejected during the bulk add operation", errs);
+            // ReSharper restore PossibleMultipleEnumeration
         }
 
 
@@ -210,8 +213,9 @@ namespace Keen.NET_35
         /// This writes any global properies to the object and records the time.
         /// </summary>
         /// <param name="eventInfo"></param>
+        /// <param name="addOns">Optional collection of Data Enhancement Add-ons</param>
         /// <returns></returns>
-        private JObject PrepareUserObject(object eventInfo)
+        private JObject PrepareUserObject(object eventInfo, IEnumerable<AddOn> addOns)
         {
             var jEvent = JObject.FromObject(eventInfo);
 
@@ -241,8 +245,12 @@ namespace Keen.NET_35
             else if (jEvent.Property("keen").Value.GetType() != typeof(JObject))
                 throw new KeenException(string.Format("Value of property \"keen\" must be an object, is {0}", jEvent.Property("keen").GetType()));
 
-            // Set the keen.timestamp if it has not already been set
             var keen = ((JObject)jEvent.Property("keen").Value);
+
+            if (addOns.Any())
+                keen.Add("addons", JArray.FromObject(addOns));
+
+            // Set the keen.timestamp if it has not already been set
             if (null == keen.Property("timestamp"))
                 keen.Add("timestamp", DateTime.Now);
 
@@ -254,7 +262,8 @@ namespace Keen.NET_35
         /// </summary>
         /// <param name="collection">Collection name</param>
         /// <param name="eventInfo">An object representing the event to be added.</param>
-        public void AddEvent(string collection, object eventInfo)
+        /// <param name="addOns">Optional collection of Data Enhancement Add-ons</param>
+        public void AddEvent(string collection, object eventInfo, IEnumerable<AddOn> addOns = null)
         {
             // Preconditions
             KeenUtil.ValidateEventCollectionName(collection);
@@ -263,7 +272,7 @@ namespace Keen.NET_35
             if (_prjSettings.WriteKey.IsNullOrWhiteSpace())
                 throw new KeenException("Write API key is requried for AddEvent");
 
-            var jEvent = PrepareUserObject(eventInfo);
+            var jEvent = PrepareUserObject(eventInfo, addOns);
 
             // If an event cache has been provided, cache this event insead of sending it.
             if (null != EventCache)

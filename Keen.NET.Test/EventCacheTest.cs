@@ -1,12 +1,8 @@
 ﻿using Keen.Core;
-using Keen.Net;
 using Keen.Core.EventCache;
 using NUnit.Framework;
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
@@ -15,10 +11,10 @@ namespace Keen.Net.Test
     [TestFixture]
     public class EventCacheTest : TestBase
     {
-        static object[] Providers = 
+        static readonly object[] Providers = 
         {
             new object[] { new EventCacheMemory() },
-            new object[] { EventCachePortable.New() },
+            new object[] { EventCachePortable.New() }
         };
 
         [Test]
@@ -71,15 +67,15 @@ namespace Keen.Net.Test
         [TestCaseSource("Providers")]
         public void CachingPCL_SendEmptyEvents_Success(IEventCache cache)
         {
-            var client = new KeenClient(settingsEnv, cache);
-            Assert.DoesNotThrow(() => client.SendCachedEvents());
+            var client = new KeenClient(SettingsEnv, cache);
+            Assert.DoesNotThrow(client.SendCachedEvents);
         }
 
         [Test]
         [TestCaseSource("Providers")]
         public void CachingPCL_ClearEvents_Success(IEventCache cache)
         {
-            var client = new KeenClient(settingsEnv, cache);
+            var client = new KeenClient(SettingsEnv, cache);
             Assert.DoesNotThrow(() => client.EventCache.Clear());
         }
 
@@ -87,7 +83,7 @@ namespace Keen.Net.Test
         [TestCaseSource("Providers")]
         public void CachingPCL_AddEvents_Success(IEventCache cache)
         {
-            var client = new KeenClient(settingsEnv, cache);
+            var client = new KeenClient(SettingsEnv, cache);
 
             Assert.DoesNotThrow(() => client.AddEvent("CachedEventTest", new { AProperty = "AValue" }));
             Assert.DoesNotThrow(() => client.AddEvent("CachedEventTest", new { AProperty = "AValue" }));
@@ -99,18 +95,15 @@ namespace Keen.Net.Test
         public async void CachingPCL_SendEventsParallel_Success(IEventCache cache)
         {
             await cache.Clear();
-            var client = new KeenClient(settingsEnv, cache);
+            var client = new KeenClient(SettingsEnv, cache);
             if (UseMocks)
-                client.Event = new EventMock(settingsEnv,
-                    addEvents: new Func<JObject, IProjectSettings, IEnumerable<CachedEvent>>((e, p) =>
-                    {
-                        return new List<CachedEvent>();
-                    }));
+                client.Event = new EventMock(SettingsEnv,
+                    addEvents: (e, p) => new List<CachedEvent>());
 
             (from i in Enumerable.Range(1,100)
             select new { AProperty = "AValue" })
             .AsParallel()
-            .ForAll((e)=>client.AddEvent("CachedEventTest", e));
+            .ForAll(e=>client.AddEvent("CachedEventTest", e));
 
             await client.SendCachedEventsAsync();
             Assert.Null(await client.EventCache.TryTake(), "Cache is empty");

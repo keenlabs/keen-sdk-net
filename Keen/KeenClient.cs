@@ -1,25 +1,22 @@
-﻿using Keen.Core.EventCache;
+﻿using Keen.Core.DataEnrichment;
+using Keen.Core.EventCache;
 using Keen.Core.Query;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Dynamic;
-using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Keen.Core
 {
+    /// <summary>
+    /// Keen.IO API access
+    /// </summary>
     public class KeenClient
     {
-        private IProjectSettings _prjSettings;
-        private Dictionary<string, object> globalProperties = new Dictionary<string, object>();
+        private readonly IProjectSettings _prjSettings;
+        private readonly Dictionary<string, object> _globalProperties = new Dictionary<string, object>();
 
         /// <summary>
         /// EventCollection provides direct access to the Keen.IO EventCollection API methods.
@@ -68,10 +65,10 @@ namespace Keen.Core
                 // Execute the property once before it is needed to check the value
                 ExecDynamicPropertyValue(property, dynProp);
 
-            globalProperties.Add(property, value);
+            _globalProperties.Add(property, value);
         }
 
-        private object ExecDynamicPropertyValue(string propName, IDynamicPropertyValue dynProp)
+        private void ExecDynamicPropertyValue(string propName, IDynamicPropertyValue dynProp)
         {
             object result;
             try
@@ -84,7 +81,6 @@ namespace Keen.Core
             }
             if (result == null)
                 throw new KeenException(string.Format("Dynamic property \"{0}\" execution returned null", propName));
-            return result;
         }
 
         /// <summary>
@@ -99,7 +95,7 @@ namespace Keen.Core
             if (string.IsNullOrWhiteSpace(prjSettings.ProjectId))
                 throw new KeenException("A Project ID is required.");
             if ((string.IsNullOrWhiteSpace(prjSettings.MasterKey)
-                && string.IsNullOrWhiteSpace(prjSettings.WriteKey)))
+                 && string.IsNullOrWhiteSpace(prjSettings.WriteKey)))
                 throw new KeenException("A Master or Write API key is required.");
             if (string.IsNullOrWhiteSpace(prjSettings.KeenUrl))
                 throw new KeenException("A URL for the server address is required.");
@@ -134,7 +130,7 @@ namespace Keen.Core
             // Preconditions
             KeenUtil.ValidateEventCollectionName(collection);
             if (string.IsNullOrWhiteSpace(_prjSettings.MasterKey))
-                throw new KeenException("Master API key is requried for DeleteCollection");
+                throw new KeenException("Master API key is required for DeleteCollection");
 
             await EventCollection.DeleteCollection(collection)
                 .ConfigureAwait(continueOnCapturedContext: false);
@@ -165,7 +161,7 @@ namespace Keen.Core
         {
             // Preconditions
             if (string.IsNullOrWhiteSpace(_prjSettings.MasterKey))
-                throw new KeenException("Master API key is requried for GetSchemas");
+                throw new KeenException("Master API key is required for GetSchemas");
 
             return await Event.GetSchemas()
                 .ConfigureAwait(continueOnCapturedContext: false);
@@ -197,7 +193,7 @@ namespace Keen.Core
             // Preconditions
             KeenUtil.ValidateEventCollectionName(collection);
             if (string.IsNullOrWhiteSpace(_prjSettings.MasterKey))
-                throw new KeenException("Master API key is requried for GetSchema");
+                throw new KeenException("Master API key is required for GetSchema");
 
             return await EventCollection.GetSchema(collection)
                 .ConfigureAwait(continueOnCapturedContext: false);
@@ -225,11 +221,12 @@ namespace Keen.Core
         /// </summary>
         /// <param name="collection">Collection name</param>
         /// <param name="eventsInfo">Collection of events to add</param>
-        public void AddEvents(string collection, IEnumerable<object> eventsInfo)
+        /// <param name="addOns">Optional collection of Data Enhancement Add-ons</param>
+        public void AddEvents(string collection, IEnumerable<object> eventsInfo, IEnumerable<AddOn> addOns = null)
         {
             try
             {
-                AddEventsAsync(collection, eventsInfo).Wait();
+                AddEventsAsync(collection, eventsInfo, addOns).Wait();
             }
             catch (AggregateException ex)
             {
@@ -245,19 +242,19 @@ namespace Keen.Core
         /// <param name="collection">Collection name</param>
         /// <param name="eventsInfo">Collection of events to add</param>
         /// <returns>Enumerable of any rejected events</returns>
-        private async Task<IEnumerable<CachedEvent>> AddEventsBulkAsync(string collection, IEnumerable<object> eventsInfo)
+        private async Task<IEnumerable<CachedEvent>> AddEventsBulkAsync(string collection,
+            IEnumerable<object> eventsInfo)
         {
             if (null == eventsInfo)
                 throw new KeenException("AddEvents eventsInfo may not be null");
             if (!eventsInfo.Any())
                 return new List<CachedEvent>();
             // Build a container object with a property to identify the collection
-            var jEvent = new JObject();
-            jEvent.Add(collection, JToken.FromObject(eventsInfo));
+            var jEvent = new JObject {{collection, JToken.FromObject(eventsInfo)}};
 
             // Use the bulk interface to add events
             return await Event.AddEvents(jEvent)
-                .ConfigureAwait(continueOnCapturedContext: false);
+                .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -265,13 +262,14 @@ namespace Keen.Core
         /// </summary>
         /// <param name="collection">Collection name</param>
         /// <param name="eventsInfo">Collection of events to add</param>
+        /// <param name="addOns">Optional collection of Data Enhancement Add-ons</param>
         /// <returns></returns>
-        public async Task AddEventsAsync(string collection, IEnumerable<object> eventsInfo)
+        public async Task AddEventsAsync(string collection, IEnumerable<object> eventsInfo, IEnumerable<AddOn> addOns = null)
         {
             if (null == eventsInfo)
                 throw new KeenException("AddEvents eventsInfo may not be null");
             if (string.IsNullOrWhiteSpace(_prjSettings.WriteKey))
-                throw new KeenException("Write API key is requried for AddEvents");
+                throw new KeenException("Write API key is required for AddEvents");
 
             var mainCache = EventCache;
             var localCache = new List<JObject>();
@@ -280,10 +278,11 @@ namespace Keen.Core
             // add to the main cache if it exists, or if not to the local object list.
             foreach (var e in eventsInfo)
             {
-                var jEvent = PrepareUserObject(e);
+                // ReSharper disable once PossibleMultipleEnumeration
+                var jEvent = PrepareUserObject(e, addOns);
                 if (null != mainCache)
                     await mainCache.Add(new CachedEvent(collection, jEvent))
-                        .ConfigureAwait(continueOnCapturedContext: false);
+                        .ConfigureAwait(false);
                 else
                     localCache.Add(jEvent);
             }
@@ -293,9 +292,11 @@ namespace Keen.Core
             if (localCache.Any())
             {
                 var errs = await AddEventsBulkAsync(collection, localCache)
-                        .ConfigureAwait(continueOnCapturedContext: false);
+                    .ConfigureAwait(false);
+                // ReSharper disable PossibleMultipleEnumeration
                 if (errs.Any())
                     throw new KeenBulkException("One or more events was rejected during the bulk add operation", errs);
+                // ReSharper restore PossibleMultipleEnumeration
             }
         }
 
@@ -304,39 +305,41 @@ namespace Keen.Core
         /// </summary>
         /// <param name="collection">Collection name</param>
         /// <param name="eventInfo">The event to add.</param>
-        public async Task AddEventAsync(string collection, object eventInfo)
+        /// <param name="addOns">Optional collection of Data Enhancement Add-ons</param>
+        public async Task AddEventAsync(string collection, object eventInfo, IEnumerable<AddOn> addOns = null)
         {
             // Preconditions
             KeenUtil.ValidateEventCollectionName(collection);
             if (null == eventInfo)
                 throw new KeenException("Event data is required.");
             if (string.IsNullOrWhiteSpace(_prjSettings.WriteKey))
-                throw new KeenException("Write API key is requried for AddEvent");
+                throw new KeenException("Write API key is required for AddEvent");
 
-            var jEvent = PrepareUserObject(eventInfo);
+            var jEvent = PrepareUserObject(eventInfo, addOns);
 
             // If an event cache has been provided, cache this event insead of sending it.
             if (null != EventCache)
                 await EventCache.Add(new CachedEvent(collection, jEvent))
-                    .ConfigureAwait(continueOnCapturedContext: false);
+                    .ConfigureAwait(false);
             else
                 await EventCollection.AddEvent(collection, jEvent)
-                    .ConfigureAwait(continueOnCapturedContext: false);
+                    .ConfigureAwait(false);
         }
 
         /// <summary>
         /// Convert a user-supplied object to a JObject that can be sent to the Keen.IO API.
         /// 
-        /// This writes any global properies to the object and records the time.
+        /// This writes any global properties to the object and records the time.
         /// </summary>
         /// <param name="eventInfo"></param>
+        /// <param name="addOns">Optional collection of Data Enhancement Add-ons</param>
         /// <returns></returns>
-        private JObject PrepareUserObject(object eventInfo)
+        private JObject PrepareUserObject(object eventInfo, IEnumerable<AddOn> addOns)
         {
             var jEvent = JObject.FromObject(eventInfo);
 
             // Add global properties to the event
-            foreach (var p in globalProperties)
+            foreach (var p in _globalProperties)
             {
                 // If the property value is an IDynamicPropertyValue, 
                 // exec the Value() to generate the property value.
@@ -358,11 +361,16 @@ namespace Keen.Core
             // Ensure this event has a 'keen' object of the correct type
             if (null == jEvent.Property("keen"))
                 jEvent.Add("keen", new JObject());
-            else if (jEvent.Property("keen").Value.GetType() != typeof(JObject))
-                throw new KeenException(string.Format("Value of property \"keen\" must be an object, is {0}", jEvent.Property("keen").GetType()));
+            else if (jEvent.Property("keen").Value.GetType() != typeof (JObject))
+                throw new KeenException(string.Format("Value of property \"keen\" must be an object, is {0}",
+                    jEvent.Property("keen").GetType()));
+
+
+            var keen = ((JObject) jEvent.Property("keen").Value);
+            if (addOns.Any())
+                keen.Add("addons", JArray.FromObject(addOns));
 
             // Set the keen.timestamp if it has not already been set
-            JObject keen = ((JObject)jEvent.Property("keen").Value);
             if (null == keen.Property("timestamp"))
                 keen.Add("timestamp", DateTime.Now);
 
@@ -374,11 +382,12 @@ namespace Keen.Core
         /// </summary>
         /// <param name="collection">Collection name</param>
         /// <param name="eventInfo">An object representing the event to be added.</param>
-        public void AddEvent(string collection, object eventInfo)
+        /// <param name="addOns">Optional collection of Data Enhancement Add-ons</param>
+        public void AddEvent(string collection, object eventInfo, IEnumerable<AddOn> addOns = null)
         {
             try
             {
-                AddEventAsync(collection, eventInfo).Wait();
+                AddEventAsync(collection, eventInfo, addOns).Wait();
             }
             catch (AggregateException ex)
             {
@@ -422,16 +431,14 @@ namespace Keen.Core
             {
                 if (batches.ContainsKey(c))
                     return batches[c];
-                else
-                {
-                    var l = new List<CachedEvent>();
-                    batches.Add(c, l);
-                    return l;
-                }
+
+                var l = new List<CachedEvent>();
+                batches.Add(c, l);
+                return l;
             };
 
             // Take items from the cache and sort them by collection
-            while (null != (e = await EventCache.TryTake().ConfigureAwait(continueOnCapturedContext: false)))
+            while (null != (e = await EventCache.TryTake().ConfigureAwait(false)))
             {
                 var batch = getListFor(e.Collection);
                 batch.Add(e);
@@ -439,14 +446,16 @@ namespace Keen.Core
                 // If this collection has reached the maximum batch size, send it
                 if (batch.Count == KeenConstants.BulkBatchSize)
                 {
-                    failedEvents.AddRange(await AddEventsBulkAsync(e.Collection, batch.Select((n) => n.Event)).ConfigureAwait(continueOnCapturedContext: false));
+                    failedEvents.AddRange(
+                        await AddEventsBulkAsync(e.Collection, batch.Select(n => n.Event)).ConfigureAwait(false));
                     batch.Clear();
                 }
             }
 
             // Send the remainder of all the collections
             foreach (var c in batches.Where(b => b.Value.Any()))
-                failedEvents.AddRange(await AddEventsBulkAsync(c.Key, c.Value.Select((n) => n.Event)).ConfigureAwait(continueOnCapturedContext: false));
+                failedEvents.AddRange(
+                    await AddEventsBulkAsync(c.Key, c.Value.Select(n => n.Event)).ConfigureAwait(false));
 
             // if there where any failures, throw and include the errored items and details.
             if (failedEvents.Any())
@@ -473,11 +482,11 @@ namespace Keen.Core
         /// <param name="queryName"></param>
         /// <param name="parms"></param>
         /// <returns></returns>
-        public async Task<JObject> QueryAsync(string queryName, Dictionary<string,string> parms)
+        public async Task<JObject> QueryAsync(string queryName, Dictionary<string, string> parms)
         {
             return await Queries.Metric(queryName, parms);
         }
-    
+
 
         /// <summary>
         /// Call any Keen.IO API function with the specified parameters. Refer to Keen API documentation for
@@ -508,9 +517,13 @@ namespace Keen.Core
         /// <param name="filters">Filter to narrow down the events used in analysis. Optional, may be null.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public async Task<string> QueryAsync(QueryType queryType, string collection, string targetProperty, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        public async Task<string> QueryAsync(QueryType queryType, string collection, string targetProperty,
+            QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
-            return await Queries.Metric(queryType, collection, targetProperty, timeframe, filters, timezone).ConfigureAwait(false);
+            return
+                await
+                    Queries.Metric(queryType, collection, targetProperty, timeframe, filters, timezone)
+                        .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -523,7 +536,8 @@ namespace Keen.Core
         /// <param name="filters">Filter to narrow down the events used in analysis. Optional, may be null.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public string Query(QueryType queryType, string collection, string targetProperty, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        public string Query(QueryType queryType, string collection, string targetProperty,
+            QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
             try
             {
@@ -546,9 +560,14 @@ namespace Keen.Core
         /// <param name="filters">Filter to narrow down the events used in analysis. Optional, may be null.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<QueryGroupValue<string>>> QueryGroupAsync(QueryType queryType, string collection, string targetProperty, string groupBy, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        public async Task<IEnumerable<QueryGroupValue<string>>> QueryGroupAsync(QueryType queryType, string collection,
+            string targetProperty, string groupBy, QueryTimeframe timeframe = null,
+            IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
-            return await Queries.Metric(queryType, collection, targetProperty, groupBy, timeframe, filters, timezone).ConfigureAwait(false);
+            return
+                await
+                    Queries.Metric(queryType, collection, targetProperty, groupBy, timeframe, filters, timezone)
+                        .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -562,11 +581,14 @@ namespace Keen.Core
         /// <param name="filters">Filter to narrow down the events used in analysis. Optional, may be null.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public IEnumerable<QueryGroupValue<string>> QueryGroup(QueryType queryType, string collection, string targetProperty, string groupBy, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        public IEnumerable<QueryGroupValue<string>> QueryGroup(QueryType queryType, string collection,
+            string targetProperty, string groupBy, QueryTimeframe timeframe = null,
+            IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
             try
             {
-                return QueryGroupAsync(queryType, collection, targetProperty, groupBy, timeframe, filters, timezone).Result;
+                return
+                    QueryGroupAsync(queryType, collection, targetProperty, groupBy, timeframe, filters, timezone).Result;
             }
             catch (AggregateException ex)
             {
@@ -585,9 +607,14 @@ namespace Keen.Core
         /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<QueryIntervalValue<string>>> QueryIntervalAsync(QueryType queryType, string collection, string targetProperty, QueryTimeframe timeframe, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        public async Task<IEnumerable<QueryIntervalValue<string>>> QueryIntervalAsync(QueryType queryType,
+            string collection, string targetProperty, QueryTimeframe timeframe, QueryInterval interval = null,
+            IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
-            return await Queries.Metric(queryType, collection, targetProperty, timeframe, interval, filters, timezone).ConfigureAwait(false);
+            return
+                await
+                    Queries.Metric(queryType, collection, targetProperty, timeframe, interval, filters, timezone)
+                        .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -601,11 +628,15 @@ namespace Keen.Core
         /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public IEnumerable<QueryIntervalValue<string>> QueryInterval(QueryType queryType, string collection, string targetProperty, QueryTimeframe timeframe, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        public IEnumerable<QueryIntervalValue<string>> QueryInterval(QueryType queryType, string collection,
+            string targetProperty, QueryTimeframe timeframe, QueryInterval interval = null,
+            IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
             try
             {
-                return QueryIntervalAsync(queryType, collection, targetProperty, timeframe, interval, filters, timezone).Result;
+                return
+                    QueryIntervalAsync(queryType, collection, targetProperty, timeframe, interval, filters, timezone)
+                        .Result;
             }
             catch (AggregateException ex)
             {
@@ -625,9 +656,14 @@ namespace Keen.Core
         /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>>> QueryIntervalGroupAsync(QueryType queryType, string collection, string targetProperty, string groupBy, QueryTimeframe timeframe, QueryInterval interval, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        public async Task<IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>>> QueryIntervalGroupAsync
+            (QueryType queryType, string collection, string targetProperty, string groupBy, QueryTimeframe timeframe,
+                QueryInterval interval, IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
-            return await Queries.Metric(queryType, collection, targetProperty, groupBy, timeframe, interval, filters, timezone).ConfigureAwait(false);
+            return
+                await
+                    Queries.Metric(queryType, collection, targetProperty, groupBy, timeframe, interval, filters,
+                        timezone).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -642,11 +678,15 @@ namespace Keen.Core
         /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>> QueryIntervalGroup(QueryType queryType, string collection, string targetProperty, string groupBy, QueryTimeframe timeframe, QueryInterval interval, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        public IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>> QueryIntervalGroup(
+            QueryType queryType, string collection, string targetProperty, string groupBy, QueryTimeframe timeframe,
+            QueryInterval interval, IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
             try
             {
-                return QueryIntervalGroupAsync(queryType, collection, targetProperty, groupBy, timeframe, interval, filters, timezone).Result;
+                return
+                    QueryIntervalGroupAsync(queryType, collection, targetProperty, groupBy, timeframe, interval, filters,
+                        timezone).Result;
             }
             catch (AggregateException ex)
             {
@@ -663,9 +703,10 @@ namespace Keen.Core
         /// <param name="latest">Request up to 100 of the most recent events added to a given collection.</param>
         /// <param name="email">If specified, email will be sent when the data is ready for download. Otherwise, it will be returned directly.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<dynamic>> QueryExtractResourceAsync(string collection,QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, int latest = 0, string email = "")
+        public async Task<IEnumerable<dynamic>> QueryExtractResourceAsync(string collection,
+            QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, int latest = 0, string email = "")
         {
-            return await Queries.Extract(collection, timeframe, filters, latest, email).ConfigureAwait(false); 
+            return await Queries.Extract(collection, timeframe, filters, latest, email).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -677,7 +718,8 @@ namespace Keen.Core
         /// <param name="latest">Request up to 100 of the most recent events added to a given collection.</param>
         /// <param name="email">If specified, email will be sent when the data is ready for download. Otherwise, it will be returned directly.</param>
         /// <returns></returns>
-        public IEnumerable<dynamic> QueryExtractResource(string collection, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, int latest = 0, string email = "")
+        public IEnumerable<dynamic> QueryExtractResource(string collection, QueryTimeframe timeframe = null,
+            IEnumerable<QueryFilter> filters = null, int latest = 0, string email = "")
         {
             try
             {
@@ -686,7 +728,7 @@ namespace Keen.Core
             catch (AggregateException ex)
             {
                 throw ex.TryUnwrap();
-            }            
+            }
         }
 
         /// <summary>
@@ -697,7 +739,8 @@ namespace Keen.Core
         /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<int>> QueryFunnelAsync(string collection,IEnumerable<FunnelStep> steps, QueryTimeframe timeframe = null, string timezone = "")
+        public async Task<IEnumerable<int>> QueryFunnelAsync(string collection, IEnumerable<FunnelStep> steps,
+            QueryTimeframe timeframe = null, string timezone = "")
         {
             return await Queries.Funnel(collection, steps, timeframe, timezone).ConfigureAwait(false);
         }
@@ -710,7 +753,8 @@ namespace Keen.Core
         /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public IEnumerable<int> QueryFunnel(string collection, IEnumerable<FunnelStep> steps, QueryTimeframe timeframe = null, string timezone = "")
+        public IEnumerable<int> QueryFunnel(string collection, IEnumerable<FunnelStep> steps,
+            QueryTimeframe timeframe = null, string timezone = "")
         {
             try
             {
@@ -719,7 +763,7 @@ namespace Keen.Core
             catch (AggregateException ex)
             {
                 throw ex.TryUnwrap();
-            }            
+            }
         }
 
         /// <summary>
@@ -731,9 +775,14 @@ namespace Keen.Core
         /// <param name="filters">Filter to narrow down the events used in analysis. Optional, may be null.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public async Task<IDictionary<string, string>> QueryMultiAnalysisAsync(string collection,IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        public async Task<IDictionary<string, string>> QueryMultiAnalysisAsync(string collection,
+            IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null,
+            IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
-            return await Queries.MultiAnalysis(collection, analysisParams, timeframe, filters, timezone).ConfigureAwait(false);
+            return
+                await
+                    Queries.MultiAnalysis(collection, analysisParams, timeframe, filters, timezone)
+                        .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -745,7 +794,9 @@ namespace Keen.Core
         /// <param name="filters">Filter to narrow down the events used in analysis. Optional, may be null.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public IDictionary<string, string> QueryMultiAnalysis(string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        public IDictionary<string, string> QueryMultiAnalysis(string collection,
+            IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null,
+            IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
             try
             {
@@ -754,7 +805,7 @@ namespace Keen.Core
             catch (AggregateException ex)
             {
                 throw ex.TryUnwrap();
-            }            
+            }
         }
 
         /// <summary>
@@ -768,9 +819,14 @@ namespace Keen.Core
         /// <param name="groupBy">Name of a collection field by which to group results.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<QueryGroupValue<IDictionary<string, string>>>> QueryMultiAnalysisGroupAsync(string collection,IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string groupBy = "", string timezone = "")
+        public async Task<IEnumerable<QueryGroupValue<IDictionary<string, string>>>> QueryMultiAnalysisGroupAsync(
+            string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null,
+            IEnumerable<QueryFilter> filters = null, string groupBy = "", string timezone = "")
         {
-            return await Queries.MultiAnalysis(collection, analysisParams, timeframe, filters, groupBy, timezone).ConfigureAwait(false);
+            return
+                await
+                    Queries.MultiAnalysis(collection, analysisParams, timeframe, filters, groupBy, timezone)
+                        .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -784,16 +840,20 @@ namespace Keen.Core
         /// <param name="groupBy">Name of a collection field by which to group results.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public IEnumerable<QueryGroupValue<IDictionary<string, string>>> QueryMultiAnalysisGroup(string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string groupBy = "", string timezone = "")
+        public IEnumerable<QueryGroupValue<IDictionary<string, string>>> QueryMultiAnalysisGroup(string collection,
+            IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null,
+            IEnumerable<QueryFilter> filters = null, string groupBy = "", string timezone = "")
         {
             try
             {
-                return QueryMultiAnalysisGroupAsync(collection, analysisParams, timeframe, filters, groupBy, timezone).Result;
+                return
+                    QueryMultiAnalysisGroupAsync(collection, analysisParams, timeframe, filters, groupBy, timezone)
+                        .Result;
             }
             catch (AggregateException ex)
             {
                 throw ex.TryUnwrap();
-            }            
+            }
         }
 
         /// <summary>
@@ -807,9 +867,14 @@ namespace Keen.Core
         /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<QueryIntervalValue<IDictionary<string, string>>>> QueryMultiAnalysisIntervalAsync(string collection,IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        public async Task<IEnumerable<QueryIntervalValue<IDictionary<string, string>>>> QueryMultiAnalysisIntervalAsync(
+            string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null,
+            QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
-            return await Queries.MultiAnalysis(collection, analysisParams, timeframe, interval, filters, timezone).ConfigureAwait(false);
+            return
+                await
+                    Queries.MultiAnalysis(collection, analysisParams, timeframe, interval, filters, timezone)
+                        .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -823,16 +888,20 @@ namespace Keen.Core
         /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public IEnumerable<QueryIntervalValue<IDictionary<string, string>>> QueryMultiAnalysisInterval(string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        public IEnumerable<QueryIntervalValue<IDictionary<string, string>>> QueryMultiAnalysisInterval(
+            string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null,
+            QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
             try
             {
-                return QueryMultiAnalysisIntervalAsync(collection, analysisParams, timeframe, interval, filters, timezone).Result;
+                return
+                    QueryMultiAnalysisIntervalAsync(collection, analysisParams, timeframe, interval, filters, timezone)
+                        .Result;
             }
             catch (AggregateException ex)
             {
                 throw ex.TryUnwrap();
-            }            
+            }
         }
 
         /// <summary>
@@ -847,9 +916,15 @@ namespace Keen.Core
         /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<IDictionary<string, string>>>>>> QueryMultiAnalysisIntervalGroupAsync(string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string groupBy = "", string timezone = "")
+        public async Task<IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<IDictionary<string, string>>>>>>
+            QueryMultiAnalysisIntervalGroupAsync(string collection, IEnumerable<MultiAnalysisParam> analysisParams,
+                QueryTimeframe timeframe = null, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null,
+                string groupBy = "", string timezone = "")
         {
-            return await Queries.MultiAnalysis(collection, analysisParams, timeframe, interval, filters, groupBy, timezone).ConfigureAwait(false);
+            return
+                await
+                    Queries.MultiAnalysis(collection, analysisParams, timeframe, interval, filters, groupBy, timezone)
+                        .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -864,16 +939,21 @@ namespace Keen.Core
         /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<IDictionary<string, string>>>>> QueryMultiAnalysisIntervalGroup(string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string groupBy = "", string timezone = "")
+        public IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<IDictionary<string, string>>>>>
+            QueryMultiAnalysisIntervalGroup(string collection, IEnumerable<MultiAnalysisParam> analysisParams,
+                QueryTimeframe timeframe = null, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null,
+                string groupBy = "", string timezone = "")
         {
             try
             {
-                return QueryMultiAnalysisIntervalGroupAsync(collection, analysisParams, timeframe, interval, filters, groupBy, timezone).Result;
+                return
+                    QueryMultiAnalysisIntervalGroupAsync(collection, analysisParams, timeframe, interval, filters,
+                        groupBy, timezone).Result;
             }
             catch (AggregateException ex)
             {
                 throw ex.TryUnwrap();
-            }            
+            }
         }
 
     }
