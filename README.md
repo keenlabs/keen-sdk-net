@@ -84,6 +84,36 @@ Dynamic global properties are added the same way, but rather than a static objec
 
 The delegate function is executed each time event data is added, but it may also be executed at other times as well.
 
+Using Data Enhancement Add-ons
+------------------------------
+
+Data Enhancement Add-ons may be activated to do analysis of event data. Add-ons are attached to events when they are added:
+
+```
+  // Build an event object
+  var aPurchase = new
+  {
+    category = "magical animals",
+    username = "hagrid",
+    price = 7.13,
+    payment_type = "information",
+    animal_type = "norwegian ridgeback dragon",
+    user_ip = "8.8.8.8",
+    ua = "Mozilla/4.0 (compatible; MSIE 5.0; Windows NT; DigExt; .NET CLR 1.0.3705)"
+  };
+
+  var addOns = new[]
+  {
+    AddOn.IpToGeo("user_ip", "user_geo"),
+    AddOn.UserAgentParser("ua", "user_agent")
+  };
+
+  // send the event
+  keenClient.AddEvent("purchases", aPurchase, addOns);
+```
+
+When the event is recorded the "user_geo" and "user_agent" fields will be populated with enhanced data based on the values in the specified event fields.
+
 Caching
 -------
 
@@ -132,11 +162,19 @@ Full Example
           username = "hagrid",
           price = 7.13,
           payment_type = "information",
-          animal_type = "norwegian ridgeback dragon"
+          animal_type = "norwegian ridgeback dragon",
+          user_ip = "8.8.8.8",
+         ua = "Mozilla/4.0 (compatible; MSIE 5.0; Windows NT; DigExt; .NET CLR 1.0.3705)"
+      };
+
+      var addOns = new[]
+      {
+        AddOn.IpToGeo("user_ip", "user_geo"),
+        AddOn.UserAgentParser("ua", "user_agent")
       };
 
       // send the event
-      keenClient.AddEvent( "purchases", aPurchase);
+      keenClient.AddEvent("purchases", aPurchase, addOns);
   }
 ```
 
