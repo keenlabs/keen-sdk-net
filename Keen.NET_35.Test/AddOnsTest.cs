@@ -72,7 +72,7 @@ namespace Keen.NET_35.Test
         public void UrlParser_Send_Success()
         {
             var client = new KeenClient(SettingsEnv);
-            if (!UseMocks)
+            if (UseMocks)
                 client.EventCollection = new EventCollectionMock(SettingsEnv,
                     addEvent: (c, e, p) =>
                     {
@@ -96,7 +96,7 @@ namespace Keen.NET_35.Test
                 client.EventCollection = new EventCollectionMock(SettingsEnv,
                     addEvent: (c, e, p) =>
                     {
-                        if (!e["keen"].ToString().Contains("keen:url_parser"))
+                        if (!e["keen"].ToString().Contains("keen:referrer_parser"))
                             throw new Exception("Unexpected values");
                     });
 

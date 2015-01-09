@@ -11,6 +11,21 @@ namespace Keen.NET.Test
     public class AddOnsTest : TestBase
     {
         [Test]
+        public void No_AddOn_Success()
+        {
+            var client = new KeenClient(SettingsEnv);
+            if (UseMocks)
+                client.EventCollection = new EventCollectionMock(SettingsEnv,
+                    addEvent: (c, e, p) =>
+                    {
+                        if (e["keen"].ToString().Contains("keen:ip_to_geo"))
+                            throw new Exception("Unexpected values");
+                    });
+
+            Assert.DoesNotThrow(() => client.AddEvent("AddOnTest", new { an_ip = "70.187.8.97" }));
+        }
+
+        [Test]
         public void IpToGeo_Send_Success()
         {
             var client = new KeenClient(SettingsEnv);
@@ -66,7 +81,7 @@ namespace Keen.NET.Test
         public void UrlParser_Send_Success()
         {
             var client = new KeenClient(SettingsEnv);
-            if (!UseMocks)
+            if (UseMocks)
                 client.EventCollection = new EventCollectionMock(SettingsEnv,
                     addEvent: (c, e, p) =>
                     {
@@ -87,7 +102,7 @@ namespace Keen.NET.Test
                 client.EventCollection = new EventCollectionMock(SettingsEnv,
                     addEvent: (c, e, p) =>
                     {
-                        if (!e["keen"].ToString().Contains("keen:url_parser"))
+                        if (!e["keen"].ToString().Contains("keen:referrer_parser"))
                             throw new Exception("Unexpected values");
                     });
 
