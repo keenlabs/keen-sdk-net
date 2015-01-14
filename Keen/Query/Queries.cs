@@ -31,6 +31,11 @@ namespace Keen.Core.Query
 
         private async Task<JObject> KeenWebApiRequest(string operation = "", Dictionary<string, string> parms = null)
         {
+            // Either an API read key or a master key is required
+            var key = string.IsNullOrWhiteSpace(_prjSettings.MasterKey) ? _prjSettings.ReadKey : _prjSettings.MasterKey;
+            if (string.IsNullOrWhiteSpace(key))
+                throw new KeenException("An API ReadKey or MasterKey is required");
+
             var parmVals = parms == null ? "" : string.Join("&", from p in parms.Keys
                                                                  where !string.IsNullOrEmpty(parms[p])
                                                                  select string.Format("{0}={1}", p, Uri.EscapeDataString(parms[p])));
@@ -42,7 +47,7 @@ namespace Keen.Core.Query
 
             using (var client = new HttpClient())
             {
-                client.DefaultRequestHeaders.Add("Authorization", _prjSettings.MasterKey);
+                client.DefaultRequestHeaders.Add("Authorization", key);
 
                 var responseMsg = await client.GetAsync(url).ConfigureAwait(false);
                 var responseString = await responseMsg.Content.ReadAsStringAsync().ConfigureAwait(false);

@@ -14,7 +14,7 @@ namespace Keen.Net.Test
 {
     public class TestBase
     {
-        public static bool UseMocks = false;
+        public static bool UseMocks = true;
         public IProjectSettings SettingsEnv;
 
         [TestFixtureSetUp]

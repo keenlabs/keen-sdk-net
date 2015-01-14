@@ -95,8 +95,9 @@ namespace Keen.Core
             if (string.IsNullOrWhiteSpace(prjSettings.ProjectId))
                 throw new KeenException("A Project ID is required.");
             if ((string.IsNullOrWhiteSpace(prjSettings.MasterKey)
-                 && string.IsNullOrWhiteSpace(prjSettings.WriteKey)))
-                throw new KeenException("A Master or Write API key is required.");
+                 && string.IsNullOrWhiteSpace(prjSettings.WriteKey)
+                 && string.IsNullOrWhiteSpace(prjSettings.ReadKey)))
+                throw new KeenException("An API key is required.");
             if (string.IsNullOrWhiteSpace(prjSettings.KeenUrl))
                 throw new KeenException("A URL for the server address is required.");
 

@@ -118,23 +118,22 @@ namespace Keen.Net.Test
         [Test]
         public void Roundtrip_RndIV_Success()
         {
-            var vendor_guid = "abc";
-            var isRead = true;
+            const string vendorGuid = "abc";
+            const bool isRead = false;
 
-            string str = "{\"filters\": [{\"property_name\": \"vendor_id\",\"operator\": \"eq\",\"property_value\": \"VENDOR_GUID\"}],\"allowed_operations\": [ \"READ_OR_WRITE\" ]}";
+            var str = "{\"filters\": [{\"property_name\": \"vendor_id\",\"operator\": \"eq\",\"property_value\": \"VENDOR_GUID\"}],\"allowed_operations\": [ \"READ_OR_WRITE\" ]}";
 
-            str = str.Replace("VENDOR_GUID", vendor_guid);
+            str = str.Replace("VENDOR_GUID", vendorGuid);
 
-            if (isRead) str = str.Replace("READ_OR_WRITE", "read");
-            else str = str.Replace("READ_OR_WRITE", "write");
+            str = str.Replace("READ_OR_WRITE", isRead ? "read" : "write");
 
             var rnd = new System.Security.Cryptography.RNGCryptoServiceProvider();
-            byte[] bytes = new byte[16];
+            var bytes = new byte[16];
             rnd.GetBytes(bytes);
             
-            var IV = String.Concat(bytes.Select(b => b.ToString("X2"))); Trace.WriteLine("IV: " + IV);
+            var iv = String.Concat(bytes.Select(b => b.ToString("X2"))); Trace.WriteLine("IV: " + iv);
 
-            var scopedKey = ScopedKey.EncryptString(SettingsEnv.MasterKey, str, IV );//System.Text.Encoding.Default.GetString(bytes));
+            var scopedKey = ScopedKey.EncryptString(SettingsEnv.MasterKey, str, iv );
             var decrypted = ScopedKey.Decrypt(SettingsEnv.MasterKey, scopedKey);
             Trace.WriteLine("decrypted: " + decrypted);
 

@@ -20,7 +20,7 @@ namespace Keen.Net.Test
 
         public QueryTest()
         {
-            UseMocks = true;
+            UseMocks = false;
         }
 
         [TestFixtureSetUp]
@@ -34,6 +34,20 @@ namespace Keen.Net.Test
                 var client = new KeenClient(SettingsEnv);
                 //client.DeleteCollection(testCol);
                 client.AddEvent(testCol, new { field1 = "99999999" });
+            }
+        }
+
+        [Test]
+        public void ReadKeyOnly_Success()
+        {
+            var settings = new ProjectSettingsProvider(SettingsEnv.ProjectId, readKey: SettingsEnv.ReadKey); 
+            var client = new KeenClient(settings);
+
+            if (!UseMocks)
+            {
+                // Server is required for this test
+                // Also, test depends on existance of collection "AddEventTest"
+                Assert.DoesNotThrow(() => client.Query(QueryType.Count(), "AddEventTest", ""));
             }
         }
 
