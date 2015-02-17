@@ -66,7 +66,7 @@ namespace Keen.Core.Query
         /// Gives a start of n-minutes before the most recent complete minute and an end at the most recent complete minute. 
         /// <para>Example: If right now it is 7:15:30pm and I specify “previous_3_minutes”, the timeframe would stretch from 7:12pm until 7:15pm.</para>
         /// </summary>
-        public static QueryRelativeTimeframe PreviousNMinutes(int n) { return new QueryRelativeTimeframe("previous_{0}_minutes ", n); }
+        public static QueryRelativeTimeframe PreviousNMinutes(int n) { return new QueryRelativeTimeframe("previous_{0}_minutes", n); }
         /// <summary>
         /// Gives a start of n-hours before the most recent complete hour and an end at the most recent complete hour. 
         /// <para>Example: If right now it is 7:15pm and I specify “previous_7_hours”, the timeframe would stretch from noon until 7:00pm.</para>
