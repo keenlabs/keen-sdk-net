@@ -138,9 +138,9 @@ namespace Keen.Core
         {
             if (apiResponse is JArray) return;
 
-            if (apiResponse.error_code != null)
+            if (apiResponse.SelectToken("$.error") != null)
             {
-                switch ((string)apiResponse.error_code)
+                switch ((string)apiResponse.SelectToken("$.error"))
                 {
                     case "InvalidApiKeyError":
                         throw new KeenInvalidApiKeyException((string)apiResponse.message);
@@ -167,8 +167,8 @@ namespace Keen.Core
                         throw new KeenInvalidKeenNamespacePropertyException((string)apiResponse.message);
 
                     default:
-                        Debug.WriteLine("Unhandled error_code \"{0}\" : \"{1}\"", (string)apiResponse.error_code, (string)apiResponse.message);
-                        throw new KeenException((string)apiResponse.error_code + " : " + (string)apiResponse.message);
+                        Debug.WriteLine("Unhandled error_code \"{0}\" : \"{1}\"", (string)apiResponse.SelectToken("$.error"), (string)apiResponse.message);
+                        throw new KeenException((string)apiResponse.SelectToken("$.error") + " : " + (string)apiResponse.message);
                 }
             }
         }
