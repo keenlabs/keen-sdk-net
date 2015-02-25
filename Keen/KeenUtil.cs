@@ -137,38 +137,41 @@ namespace Keen.Core
         public static void CheckApiErrorCode(dynamic apiResponse)
         {
             if (apiResponse is JArray) return;
+            
+            var errorCode = (string) apiResponse.SelectToken("$.error_code");
 
-            if (apiResponse.SelectToken("$.error") != null)
+            if (errorCode != null)
             {
-                switch ((string)apiResponse.SelectToken("$.error"))
+                var message = (string)apiResponse.SelectToken("$.message");
+                switch (errorCode)
                 {
                     case "InvalidApiKeyError":
-                        throw new KeenInvalidApiKeyException((string)apiResponse.message);
+                        throw new KeenInvalidApiKeyException(message);
 
                     case "ResourceNotFoundError":
-                        throw new KeenResourceNotFoundException((string)apiResponse.message);
+                        throw new KeenResourceNotFoundException(message);
 
                     case "NamespaceTypeError":
-                        throw new KeenNamespaceTypeException((string)apiResponse.message);
+                        throw new KeenNamespaceTypeException(message);
 
                     case "InvalidEventError":
-                        throw new KeenInvalidEventException((string)apiResponse.message);
+                        throw new KeenInvalidEventException(message);
 
                     case "ListsOfNonPrimitivesNotAllowedError":
-                        throw new KeenListsOfNonPrimitivesNotAllowedException((string)apiResponse.message);
+                        throw new KeenListsOfNonPrimitivesNotAllowedException(message);
 
                     case "InvalidBatchError":
-                        throw new KeenInvalidBatchException((string)apiResponse.message);
+                        throw new KeenInvalidBatchException(message);
 
                     case "InternalServerError":
-                        throw new KeenInternalServerErrorException((string)apiResponse.message);
+                        throw new KeenInternalServerErrorException(message);
 
                     case "InvalidKeenNamespaceProperty":
-                        throw new KeenInvalidKeenNamespacePropertyException((string)apiResponse.message);
+                        throw new KeenInvalidKeenNamespacePropertyException(message);
 
                     default:
-                        Debug.WriteLine("Unhandled error_code \"{0}\" : \"{1}\"", (string)apiResponse.SelectToken("$.error"), (string)apiResponse.message);
-                        throw new KeenException((string)apiResponse.SelectToken("$.error") + " : " + (string)apiResponse.message);
+                        Debug.WriteLine("Unhandled error_code \"{0}\" : \"{1}\"", errorCode, message);
+                        throw new KeenException(errorCode + " : " + message);
                 }
             }
         }
