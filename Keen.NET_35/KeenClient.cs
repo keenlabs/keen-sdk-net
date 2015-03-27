@@ -247,7 +247,7 @@ namespace Keen.NET_35
 
             var keen = ((JObject)jEvent.Property("keen").Value);
 
-            if (addOns.Any())
+            if (null != addOns && addOns.Any())
                 keen.Add("addons", JArray.FromObject(addOns));
 
             // Set the keen.timestamp if it has not already been set
