@@ -133,9 +133,9 @@ namespace Keen.Core
                 .ConfigureAwait(continueOnCapturedContext: false);
             var content = await file.ReadAllTextAsync()
                 .ConfigureAwait(continueOnCapturedContext: false);
-            dynamic ce = JObject.Parse(content);
+            var ce = JObject.Parse(content);
 
-            var item = new CachedEvent((string)ce.Collection, (JObject)ce.Event, (Exception)ce.Error );
+			var item = new CachedEvent((string)ce.SelectToken("Collection"), (JObject)ce.SelectToken("Event"), ce.SelectToken("Error").ToObject<Exception>() );
             await file.DeleteAsync()
                 .ConfigureAwait(continueOnCapturedContext: false);
             return item;
