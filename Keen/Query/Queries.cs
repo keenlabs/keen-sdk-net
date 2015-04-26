@@ -65,7 +65,7 @@ namespace Keen.Core.Query
 
         public async Task<IEnumerable<KeyValuePair<string,string>>> AvailableQueries()
         {
-            var reply = await KeenWebApiRequest();
+            var reply = await KeenWebApiRequest().ConfigureAwait(false);
             return from j in reply.Children()
                    let p = j as JProperty
                    where p != null 
@@ -82,7 +82,7 @@ namespace Keen.Core.Query
             if (null==parms)
                 throw new ArgumentNullException("parms");
 
-            return await KeenWebApiRequest(queryName, parms);
+            return await KeenWebApiRequest(queryName, parms).ConfigureAwait(false);
         }
 
         public async Task<string> Metric(QueryType queryType, string collection, string targetProperty, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
@@ -131,7 +131,7 @@ namespace Keen.Core.Query
             parms.Add(KeenConstants.QueryParmTimezone, timezone);
             parms.Add(KeenConstants.QueryParmFilters, filters == null ? "" : JArray.FromObject(filters).ToString());
 
-            var reply = await KeenWebApiRequest(queryType.ToString(), parms);
+            var reply = await KeenWebApiRequest(queryType.ToString(), parms).ConfigureAwait(false);
 
             IEnumerable<QueryGroupValue<string>> result;
             if (queryType == QueryType.SelectUnique())
@@ -173,7 +173,7 @@ namespace Keen.Core.Query
             parms.Add(KeenConstants.QueryParmTimezone, timezone);
             parms.Add(KeenConstants.QueryParmFilters, filters == null ? "" : JArray.FromObject(filters).ToString());
 
-            var reply = await KeenWebApiRequest(queryType.ToString(), parms);
+            var reply = await KeenWebApiRequest(queryType.ToString(), parms).ConfigureAwait(false);
 
             IEnumerable<QueryIntervalValue<string>> result;
             if (queryType == QueryType.SelectUnique())
@@ -219,7 +219,7 @@ namespace Keen.Core.Query
             parms.Add(KeenConstants.QueryParmTimezone, timezone);
             parms.Add(KeenConstants.QueryParmFilters, filters == null ? "" : JArray.FromObject(filters).ToString());
 
-            var reply = await KeenWebApiRequest(queryType.ToString(), parms);
+            var reply = await KeenWebApiRequest(queryType.ToString(), parms).ConfigureAwait(false);
 
             IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>> result;
             if (queryType == QueryType.SelectUnique())
@@ -256,7 +256,7 @@ namespace Keen.Core.Query
              parms.Add(KeenConstants.QueryParmEmail, email);
              parms.Add(KeenConstants.QueryParmLatest, latest > 0 ? latest.ToString() : "");
 
-            var reply = await KeenWebApiRequest(KeenConstants.QueryExtraction, parms);
+            var reply = await KeenWebApiRequest(KeenConstants.QueryExtraction, parms).ConfigureAwait(false);
 
             return from i in reply.Value<JArray>("result") select (dynamic)i;
         }
@@ -273,7 +273,7 @@ namespace Keen.Core.Query
             parms.Add(KeenConstants.QueryParmTimezone, timezone);
             parms.Add(KeenConstants.QueryParmSteps, stepsJson);
 
-            var reply = await KeenWebApiRequest(KeenConstants.QueryFunnel, parms);
+            var reply = await KeenWebApiRequest(KeenConstants.QueryFunnel, parms).ConfigureAwait(false);
 
             return from i in reply.Value<JArray>("result") select (int)i;
         }
@@ -293,7 +293,7 @@ namespace Keen.Core.Query
             parms.Add(KeenConstants.QueryParmFilters, filters == null ? "" : JArray.FromObject(filters).ToString());
             parms.Add(KeenConstants.QueryParmAnalyses, parmsJson);
 
-            var reply = await KeenWebApiRequest(KeenConstants.QueryMultiAnalysis, parms);
+            var reply = await KeenWebApiRequest(KeenConstants.QueryMultiAnalysis, parms).ConfigureAwait(false);
 
             var result = new Dictionary<string, string>();
             foreach (JProperty i in reply.Value<JObject>("result").Children())
@@ -316,7 +316,7 @@ namespace Keen.Core.Query
             parms.Add(KeenConstants.QueryParmGroupBy, groupby);
             parms.Add(KeenConstants.QueryParmAnalyses, parmsJson);
 
-            var reply = await KeenWebApiRequest(KeenConstants.QueryMultiAnalysis, parms);
+            var reply = await KeenWebApiRequest(KeenConstants.QueryMultiAnalysis, parms).ConfigureAwait(false);
 
             var result = new List<QueryGroupValue<IDictionary<string,string>>>();
             foreach (JObject i in reply.Value<JArray>("result"))
@@ -350,7 +350,7 @@ namespace Keen.Core.Query
             parms.Add(KeenConstants.QueryParmFilters, filters == null ? "" : JArray.FromObject(filters).ToString());
             parms.Add(KeenConstants.QueryParmAnalyses, parmsJson);
 
-            var reply = await KeenWebApiRequest(KeenConstants.QueryMultiAnalysis, parms);
+            var reply = await KeenWebApiRequest(KeenConstants.QueryMultiAnalysis, parms).ConfigureAwait(false);
 
             var result = new List<QueryIntervalValue<IDictionary<string, string>>>();
             foreach (JObject i in reply.Value<JArray>("result"))
@@ -381,7 +381,7 @@ namespace Keen.Core.Query
             parms.Add(KeenConstants.QueryParmFilters, filters == null ? "" : JArray.FromObject(filters).ToString());
             parms.Add(KeenConstants.QueryParmAnalyses, parmsJson);
 
-            var reply = await KeenWebApiRequest(KeenConstants.QueryMultiAnalysis, parms);
+            var reply = await KeenWebApiRequest(KeenConstants.QueryMultiAnalysis, parms).ConfigureAwait(false);
 
             var result = new List<QueryIntervalValue<IEnumerable<QueryGroupValue<IDictionary<string, string>>>>>();
             foreach (JObject i in reply.Value<JArray>("result"))
