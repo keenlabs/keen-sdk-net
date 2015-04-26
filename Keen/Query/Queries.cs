@@ -101,7 +101,7 @@ namespace Keen.Core.Query
             parms.Add(KeenConstants.QueryParmTimezone, timezone);
             parms.Add(KeenConstants.QueryParmFilters, filters == null ? "" : JArray.FromObject(filters).ToString());
 
-            var reply = await KeenWebApiRequest(queryType.ToString(), parms);
+            var reply = await KeenWebApiRequest(queryType.ToString(), parms).ConfigureAwait(false);
 
             string result;
             if (queryType == QueryType.SelectUnique())
