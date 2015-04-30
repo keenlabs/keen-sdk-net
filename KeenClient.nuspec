@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>KeenClient</id>
-    <version>0.3.8</version>
+    <version>0.3.9</version>
     <authors>David Knaack</authors>
     <owners>Infinity Interactive, Inc.</owners>
     <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
