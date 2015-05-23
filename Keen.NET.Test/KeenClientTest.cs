@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Keen.NET.Test;
 using NUnit.Framework;
 
 using Keen.Core;
@@ -14,7 +13,7 @@ namespace Keen.Net.Test
 {
     public class TestBase
     {
-        public static bool UseMocks = true;
+        public static bool UseMocks = false;
         public IProjectSettings SettingsEnv;
 
         [TestFixtureSetUp]

@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using Keen.Core;
 using Keen.Core.DataEnrichment;
-using Keen.Net.Test;
 using NUnit.Framework;
 
-namespace Keen.NET.Test
+namespace Keen.Net.Test
 {
     [TestFixture]
     public class AddOnsTest : TestBase

@@ -7,8 +7,8 @@
     <ProjectGuid>{644382BF-CF65-4DB6-AFD8-1ACDA2800D31}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Keen.NET.Test</RootNamespace>
-    <AssemblyName>Keen.NET.Test</AssemblyName>
+    <RootNamespace>Keen.Net.Test</RootNamespace>
+    <AssemblyName>Keen.Net.Test</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -75,6 +75,7 @@
     <Compile Include="EventCacheTest.cs" />
     <Compile Include="EventCollectionMock.cs" />
     <Compile Include="EventMock.cs" />
+    <Compile Include="FunnelTest.cs" />
     <Compile Include="KeenClientTest.cs" />
     <Compile Include="ProjectSettingsProviderTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

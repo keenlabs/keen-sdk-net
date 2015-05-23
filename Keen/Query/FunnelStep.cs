@@ -30,6 +30,20 @@ namespace Keen.Core.Query
         public IEnumerable<QueryFilter> Filters { get; set; }
 
         /// <summary>
+        /// If set to true, events matching this step will be excluded from the funnel.
+        /// May not be applied to an initial step.
+        /// </summary>
+        [JsonProperty(PropertyName = "inverted", NullValueHandling = NullValueHandling.Ignore)]
+        public bool Inverted{ get; set; }
+
+        /// <summary>
+        /// If set to true, filtering applied to this step won't apply to any steps after it.
+        /// May not be applied to an initial step.
+        /// </summary>
+        [JsonProperty(PropertyName = "optional", NullValueHandling = NullValueHandling.Ignore)]
+        public bool Optional { get; set; }
+
+        /// <summary>
         /// Window of time to use for the analysis. If not set, the timeframe from the funnel will be inherited, if available.
         /// </summary>
         [JsonProperty(PropertyName = "timeframe", NullValueHandling = NullValueHandling.Ignore)]
@@ -40,5 +54,13 @@ namespace Keen.Core.Query
         /// </summary>
         [JsonProperty(PropertyName = "timezone", NullValueHandling = NullValueHandling.Ignore)]
         public string TimeZone { get; set; }
+
+        /// <summary>
+        /// If set to true, a list of unique actor_properties will be returned for each step as the 'actors' 
+        /// attribute alongside the 'results' attribute.
+        /// </summary>
+        [JsonProperty(PropertyName = "with_actors", NullValueHandling = NullValueHandling.Ignore)]
+        public bool WithActors { get; set; }
+
     }
 }

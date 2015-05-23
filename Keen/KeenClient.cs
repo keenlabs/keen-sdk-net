@@ -735,31 +735,29 @@ namespace Keen.Core
         /// <summary>
         /// Funnels count relevant events in succession. See API documentation for details.
         /// </summary>
-        /// <param name="collection">Name of event collection to query.</param>
         /// <param name="steps">Analysis steps for funnel.</param>
         /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<int>> QueryFunnelAsync(string collection, IEnumerable<FunnelStep> steps,
+        public async Task<FunnelResult> QueryFunnelAsync(IEnumerable<FunnelStep> steps,
             QueryTimeframe timeframe = null, string timezone = "")
         {
-            return await Queries.Funnel(collection, steps, timeframe, timezone).ConfigureAwait(false);
+            return await Queries.Funnel(steps, timeframe, timezone).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Funnels count relevant events in succession. See API documentation for details.
         /// </summary>
-        /// <param name="collection">Name of event collection to query.</param>
         /// <param name="steps">Analysis steps for funnel.</param>
         /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public IEnumerable<int> QueryFunnel(string collection, IEnumerable<FunnelStep> steps,
+        public FunnelResult QueryFunnel(IEnumerable<FunnelStep> steps,
             QueryTimeframe timeframe = null, string timezone = "")
         {
             try
             {
-                return QueryFunnelAsync(collection, steps, timeframe, timezone).Result;
+                return QueryFunnelAsync(steps, timeframe, timezone).Result;
             }
             catch (AggregateException ex)
             {

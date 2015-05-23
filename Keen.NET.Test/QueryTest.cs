@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using Newtonsoft.Json.Linq;
@@ -20,7 +21,7 @@ namespace Keen.Net.Test
 
         public QueryTest()
         {
-            UseMocks = false;
+            UseMocks = true;
         }
 
         [TestFixtureSetUp]
@@ -869,71 +870,6 @@ namespace Keen.Net.Test
                 queryMock.VerifyAll();
         }
 
-        [Test]
-        public async void Funnel_ValidTimeframe_Success()
-        {
-            var client = new KeenClient(SettingsEnv);
-            var filters = new List<QueryFilter>() { new QueryFilter("field1", QueryFilter.FilterOperator.GreaterThan(), "1") };
-
-            var funnelColA = "FunnelTestA";
-            var funnelColB = "FunnelTestB";
-            var funnelColC = "FunnelTestC";
-
-            try
-            {
-                if (!UseMocks)
-                {
-                    client.DeleteCollection(funnelColA);
-                    client.DeleteCollection(funnelColB);
-                    client.DeleteCollection(funnelColC);
-                }
-            }
-            catch (Exception)
-            {
-            }
-
-            var timeframe = new QueryAbsoluteTimeframe(DateTime.Now, DateTime.Now.AddSeconds(2));
-
-            if (!UseMocks)
-            {
-                client.AddEvent(funnelColA, new { id = "1" });
-                client.AddEvent(funnelColA, new { id = "2" });
-                client.AddEvent(funnelColA, new { id = "3" });
-
-                client.AddEvent(funnelColB, new { id = "1" });
-                client.AddEvent(funnelColB, new { id = "2" });
-
-                client.AddEvent(funnelColC, new { id = "1" });
-            }
-            IEnumerable<FunnelStep> funnelsteps = new List<FunnelStep>()
-            {
-                new FunnelStep(){ EventCollection = funnelColA, ActorProperty = "id" },
-                new FunnelStep(){ EventCollection = funnelColB, ActorProperty = "id" },
-                new FunnelStep(){ EventCollection = funnelColC, ActorProperty = "id" },
-            };
-            IEnumerable<int> result = new List<int>() { 3, 2, 1 };
-
-
-            Mock<IQueries> queryMock = null;
-            if (UseMocks)
-            {
-                queryMock = new Mock<IQueries>();
-                queryMock.Setup(m => m.Funnel(
-                        It.IsAny<string>(),
-                        It.Is<IEnumerable<FunnelStep>>(f => f == funnelsteps),
-                        It.Is<QueryTimeframe>(t => t == null),
-                        It.Is<string>(t => t == "")
-                      ))
-                  .Returns(Task.FromResult(result));
-
-                client.Queries = queryMock.Object;
-            }
-
-            var reply = (await client.QueryFunnelAsync(testCol, funnelsteps, null)).ToList();
-
-            if (null != queryMock)
-                queryMock.VerifyAll();
-        }
 
         [Test]
         public async void MultiAnalysis_Valid_Success()

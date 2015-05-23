@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keen.NET_35", "Keen.NET_35\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keen.NET_35.Test", "Keen.NET_35.Test\Keen.NET_35.Test.csproj", "{2EF6BF24-A068-47E2-ABBF-DE2666607D65}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplication2", "ConsoleApplication2\ConsoleApplication2.csproj", "{3A839DA5-A432-4EA2-AE51-678219AF93C4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{2EF6BF24-A068-47E2-ABBF-DE2666607D65}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2EF6BF24-A068-47E2-ABBF-DE2666607D65}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2EF6BF24-A068-47E2-ABBF-DE2666607D65}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A839DA5-A432-4EA2-AE51-678219AF93C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A839DA5-A432-4EA2-AE51-678219AF93C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A839DA5-A432-4EA2-AE51-678219AF93C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A839DA5-A432-4EA2-AE51-678219AF93C4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

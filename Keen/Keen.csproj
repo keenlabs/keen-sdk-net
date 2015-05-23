@@ -36,6 +36,9 @@
   <ItemGroup>
     <!-- A reference to the entire .NET Framework is automatically included -->
     <Compile Include="DataEnrichment\EventAddOn.cs" />
+    <Compile Include="Query\FunnelResult.cs" />
+    <Compile Include="Query\FunnelResultActors.cs" />
+    <Compile Include="Query\FunnelResultStep.cs" />
     <Compile Include="Query\FunnelStep.cs" />
     <Compile Include="Query\MultiAnalysisParam.cs" />
     <Compile Include="Query\Queries.cs" />

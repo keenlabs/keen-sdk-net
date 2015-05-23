@@ -1,9 +1,5 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Keen.Core.Query
 {
@@ -22,13 +18,12 @@ namespace Keen.Core.Query
 
             public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
             {
-                // Don't need deserialization
-                throw new NotImplementedException();
+                return new FilterOperator(reader.Value.ToString());
             }
 
             public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
             {
-                writer.WriteValue( value.ToString());
+                writer.WriteValue(value.ToString());
             }
         }
 
@@ -36,7 +31,7 @@ namespace Keen.Core.Query
         public sealed class FilterOperator
         {
             private readonly string _value;
-            private FilterOperator(string value) { _value = value; }
+            internal FilterOperator(string value) { _value = value; }
             public override string ToString() { return _value; }
             public static implicit operator string(FilterOperator value) { return value.ToString(); }
             /// <summary>
@@ -115,7 +110,7 @@ namespace Keen.Core.Query
 
             public GeoValue(double longitude, double latitude, double maxDistanceMiles)
             {
-                Coordinates = new double[] { longitude, latitude };
+                Coordinates = new [] { longitude, latitude };
                 MaxDistanceMiles = maxDistanceMiles;
             }
         }
@@ -124,19 +119,24 @@ namespace Keen.Core.Query
         /// The name of the property on which to filter
         /// </summary>
         [JsonProperty(PropertyName = "property_name")]
-        public string PropertyName { get; private set; }
+        public string PropertyName { get; set; }
 
         /// <summary>
         /// The filter operator to use
         /// </summary>
         [JsonProperty( PropertyName = "operator")]
-        public FilterOperator Operator { get; private set; }
+        public FilterOperator Operator { get; set; }
 
         /// <summary>
         /// The value to compare to the property specified in PropertyName
         /// </summary>
         [JsonProperty(PropertyName = "property_value")]
-        public object Value { get; private set; }
+        public object Value { get; set; }
+
+        public QueryFilter()
+        {
+            
+        }
 
         public QueryFilter(string property, FilterOperator op, object value)
         {

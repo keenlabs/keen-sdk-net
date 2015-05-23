@@ -263,10 +263,11 @@ namespace Keen.Core.Query
 
 
 
-        public async Task<IEnumerable<int>> Funnel(string collection, IEnumerable<FunnelStep> steps, QueryTimeframe timeframe = null, string timezone = "")
+        public async Task<FunnelResult> Funnel(IEnumerable<FunnelStep> steps,
+            QueryTimeframe timeframe = null, string timezone = "")
         {
-            var jObs = steps.Select(i=>JObject.FromObject(i));
-            var stepsJson = new JArray( jObs ).ToString();
+            var jObs = steps.Select(i => JObject.FromObject(i));
+            var stepsJson = new JArray(jObs).ToString();
 
             var parms = new Dictionary<string, string>();
             parms.Add(KeenConstants.QueryParmTimeframe, timeframe.ToSafeString());
@@ -274,8 +275,8 @@ namespace Keen.Core.Query
             parms.Add(KeenConstants.QueryParmSteps, stepsJson);
 
             var reply = await KeenWebApiRequest(KeenConstants.QueryFunnel, parms).ConfigureAwait(false);
-
-            return from i in reply.Value<JArray>("result") select (int)i;
+            var o = reply.ToObject<FunnelResult>();
+            return o;
         }
 
 
