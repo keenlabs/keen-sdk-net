@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Keen.Core.Query;
+using Moq;
 using NUnit.Framework;
 
 using Keen.Core;
@@ -13,7 +15,7 @@ namespace Keen.Net.Test
 {
     public class TestBase
     {
-        public static bool UseMocks = false;
+        public static bool UseMocks = true;
         public IProjectSettings SettingsEnv;
 
         [TestFixtureSetUp]
@@ -193,7 +195,19 @@ namespace Keen.Net.Test
         public void GetCollectionSchemas_Success()
         {
             var client = new KeenClient(SettingsEnv);
-            Assert.DoesNotThrow(() => client.GetSchemas());
+
+            var expected = new JArray(); // todo: better mock return
+            if (UseMocks)
+            {
+                var eventMock = new Mock<IEvent>();
+                eventMock.Setup(m => m.GetSchemas())
+                  .Returns(Task.FromResult(expected));
+
+                client.Event = eventMock.Object;
+            }
+
+            var reply = client.GetSchemas();
+            Assert.NotNull(reply);
         }
 
 

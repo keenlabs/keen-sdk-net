@@ -79,21 +79,21 @@ namespace Keen.NET_35.Test
         }
 
         [Test]
-        public void Decrypt_WriteKey_Success() 
+        public void Decrypt_WriteKey_Success()
         {
-            // if mocking is turned on, the write key will be fake and not decryptable, so skip the test
+            const string plainText = "{\"filters\": [{\"property_name\": \"vendor_id\",\"operator\": \"eq\",\"property_value\": \"abc\"}],\"allowed_operations\": [ \"write\" ]}";
+            var testKey = SettingsEnv.MasterKey;
+            var cryptText = SettingsEnv.ReadKey;
+
             if (UseMocks)
-                return;
-
-            var settings = new ProjectSettingsProviderEnv();
-            Assert.DoesNotThrow(() => ScopedKey.Decrypt(settings.MasterKey, settings.WriteKey));
-        }
-
-        [Test]
-        public void Decrypt_WriteKey()
-        {
-            var decrypted = ScopedKey.Decrypt(SettingsEnv.MasterKey, SettingsEnv.ReadKey);
-            Trace.WriteLine(decrypted);
+            {
+                cryptText =
+                    "230C285D71306E362FC5A11BCD068405C5FDA9A52015FE770AB909B327A16AC4F1725A22C373CF2314A5E04643C283522E4D561A3DD9415306B563FC90F7C1EC7FE2E84E9866B3DA9627DE6284D0088A7B196523DEDC4F5A9D0EEFFEB18CFF7C52B75A35448A7CB06EE8523FF2DB9843538EBA64FF88A227CD881C0A3AE41613EE25D5CEA8124B59C88C390BA5234D65";
+                testKey = "0123456789ABCDEF"; // ensure the key matches what cryptText was encrypted with
+            }
+            var decrypted = ScopedKey.Decrypt(testKey, cryptText);
+            if (UseMocks)
+                Assert.True(decrypted.Equals(plainText));
         }
 
         [Test]
@@ -118,10 +118,6 @@ namespace Keen.NET_35.Test
             var scopedKey = ScopedKey.EncryptString(SettingsEnv.MasterKey, str, IV );//System.Text.Encoding.Default.GetString(bytes));
             var decrypted = ScopedKey.Decrypt(SettingsEnv.MasterKey, scopedKey);
             Trace.WriteLine("decrypted: " + decrypted);
-
-            var settings = new ProjectSettingsProvider(SettingsEnv.ProjectId, writeKey: scopedKey);
-            var client = new KeenClient(settings);
-            client.AddEvent("X", new { vendor_id = "abc", X = "123" });
         }
     }
 }

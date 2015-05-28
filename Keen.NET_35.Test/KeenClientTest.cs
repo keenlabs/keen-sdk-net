@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using Moq;
 using NUnit.Framework;
 using Newtonsoft.Json.Linq;
 
@@ -8,7 +10,7 @@ namespace Keen.NET_35.Test
 {
     public class TestBase
     {
-        public static bool UseMocks = false;
+        public static bool UseMocks = true;
         public IProjectSettings SettingsEnv;
 
         [TestFixtureSetUp]
@@ -99,7 +101,7 @@ namespace Keen.NET_35.Test
                         Assert.True(p == SettingsEnv, "Incorrect settings");
                         Assert.NotNull(e.Property("AddEventTest"), "Expected collection not found");
                         Assert.AreEqual(e.Property("AddEventTest").Value.AsEnumerable().Count(), 3, "Expected exactly 3 collection members");
-                        foreach (var q in e["AddEventTest"].Values())
+                        foreach (var q in e["AddEventTest"])
                             Assert.NotNull(q["keen"]["timestamp"], "keen.timestamp properties should exist");
                         return new List<CachedEvent>();
                     });
@@ -137,7 +139,7 @@ namespace Keen.NET_35.Test
                         Assert.True(p == SettingsEnv, "Incorrect settings");
                         Assert.NotNull(e.Property("AddEventTest"), "Expected collection not found");
                         Assert.AreEqual(e.Property("AddEventTest").Value.AsEnumerable().Count(), 3, "Expected exactly 3 collection members");
-                        foreach (var q in e["AddEventTest"].Values())
+                        foreach (var q in e["AddEventTest"])
                             Assert.NotNull(q["keen"]["timestamp"], "keen.timestamp properties should exist");
                         return new List<CachedEvent>();
                     });
@@ -187,7 +189,19 @@ namespace Keen.NET_35.Test
         public void GetCollectionSchemas_Success()
         {
             var client = new KeenClient(SettingsEnv);
-            Assert.DoesNotThrow(() => client.GetSchemas());
+
+            var expected = new JArray(); // todo: better mock return
+            if (UseMocks)
+            {
+                var eventMock = new Mock<IEvent>();
+                eventMock.Setup(m => m.GetSchemas())
+                  .Returns(()=>expected);
+
+                client.Event = eventMock.Object;
+            }
+
+            var reply = client.GetSchemas();
+            Assert.NotNull(reply);
         }
 
         [Test]
