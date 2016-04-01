@@ -24,7 +24,7 @@ namespace Keen.Net.Test
             UseMocks = true;
         }
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public override void Setup()
         {
             base.Setup();
@@ -53,7 +53,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void AvailableQueries_Success()
+        public async Task AvailableQueries_Success()
         {
             var client = new KeenClient(SettingsEnv);
 
@@ -86,8 +86,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        [ExpectedException(ExpectedException = typeof(ArgumentNullException))]
-        public async void Query_InvalidCollection_Throws()
+        public void Query_InvalidCollection_Throws()
         {
             var client = new KeenClient(SettingsEnv);
             var timeframe = QueryRelativeTimeframe.PreviousHour();
@@ -109,12 +108,11 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var count = await client.QueryAsync(QueryType.Count(), null, "", timeframe, null);
-            Assert.IsNotNull(count);
+            Assert.ThrowsAsync<ArgumentNullException>( () => client.QueryAsync(QueryType.Count(), null, "", timeframe, null));
         }
 
         [Test]
-        public async void Query_ValidAbsolute_Success()
+        public async Task Query_ValidAbsolute_Success()
         {
             var client = new KeenClient(SettingsEnv);
             var timeframe = new QueryAbsoluteTimeframe(DateTime.Now.AddDays(-1), DateTime.Now);
@@ -143,7 +141,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void Query_ValidRelativeGroup_Success()
+        public async Task Query_ValidRelativeGroup_Success()
         {
             var client = new KeenClient(SettingsEnv);
             var timeframe = QueryRelativeTimeframe.PreviousNDays(2);
@@ -179,7 +177,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void Query_ValidRelativeGroupInterval_Success()
+        public async Task Query_ValidRelativeGroupInterval_Success()
         {
             var client = new KeenClient(SettingsEnv);
             var timeframe = QueryRelativeTimeframe.PreviousNDays(2);
@@ -235,7 +233,7 @@ namespace Keen.Net.Test
 
 
         [Test]
-        public async void Query_ValidAbsoluteInterval_Success()
+        public async Task Query_ValidAbsoluteInterval_Success()
         {
             var client = new KeenClient(SettingsEnv);
             var timeframe = new QueryAbsoluteTimeframe(DateTime.Now.AddDays(-1), DateTime.Now);
@@ -268,7 +266,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void Query_ValidRelative_Success()
+        public async Task Query_ValidRelative_Success()
         {
             var client = new KeenClient(SettingsEnv);
             var timeframe = QueryRelativeTimeframe.ThisMinute();
@@ -299,7 +297,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void Query_ValidRelativeInterval_Success()
+        public async Task Query_ValidRelativeInterval_Success()
         {
             var client = new KeenClient(SettingsEnv);
             var interval = QueryInterval.EveryNMinutes(5);
@@ -332,7 +330,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void Query_ValidFilter_Success()
+        public async Task Query_ValidFilter_Success()
         {
             var client = new KeenClient(SettingsEnv);
             var filters = new List<QueryFilter>(){ new QueryFilter("field1", QueryFilter.FilterOperator.GreaterThan(), "1") };
@@ -364,7 +362,7 @@ namespace Keen.Net.Test
 
 
         [Test]
-        public async void CountUnique_ValidAbsolute_Success()
+        public async Task CountUnique_ValidAbsolute_Success()
         {
             var client = new KeenClient(SettingsEnv);
             var timeframe = new QueryAbsoluteTimeframe(DateTime.Now.AddDays(-1), DateTime.Now);
@@ -395,7 +393,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void Minimum_ValidAbsolute_Success()
+        public async Task Minimum_ValidAbsolute_Success()
         {
             var client = new KeenClient(SettingsEnv);
             var timeframe = new QueryAbsoluteTimeframe(DateTime.Now.AddDays(-1), DateTime.Now);
@@ -427,7 +425,7 @@ namespace Keen.Net.Test
 
 
         [Test]
-        public async void Maximum_ValidAbsolute_Success()
+        public async Task Maximum_ValidAbsolute_Success()
         {
             var client = new KeenClient(SettingsEnv);
             var timeframe = new QueryAbsoluteTimeframe(DateTime.Now.AddDays(-1), DateTime.Now);
@@ -458,7 +456,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void Average_ValidAbsolute_Success()
+        public async Task Average_ValidAbsolute_Success()
         {
             var client = new KeenClient(SettingsEnv);
             var timeframe = new QueryAbsoluteTimeframe(DateTime.Now.AddDays(-1), DateTime.Now);
@@ -490,7 +488,7 @@ namespace Keen.Net.Test
 
 
         [Test]
-        public async void Sum_ValidAbsolute_Success()
+        public async Task Sum_ValidAbsolute_Success()
         {
             var client = new KeenClient(SettingsEnv);
             var timeframe = new QueryAbsoluteTimeframe(DateTime.Now.AddDays(-1), DateTime.Now);
@@ -520,7 +518,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void SelectUnique_ValidAbsolute_Success()
+        public async Task SelectUnique_ValidAbsolute_Success()
         {
             var client = new KeenClient(SettingsEnv);
             var timeframe = new QueryAbsoluteTimeframe(DateTime.Now.AddDays(-1), DateTime.Now);
@@ -551,7 +549,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void SelectUnique_ValidRelative_Success()
+        public async Task SelectUnique_ValidRelative_Success()
         {
             var client = new KeenClient(SettingsEnv);
             var prop = "field1";
@@ -582,7 +580,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void SelectUnique_ValidRelativeGroup_Success()
+        public async Task SelectUnique_ValidRelativeGroup_Success()
         {
             var client = new KeenClient(SettingsEnv);
             var prop = "field1";
@@ -619,7 +617,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void SelectUnique_ValidFilter_Success()
+        public async Task SelectUnique_ValidFilter_Success()
         {
             var client = new KeenClient(SettingsEnv);
             var prop = "field1";
@@ -650,7 +648,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void SelectUnique_ValidAbsoluteInterval_Success()
+        public async Task SelectUnique_ValidAbsoluteInterval_Success()
         {
             var client = new KeenClient(SettingsEnv);
             var prop = "field1";
@@ -685,7 +683,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void SelectUnique_ValidAbsoluteIntervalGroup_Success()
+        public async Task SelectUnique_ValidAbsoluteIntervalGroup_Success()
         {
             var client = new KeenClient(SettingsEnv);
             var prop = "field1";
@@ -740,7 +738,7 @@ namespace Keen.Net.Test
 
 
         [Test]
-        public async void SelectUnique_ValidRelativeInterval_Success()
+        public async Task SelectUnique_ValidRelativeInterval_Success()
         {
             var client = new KeenClient(SettingsEnv);
             var prop = "field1";
@@ -778,7 +776,7 @@ namespace Keen.Net.Test
 
 
         [Test]
-        public async void ExtractResource_ValidAbsolute_Success()
+        public async Task ExtractResource_ValidAbsolute_Success()
         {
             var client = new KeenClient(SettingsEnv);
             var timeframe = new QueryAbsoluteTimeframe(DateTime.Now.AddDays(-1), DateTime.Now);
@@ -809,7 +807,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void ExtractResource_ValidRelative_Success()
+        public async Task ExtractResource_ValidRelative_Success()
         {
             var client = new KeenClient(SettingsEnv);
             var timeframe = QueryRelativeTimeframe.ThisMinute();
@@ -840,7 +838,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void ExtractResource_ValidFilter_Success()
+        public async Task ExtractResource_ValidFilter_Success()
         {
             var client = new KeenClient(SettingsEnv);
             var filters = new List<QueryFilter>() { new QueryFilter("field1", QueryFilter.FilterOperator.GreaterThan(), "1") };
@@ -872,7 +870,7 @@ namespace Keen.Net.Test
 
 
         [Test]
-        public async void MultiAnalysis_Valid_Success()
+        public async Task MultiAnalysis_Valid_Success()
         {
             var client = new KeenClient(SettingsEnv);
             IEnumerable<MultiAnalysisParam> param = new List<MultiAnalysisParam>() 
@@ -912,7 +910,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void MultiAnalysis_ValidRelativeTimeFrame_Success()
+        public async Task MultiAnalysis_ValidRelativeTimeFrame_Success()
         {
             var client = new KeenClient(SettingsEnv);
             var timeframe = QueryRelativeTimeframe.PreviousNDays(2);
@@ -953,7 +951,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void MultiAnalysis_ValidGroupBy_Success()
+        public async Task MultiAnalysis_ValidGroupBy_Success()
         {
             var client = new KeenClient(SettingsEnv);
             var groupby = "field1";
@@ -1001,7 +999,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void MultiAnalysis_ValidIntervalGroupBy_Success()
+        public async Task MultiAnalysis_ValidIntervalGroupBy_Success()
         {
             var client = new KeenClient(SettingsEnv);
             var timeframe = QueryRelativeTimeframe.PreviousNDays(3);
@@ -1063,7 +1061,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void MultiAnalysis_ValidInterval_Success()
+        public async Task MultiAnalysis_ValidInterval_Success()
         {
             var client = new KeenClient(SettingsEnv);
             IEnumerable<MultiAnalysisParam> param = new List<MultiAnalysisParam>() 

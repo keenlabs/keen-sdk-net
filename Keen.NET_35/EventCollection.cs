@@ -17,8 +17,8 @@ namespace Keen.NET_35
         {
             try
             {
-                var client = new RestClient();
-                var request = new RestRequest(_serverUrl + collection, Method.GET);
+                var client = new RestClient(_serverUrl);
+                var request = new RestRequest(collection, Method.GET);
                 request.AddHeader("Authorization", _prjSettings.MasterKey);
 
                 var serverResponse = client.Execute(request);
@@ -41,8 +41,8 @@ namespace Keen.NET_35
             JObject jsonResponse = null;
             try
             {
-                var client = new RestClient();
-                var request = new RestRequest(_serverUrl + collection, Method.DELETE);
+                var client = new RestClient(_serverUrl);
+                var request = new RestRequest(collection, Method.DELETE);
                 request.AddHeader("Authorization", _prjSettings.MasterKey);
 
                 var serverResponse = client.Execute(request);
@@ -68,8 +68,8 @@ namespace Keen.NET_35
             JObject jsonResponse = null;
             try
             {
-                var client = new RestClient();
-                var request = new RestRequest(_serverUrl + collection, Method.POST);
+                var client = new RestClient(_serverUrl);
+                var request = new RestRequest(collection, Method.POST);
                 request.AddHeader("Authorization", _prjSettings.WriteKey);
                 request.AddParameter("application/json", anEvent.ToString(), ParameterType.RequestBody);
 

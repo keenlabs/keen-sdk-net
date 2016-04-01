@@ -19,10 +19,9 @@ namespace Keen.Net.Test
 
         [Test]
         [TestCaseSource("Providers")]
-        [ExpectedException("Keen.Core.KeenException")]
-        public async Task AddEvent_Null_Throws(IEventCache cache)
+        public void AddEvent_Null_Throws(IEventCache cache)
         {
-            await cache.Add(null);
+            Assert.ThrowsAsync<Keen.Core.KeenException>(() => cache.Add(null));
         }
 
         [Test]
@@ -53,7 +52,7 @@ namespace Keen.Net.Test
 
         [Test]
         [TestCaseSource("Providers")]
-        public async void AddEvent_Iterate_Success(IEventCache cache)
+        public async Task AddEvent_Iterate_Success(IEventCache cache)
         {
             await cache.Clear();
             await cache.Add( new CachedEvent("url", JObject.FromObject( new { AProperty = "AValue" })));
@@ -92,7 +91,7 @@ namespace Keen.Net.Test
 
         [Test]
         [TestCaseSource("Providers")]
-        public async void CachingPCL_SendEventsParallel_Success(IEventCache cache)
+        public async Task CachingPCL_SendEventsParallel_Success(IEventCache cache)
         {
             await cache.Clear();
             var client = new KeenClient(SettingsEnv, cache);
