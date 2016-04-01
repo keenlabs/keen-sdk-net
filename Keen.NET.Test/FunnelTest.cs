@@ -21,7 +21,7 @@ namespace Keen.Net.Test
         const string FunnelColB = "FunnelTestB";
         const string FunnelColC = "FunnelTestC";
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public override void Setup()
         {
             base.Setup();
@@ -49,7 +49,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void Funnel_Simple_Success()
+        public async Task Funnel_Simple_Success()
         {
             var client = new KeenClient(SettingsEnv);
 
@@ -109,7 +109,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void Funnel_Inverted_Success()
+        public async Task Funnel_Inverted_Success()
         {
             var client = new KeenClient(SettingsEnv);
 
@@ -171,7 +171,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void Funnel_Optional_Success()
+        public async Task Funnel_Optional_Success()
         {
             var client = new KeenClient(SettingsEnv);
 
@@ -242,7 +242,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void Funnel_ValidFilter_Success()
+        public async Task Funnel_ValidFilter_Success()
         {
             var client = new KeenClient(SettingsEnv);
             var filters = new List<QueryFilter> { new QueryFilter("id", QueryFilter.FilterOperator.GreaterThanOrEqual(), 0) };
@@ -306,7 +306,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void Funnel_ValidTimeframe_Success()
+        public async Task Funnel_ValidTimeframe_Success()
         {
             var client = new KeenClient(SettingsEnv);
             var timeframe = QueryRelativeTimeframe.PreviousHour();
@@ -369,7 +369,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void Funnel_WithActors_Success()
+        public async Task Funnel_WithActors_Success()
         {
             var client = new KeenClient(SettingsEnv);
 

@@ -16,20 +16,76 @@ namespace Keen.Net.Test
     public class ScopedKeyTest : TestBase
     {
         [Test]
-        public void Encrypt_NullObject_Success()
+        public void Encrypt_32CharKey_Success()
         {
-            Assert.DoesNotThrow(() => ScopedKey.Encrypt("abc", null));
+            Assert.DoesNotThrow(() => ScopedKey.Encrypt("0123456789abcdef0123456789abcdef", null));
         }
 
         [Test]
-        public void Encrypt_NullKey_Success()
+        public void Encrypt_64CharKey_Success()
         {
-            Assert.DoesNotThrow(() => ScopedKey.Encrypt(null, new { X = "X" }));
+            Assert.DoesNotThrow(() => ScopedKey.Encrypt("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", null));
         }
 
-        public void Encrypt_BlankKey_Success()
+        [Test]
+        public void Encrypt_32CharKeyWithFilter_Success()
         {
-            Assert.DoesNotThrow(() => ScopedKey.Encrypt("", new { X = "X" }));
+            var settings = new ProjectSettingsProvider("projId", "0123456789abcdef0123456789abcdef");
+
+            IDictionary<string, object> filter = new ExpandoObject();
+            filter.Add("property_name", "account_id");
+            filter.Add("operator", "eq");
+            filter.Add("property_value", 123);
+
+            dynamic secOpsIn = new ExpandoObject();
+            secOpsIn.filters = new List<object>() { filter };
+            secOpsIn.allowed_operations = new List<string>() { "read" };
+            Assert.DoesNotThrow(() =>
+            {
+                var scopedKey = ScopedKey.Encrypt(settings.MasterKey, (object)secOpsIn);
+                var decrypted = ScopedKey.Decrypt(settings.MasterKey, scopedKey);
+                var secOpsOut = JObject.Parse(decrypted);
+                Assert.True(secOpsIn.allowed_operations[0] == (string)(secOpsOut["allowed_operations"].First()));
+            });
+        }
+
+        [Test]
+        public void Encrypt_64CharKeyWithFilter_Success()
+        {
+            var settings = new ProjectSettingsProvider("projId", "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef");
+
+            IDictionary<string, object> filter = new ExpandoObject();
+            filter.Add("property_name", "account_id");
+            filter.Add("operator", "eq");
+            filter.Add("property_value", 123);
+
+            dynamic secOpsIn = new ExpandoObject();
+            secOpsIn.filters = new List<object>() { filter };
+            secOpsIn.allowed_operations = new List<string>() { "read" };
+            Assert.DoesNotThrow(() =>
+            {
+                var scopedKey = ScopedKey.Encrypt(settings.MasterKey, (object)secOpsIn);
+                var decrypted = ScopedKey.Decrypt(settings.MasterKey, scopedKey);
+                var secOpsOut = JObject.Parse(decrypted);
+                Assert.True(secOpsIn.allowed_operations[0] == (string)(secOpsOut["allowed_operations"].First()));
+            });
+        }
+
+        [Test]
+        public void Encrypt_NullObject_Success()
+        {
+            Assert.DoesNotThrow(() => ScopedKey.Encrypt("0123456789ABCDEF0123456789ABCDEF", null));
+        }
+
+        [Test]
+        public void Encrypt_NullKey_Throws()
+        {
+            Assert.Throws<Keen.Core.KeenException>(() => ScopedKey.Encrypt(null, new { X = "X" }));
+        }
+
+        public void Encrypt_BlankKey_Throws()
+        {
+            Assert.Throws<Keen.Core.KeenException>(() => ScopedKey.Encrypt("", new { X = "X" }));
         }
 
         [Test]
@@ -107,12 +163,15 @@ namespace Keen.Net.Test
             if (UseMocks)
             {
                 cryptText =
-                    "230C285D71306E362FC5A11BCD068405C5FDA9A52015FE770AB909B327A16AC4F1725A22C373CF2314A5E04643C283522E4D561A3DD9415306B563FC90F7C1EC7FE2E84E9866B3DA9627DE6284D0088A7B196523DEDC4F5A9D0EEFFEB18CFF7C52B75A35448A7CB06EE8523FF2DB9843538EBA64FF88A227CD881C0A3AE41613EE25D5CEA8124B59C88C390BA5234D65";
-                testKey = "0123456789ABCDEF"; // ensure the key matches what cryptText was encrypted with
+                    "BAA51D1D03D49C1159E7298762AAC26493B20F579988E1EDA4613305F08E01CB702886F0FCB5312E5E18C6315A8049700816CA35BD952C75EB694AAA4A95535EE13CD9D5D8C97A215B4790638EA1DA3DB9484A0133D5289E2A22D5C2952E1F708540722EA832B093E147495A70ADF534242E961FDE3F0275E20D58F22B23F4BAE2A61518CB943818ABEF547DD68F68FE";
+                testKey = "0123456789ABCDEF0123456789ABCDEF"; // ensure the key matches what cryptText was encrypted with
             }
+
             var decrypted = ScopedKey.Decrypt(testKey, cryptText);
             if (UseMocks)
                 Assert.True(decrypted.Equals(plainText));
+            else
+                Assert.That(decrypted.IndexOf("timestamp") > 0);
         }
 
         [Test]

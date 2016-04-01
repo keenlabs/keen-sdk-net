@@ -18,7 +18,7 @@ namespace Keen.Net.Test
         public static bool UseMocks = true;
         public IProjectSettings SettingsEnv;
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public virtual void Setup()
         {
             if (UseMocks)
@@ -26,7 +26,7 @@ namespace Keen.Net.Test
             SettingsEnv = new ProjectSettingsProviderEnv();
         }
 
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public virtual void TearDown()
         {
             if (UseMocks)
@@ -36,7 +36,7 @@ namespace Keen.Net.Test
         public static void SetupEnv()
         {
             foreach (var s in new[] { "KEEN_PROJECT_ID", "KEEN_MASTER_KEY", "KEEN_WRITE_KEY", "KEEN_READ_KEY" })
-                Environment.SetEnvironmentVariable(s, "0123456789ABCDEF");
+                Environment.SetEnvironmentVariable(s, "0123456789ABCDEF0123456789ABCDEF");
         }
 
         public static void ResetEnv()
@@ -743,7 +743,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void Caching_SendEvents_Success()
+        public async Task Caching_SendEvents_Success()
         {
             var client = new KeenClient(SettingsEnv, new EventCacheMemory());
             if (UseMocks)
@@ -767,7 +767,7 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public async void Caching_SendManyEvents_Success()
+        public async Task Caching_SendManyEvents_Success()
         {
             var client = new KeenClient(SettingsEnv, new EventCacheMemory());
             var total = 0;
@@ -851,16 +851,14 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        [ExpectedException("Keen.Core.KeenException")]
-        public async Task Async_GetCollectionSchema_NullProjectId_Throws()
+        public void Async_GetCollectionSchema_NullProjectId_Throws()
         {
             var client = new KeenClient(SettingsEnv);
-            await client.GetSchemaAsync(null);
+            Assert.ThrowsAsync<Keen.Core.KeenException>( () => client.GetSchemaAsync(null));
         }
 
         [Test]
-        [ExpectedException("Keen.Core.KeenResourceNotFoundException")]
-        public async Task Async_AddEvent_InvalidProjectId_Throws()
+        public void Async_AddEvent_InvalidProjectId_Throws()
         {
             var settings = new ProjectSettingsProvider(projectId: "X", writeKey: SettingsEnv.WriteKey);
             var client = new KeenClient(settings);
@@ -872,12 +870,11 @@ namespace Keen.Net.Test
                             throw new KeenResourceNotFoundException(c);
                     }));
 
-            await client.AddEventAsync("AddEventTest", new { AProperty = "Value" });
+            Assert.ThrowsAsync<Keen.Core.KeenResourceNotFoundException>( () => client.AddEventAsync("AddEventTest", new { AProperty = "Value" }));
         }
 
         [Test]
-        [ExpectedException("Keen.Core.KeenInvalidApiKeyException")]
-        public async Task Async_AddEvent_ValidProjectIdInvalidWriteKey_Throws()
+        public void Async_AddEvent_ValidProjectIdInvalidWriteKey_Throws()
         {
             var settings = new ProjectSettingsProvider(projectId: SettingsEnv.ProjectId, writeKey: "X");
             var client = new KeenClient(settings);
@@ -889,7 +886,7 @@ namespace Keen.Net.Test
                             throw new KeenInvalidApiKeyException(c);
                     }));
 
-            await client.AddEventAsync("AddEventTest", new { AProperty = "Value" });
+            Assert.ThrowsAsync<Keen.Core.KeenInvalidApiKeyException>(() => client.AddEventAsync("AddEventTest", new { AProperty = "Value" }));
         }
 
         [Test]
@@ -908,11 +905,10 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        [ExpectedException("Keen.Core.KeenException")]
-        public async Task Async_AddEvents_NullCollection_Throws()
+        public void Async_AddEvents_NullCollection_Throws()
         {
             var client = new KeenClient(SettingsEnv);
-            await client.AddEventsAsync("AddEventTest", null);
+            Assert.ThrowsAsync<Keen.Core.KeenException>( () => client.AddEventsAsync("AddEventTest", null));
         }
 
         [Test]
@@ -956,7 +952,6 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        [ExpectedException("Keen.Core.KeenBulkException")]
         public async Task Async_Caching_SendInvalidEvents_Throws()
         {
             var client = new KeenClient(SettingsEnv, new EventCacheMemory());
@@ -979,7 +974,7 @@ namespace Keen.Net.Test
             events.Add(invalidEvent);
 
             await client.AddEventsAsync("AddEventTest", events);
-            await client.SendCachedEventsAsync();
+            Assert.ThrowsAsync<Keen.Core.KeenBulkException>( () => client.SendCachedEventsAsync());
         }
     }
 }

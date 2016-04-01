@@ -13,7 +13,7 @@ namespace Keen.NET_35.Test
         public static bool UseMocks = true;
         public IProjectSettings SettingsEnv;
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public virtual void Setup()
         {
             if (UseMocks)
@@ -21,7 +21,7 @@ namespace Keen.NET_35.Test
             SettingsEnv = new ProjectSettingsProviderEnv();
         }
 
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public virtual void TearDown()
         {
             if (UseMocks)
@@ -31,7 +31,7 @@ namespace Keen.NET_35.Test
         public static void SetupEnv()
         {
             foreach (var s in new[] { "KEEN_PROJECT_ID", "KEEN_MASTER_KEY", "KEEN_WRITE_KEY", "KEEN_READ_KEY" })
-                Environment.SetEnvironmentVariable(s, "0123456789ABCDEF");
+                Environment.SetEnvironmentVariable(s, "0123456789ABCDEF0123456789ABCDEF");
         }
 
         public static void ResetEnv()
