@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>KeenClient</id>
-    <version>0.3.11</version>
+    <version>0.3.12</version>
     <authors>David Knaack</authors>
     <owners>Infinity Interactive, Inc.</owners>
     <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
@@ -15,21 +15,21 @@
     <tags>keen.io analytics api rest client stats statistics phone wp8</tags>
     <dependencies>
       <group targetFramework="net40">
-        <dependency id="Newtonsoft.Json" version="6.0.3" />
-        <dependency id="Microsoft.Net.Http" version="2.2.22" />
-        <dependency id="Microsoft.Bcl" version="1.1.9" />
-        <dependency id="Microsoft.Bcl.Build" version="1.0.14" />
+        <dependency id="Newtonsoft.Json" version="8.0.3" />
+        <dependency id="Microsoft.Net.Http" version="2.2.29" />
+        <dependency id="Microsoft.Bcl" version="1.1.10" />
+        <dependency id="Microsoft.Bcl.Build" version="1.0.21" />
         <dependency id="Microsoft.Bcl.Async" version="1.0.168" />
-        <dependency id="PCLStorage" version="0.9.6" />
+        <dependency id="PCLStorage" version="1.0.2" />
       </group>
 
       <group targetFramework="portable-net45+wp8+win8+wpa81+monoandroid+monotouch">
-        <dependency id="Newtonsoft.Json" version="6.0.3" />
-        <dependency id="Microsoft.Net.Http" version="2.2.22" />
-        <dependency id="Microsoft.Bcl" version="1.1.9" />
-        <dependency id="Microsoft.Bcl.Build" version="1.0.14" />
+        <dependency id="Newtonsoft.Json" version="8.0.3" />
+        <dependency id="Microsoft.Net.Http" version="2.2.29" />
+        <dependency id="Microsoft.Bcl" version="1.1.10" />
+        <dependency id="Microsoft.Bcl.Build" version="1.0.21" />
         <dependency id="Microsoft.Bcl.Async" version="1.0.168" />
-        <dependency id="PCLStorage" version="0.9.6" />
+        <dependency id="PCLStorage" version="1.0.6" />
       </group>
 
       <group targetFramework="net35">
