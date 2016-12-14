@@ -1,40 +1,51 @@
 keen-sdk-net
 ============
 
-Usage
+Overview
 -----
 
-The Keen IO .NET SDK is used to do custom analytics and event tracking for .NET applications. Use this SDK to capture large volumes of event data such as user actions, errors, server interactions, or any arbitrary event you specify. The SDK posts your events to Keen IO, a highly available, scalable cloud datastore. See [Keen IO docs](https://keen.io/docs) for instructions on extracting, querying, and building custom analytics with your data.
+The Keen IO .NET SDK can be used to do custom analytics and event tracking for .NET applications. Use this SDK to capture large volumes of event data such as user actions, errors, server interactions, or any arbitrary event you specify. The SDK posts your events to Keen IO, a highly available, scalable cloud datastore. See [Keen IO docs](https://keen.io/docs) for instructions on extracting, querying, and building custom analytics with your data.
 
-Requirements
+.NET Version Support
 ------------
 
-The SDK was written for .NET v4.5, though it may work with other versions.
+There are three versions of the .NET SDK, which vary based on the target platform.
 
+A portable class library targets .NET 4.5, Windows and Windows Phone 8+, and Xamarin for iOS and Android.
+
+A .NET 4.0 specific library makes use of the portable class library and adds a few features including scoped key generation and project settings providers which read settings from environment variables or a file.
+
+For older projects and Unity, a separate .NET 3.5 library exists, though it lacks query support.
 
 Installation
 ------------
 
 The easiest way to get started with the Keen IO .NET SDK is to use the [KeenClient NuGet package](http://www.nuget.org/packages/KeenClient/). 
 
-That can be installed from the Package Manager Console in Visual Studio with the command :
+Note that there is currently an issue and workaround for installation of the library for .NET 3.5 targets using NuGet: [https://github.com/keenlabs/keen-sdk-net/issues/38](https://github.com/keenlabs/keen-sdk-net/issues/38).
+
+Install the NuGet package by running the following command from the NuGet Package Manager Console:
 
 ```
-  PM> Install-Package KeenClient
+PM> Install-Package KeenClient
 ```
 
-The most up to date code is available in this repo.
+The most up to date code is available in the following repository.
 
 ```
-  https://github.com/keenlabs/keen-sdk-net
+https://github.com/keenlabs/keen-sdk-net
 ```  
 
 Initializing the Library
 ------------------------
 
+The core object you'll interact with to add events to a collection is the `KeenClient` object. When creating a `KeenClient` instance, you'll want to provide it with a `ProjectSettingsProvider` instance that contains details about your project id, keys, and optionally a different root URL for Keen.IO's API.
+
 ```
-  var prjSettings = new ProjectSettingsProvider("YourProjectID", writeKey: "YourWriteKey");
-  var keenClient = new KeenClient(prjSettings);
+using Keen.Core; // Replace this with Keen.NET_35 for projects targeting .NET 3.5
+...
+var projectSettings = new ProjectSettingsProvider("YourProjectID", writeKey: "YourWriteKey");
+var keenClient = new KeenClient(projectSettings);
 ```
 
 Recording Events
@@ -43,76 +54,114 @@ Recording Events
 Event data is provided to the client as an object. A simple way to do this is with an anonymous object:
 
 ```
-  var aPurchase = new
-    {
-        category = "magical animals",
-        username = "hagrid",
-        price = 7.13,
-        payment_type = "information",
-        animal_type = "norwegian ridgeback dragon"
-    };
-    
-  keenClient.AddEvent("purchases", aPurchase);
+var aPurchase = new
+{
+    category = "magical animals",
+    username = "hagrid",
+    price = 7.13,
+    payment_type = "information",
+    animal_type = "norwegian ridgeback dragon"
+};
+  
+keenClient.AddEvent("purchases", aPurchase);
 ```
 
 Recording Events Asynchronously
 -------------------------------
 
-Sometimes you want to record events in a non-blocking manner.  This is pretty simple:
+Sometimes you want to record events in a non-blocking manner. This is pretty simple:
 
 ```
-  keenClient.AddEventAsync("purchases", aPurchase);
+keenClient.AddEventAsync("purchases", aPurchase);
 ```
 
 Using Global Properties
 -----------------------
 
-Static global properties are added with the KeenClient AddGlobalProperty method:
+Static global properties are added with the `KeenClient`'s `AddGlobalProperty` method:
 
 ```
-  keenClient.AddGlobalProperty("clienttype", "mobile");
+keenClient.AddGlobalProperty("clienttype", "mobile");
 ```
 
 Static global properties are added at the root level of all events just before they are sent or cached.
 
-Dynamic global properties are added the same way, but rather than a static object an object supporting IDynamicPropertyValue is added. The class DynamicPropertyValue implements this interface and may be used to provide dynamic properties with a Func<object> delegate:
+Dynamic global properties are an SDK concept that can be added in the same way, but rather than a static object, an object implementing `IDynamicPropertyValue` is added. The class `DynamicPropertyValue` implements this interface and may be used to provide dynamic properties with a `Func<object>` delegate:
 
 ```
-  var dynProp = new DynamicPropertyValue(() => new Random().Next(9999));
-  keenClient.AddGlobalProperty("bonusfield", dynProp );
+var dynProp = new DynamicPropertyValue(() => new Random().Next(9999));
+keenClient.AddGlobalProperty("bonusfield", dynProp);
 ```
 
-The delegate function is executed each time event data is added, but it may also be executed at other times as well.
+The delegate function is executed each time event data is added as well as during the `AddGlobalProperty` call.
 
 Using Data Enhancement Add-ons
 ------------------------------
 
-Data Enhancement Add-ons may be activated to do analysis of event data. Add-ons are attached to events when they are added:
+Data Enhancement Add-ons may be activated to enrich event data. Add-ons are attached to events when they are added:
 
 ```
-  // Build an event object
-  var aPurchase = new
-  {
-    category = "magical animals",
-    username = "hagrid",
-    price = 7.13,
-    payment_type = "information",
-    animal_type = "norwegian ridgeback dragon",
-    user_ip = "8.8.8.8",
-    ua = "Mozilla/4.0 (compatible; MSIE 5.0; Windows NT; DigExt; .NET CLR 1.0.3705)"
-  };
+// Build an event object
+var aPurchase = new
+{
+  category = "magical animals",
+  username = "hagrid",
+  price = 7.13,
+  payment_type = "information",
+  animal_type = "norwegian ridgeback dragon",
+  user_ip = "8.8.8.8",
+  ua = "Mozilla/4.0 (compatible; MSIE 5.0; Windows NT; DigExt; .NET CLR 1.0.3705)"
+};
 
-  var addOns = new[]
-  {
-    AddOn.IpToGeo("user_ip", "user_geo"),
-    AddOn.UserAgentParser("ua", "user_agent")
-  };
+var addOns = new[]
+{
+  AddOn.IpToGeo("user_ip", "user_geo"),
+  AddOn.UserAgentParser("ua", "user_agent")
+};
 
-  // send the event
-  keenClient.AddEvent("purchases", aPurchase, addOns);
+// send the event
+keenClient.AddEvent("purchases", aPurchase, addOns);
 ```
 
-When the event is recorded the "user_geo" and "user_agent" fields will be populated with enhanced data based on the values in the specified event fields.
+When the event is recorded the "user_geo" and "user_agent" fields will be populated automatically by the Keen.io API.
+
+Complete Example
+------------
+
+```
+static void Main(string[] args)
+{
+    // Set up the client
+    var prjSettings = new ProjectSettingsProvider("YourProjectID", writeKey: "YourWriteKey");
+    var keenClient = new KeenClient(prjSettings);
+
+    keenClient.AddGlobalProperty("clienttype", "mobile");
+
+    var dynProp = new DynamicPropertyValue(() => new Random().Next(9999));
+    keenClient.AddGlobalProperty("bonusfield", dynProp );
+
+    // Build an event object
+    var aPurchase = new
+    {
+        category = "magical animals",
+        username = "hagrid",
+        price = 7.13,
+        payment_type = "information",
+        animal_type = "norwegian ridgeback dragon",
+        user_ip = "8.8.8.8",
+        ua = "Mozilla/4.0 (compatible; MSIE 5.0; Windows NT; DigExt; .NET CLR 1.0.3705)"
+    };
+
+    var addOns = new[]
+    {
+      AddOn.IpToGeo("user_ip", "user_geo"),
+      AddOn.UserAgentParser("ua", "user_agent")
+    };
+
+    // send the event
+    keenClient.AddEvent("purchases", aPurchase, addOns);
+}
+```
 
 Caching
 -------
@@ -122,59 +171,93 @@ KeenClient supports an event data cache interface that allows transmission of ev
 To enable caching provide an instance supporting IEventCache when constructing KeenClient:
 
 ```
-      var client = new KeenClient(new ProjectSettingsProviderEnv(), new EventCacheMemory());
+var client = new KeenClient(new ProjectSettingsProviderEnv(), new EventCacheMemory());
 ```
 
 Or:
 
 ```
-      var client = new KeenClient(new ProjectSettingsProviderEnv(), EventCachePortable.New());
+var client = new KeenClient(new ProjectSettingsProviderEnv(), EventCachePortable.New());
 ```
 
 Events are added as usual, and at any time you may transmit the cached events to the server:
 
 ```
-      client.SendCachedEvents();
+client.SendCachedEvents();
 ```
 
 The server may reject one or more events included in the cache. If this happens the item that was rejected will be recorded and transmission of the remaining cached events will continue. After all events in the cache have been transmitted, if any events were rejected they will be attached as instances of CachedEvent to an instance of KeenBulkException which will then be thrown. The KeenBulkException FailedEvents property may be accessed to review the failures.
 
 Global properties are evaluated and added when AddEvent() is called, so dynamic properties will not be evaluated when SendCachedEvents() is called.
 
-Full Example
+Multi-Analysis
 ------------
 
+Multi-analysis is a way to run multiple analyses over the same dataset. For more information about multi-analysis, see the [API documentation](https://keen.io/docs/api/#multi-analysis).
+
+To perform multi-analysis, use the `KeenClient.QueryMultiAnalysis` family of methods.
+
 ```
-  static void Main(string[] args){
-      // Set up the client
-      var prjSettings = new ProjectSettingsProvider("YourProjectID", writeKey: "YourWriteKey");
-      var keenClient = new KeenClient(prjSettings);
+IEnumerable<MultiAnalysisParam> analyses = new List<MultiAnalysisParam>() 
+{ 
+  new MultiAnalysisParam("purchases", MultiAnalysisParam.Metric.Count()),
+  new MultiAnalysisParam("max_price", MultiAnalysisParam.Metric.Maximum("price")),
+  new MultiAnalysisParam("min_price", MultiAnalysisParam.Metric.Minimum("price")),
+};
 
-      keenClient.AddGlobalProperty("clienttype", "mobile");
+var result = keenClient.QueryMultiAnalysis("purchases", analyses);
 
-      var dynProp = new DynamicPropertyValue(() => new Random().Next(9999));
-      keenClient.AddGlobalProperty("bonusfield", dynProp );
-
-      // Build an event object
-      var aPurchase = new
-      {
-          category = "magical animals",
-          username = "hagrid",
-          price = 7.13,
-          payment_type = "information",
-          animal_type = "norwegian ridgeback dragon",
-          user_ip = "8.8.8.8",
-         ua = "Mozilla/4.0 (compatible; MSIE 5.0; Windows NT; DigExt; .NET CLR 1.0.3705)"
-      };
-
-      var addOns = new[]
-      {
-        AddOn.IpToGeo("user_ip", "user_geo"),
-        AddOn.UserAgentParser("ua", "user_agent")
-      };
-
-      // send the event
-      keenClient.AddEvent("purchases", aPurchase, addOns);
-  }
+var purchases = int.Parse(result["purchases"]);
+var maxPrice = float.Parse(result["max_price"]);
 ```
+
+
+Funnel Analysis
+------------
+
+Returns the number of unique actors that successfully (or unsuccessfully) make it through a series of steps. “Actors” could mean users, devices, or any other identifiers that are meaningful to you. For more information about Funnels, see the [Funnel API documentation](https://keen.io/docs/api/#funnels).
+
+To perform funnel analysis, `KeenClient` exposes the methods `QueryFunnel` and `QueryFunnelAsync`, which are used as follows.
+
+```
+IEnumerable<FunnelStep> funnelSteps = new List<FunnelStep>
+{
+    new FunnelStep
+    {
+        EventCollection = "registered_users", 
+        ActorProperty = "id",
+    },
+    new FunnelStep
+    {
+        EventCollection = "subscribed_users", 
+        ActorProperty = "user_id"
+    },
+};
+
+var result = keenClient.QueryFunnel(funnelSteps);
+
+var registeredUsers = result.ElementAt(0);
+var registeredAndSubscribedUserCount = result.ElementAt(1);
+```
+
+Filters
+------------
+
+Analyses, multi-analysis, and funnel steps all support using filters to be more specific about the dataset being worked on. For simple analyses and multi-analyses, provide an `IEnumerable<QueryFilter>` to the `KeenClient.Query` or `KeenClient.QueryMultiAnalysis` method of choice. For funnel analysis, filters can be specified on each `FunnelStep` through the `FunnelStep.Filters` property.
+
+```
+var filters = new List<QueryFilter>()
+{
+  new QueryFilter("field1", QueryFilter.FilterOperator.GreaterThan(), "1")
+};
+
+var result = keenClient.Query(QueryType.Count(), "user_registrations", null, filters: filters);
+```
+
+Grouped and Interval Query Results
+------------
+
+To perform analysis or multi-analysis with results grouped by a column value, separated by a timeframe, or a combination of both, there versions of the `KeenClient.Query` and `KeenClient.QueryMultiAnalysis` methods available. These include `KeenClient.QueryInterval`, `KeenClient.QueryGroup`, `KeenClient.QueryIntervalGroup` and their corresponding asynchronous methods for single-analysis. For multi-analysis, similar methods exist including `KeenClient.QueryMultiAnalysisGroup`, `KeenClient.QueryMultiAnalysisInterval`, `KeenClient.QueryMultiAnalysisIntervalGroup`, and the asynchronous versions of those methods. See the Keen.io [group by](https://keen.io/docs/api/#group-by) and [interval](https://keen.io/docs/api/#interval) API documentation for more about these types of analyses.
+
+
 
