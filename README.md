@@ -20,7 +20,7 @@ For older projects and Unity, a separate .NET 3.5 library exists, though it lack
 Installation
 ------------
 
-The easiest way to get started with the Keen IO .NET SDK is to use the [KeenClient NuGet package](http://www.nuget.org/packages/KeenClient/). 
+The easiest way to get started with the Keen IO .NET SDK is to use the [KeenClient NuGet package](http://www.nuget.org/packages/KeenClient/).
 
 Note that there is currently an issue and workaround for installation of the library for .NET 3.5 targets using NuGet: [https://github.com/keenlabs/keen-sdk-net/issues/38](https://github.com/keenlabs/keen-sdk-net/issues/38).
 
@@ -34,7 +34,7 @@ The most up to date code is available in the following repository.
 
 ```
 https://github.com/keenlabs/keen-sdk-net
-```  
+```
 
 Initializing the Library
 ------------------------
@@ -62,7 +62,7 @@ var aPurchase = new
     payment_type = "information",
     animal_type = "norwegian ridgeback dragon"
 };
-  
+
 keenClient.AddEvent("purchases", aPurchase);
 ```
 
@@ -95,10 +95,10 @@ keenClient.AddGlobalProperty("bonusfield", dynProp);
 
 The delegate function is executed each time event data is added as well as during the `AddGlobalProperty` call.
 
-Using Data Enhancement Add-ons
+Using Data Enrichment Add-ons
 ------------------------------
 
-Data Enhancement Add-ons may be activated to enrich event data. Add-ons are attached to events when they are added:
+Keen IO can enrich event data by parsing or joining it with other data sets. This is done through the concept of “add-ons”. See the [Keen.io API documentation](https://keen.io/docs/api/#data-enrichment) for more on this. The .NET SDK enables add-ons with the `Keen.Core.DataEnrichment.AddOn` class.
 
 ```
 // Build an event object
@@ -125,7 +125,7 @@ keenClient.AddEvent("purchases", aPurchase, addOns);
 
 When the event is recorded the "user_geo" and "user_agent" fields will be populated automatically by the Keen.io API.
 
-Complete Example
+Complete Event Recording Example
 ------------
 
 ```
@@ -198,8 +198,8 @@ Multi-analysis is a way to run multiple analyses over the same dataset. For more
 To perform multi-analysis, use the `KeenClient.QueryMultiAnalysis` family of methods.
 
 ```
-IEnumerable<MultiAnalysisParam> analyses = new List<MultiAnalysisParam>() 
-{ 
+IEnumerable<MultiAnalysisParam> analyses = new List<MultiAnalysisParam>()
+{
   new MultiAnalysisParam("purchases", MultiAnalysisParam.Metric.Count()),
   new MultiAnalysisParam("max_price", MultiAnalysisParam.Metric.Maximum("price")),
   new MultiAnalysisParam("min_price", MultiAnalysisParam.Metric.Minimum("price")),
@@ -224,12 +224,12 @@ IEnumerable<FunnelStep> funnelSteps = new List<FunnelStep>
 {
     new FunnelStep
     {
-        EventCollection = "registered_users", 
+        EventCollection = "registered_users",
         ActorProperty = "id",
     },
     new FunnelStep
     {
-        EventCollection = "subscribed_users", 
+        EventCollection = "subscribed_users",
         ActorProperty = "user_id"
     },
 };
@@ -260,4 +260,31 @@ Grouped and Interval Query Results
 To perform analysis or multi-analysis with results grouped by a column value, separated by a timeframe, or a combination of both, there versions of the `KeenClient.Query` and `KeenClient.QueryMultiAnalysis` methods available. These include `KeenClient.QueryInterval`, `KeenClient.QueryGroup`, `KeenClient.QueryIntervalGroup` and their corresponding asynchronous methods for single-analysis. For multi-analysis, similar methods exist including `KeenClient.QueryMultiAnalysisGroup`, `KeenClient.QueryMultiAnalysisInterval`, `KeenClient.QueryMultiAnalysisIntervalGroup`, and the asynchronous versions of those methods. See the Keen.io [group by](https://keen.io/docs/api/#group-by) and [interval](https://keen.io/docs/api/#interval) API documentation for more about these types of analyses.
 
 
+Scoped Keys
+------------
 
+Scoped keys are customized API keys you can generate yourself. Each key has a defined scope of allowed operations (read/write), along with a set of predetermined filters that are applied to every request. See the [Keen.io API reference](https://keen.io/docs/api/#scoped-keys) for more information on scoped keys.
+
+The .NET 4.0 SDK includes methods for generating scoped keys. These methods aren't available in the .NET 4.5 portable library or the .NET 3.5 library. You'll find them under the `Keen.Core` namespace as `ScopedKey.Encrypt`, `ScopedKey.EncryptString`, and `ScopedKey.Decrypt`.
+
+
+```
+// Create a filter to apply when using the scoped key
+IDictionary<string, object> filter = new ExpandoObject();
+filter.Add("property_name", "account_id");
+filter.Add("operator", "eq");
+filter.Add("property_value", 123);
+
+dynamic options = new ExpandoObject();
+// Set filters for the key
+options.filters = new List<object>() { filter };
+// Set read/write permissions for the key
+options.allowed_operations = new List<string>() { "read" };
+
+// Generate the key using the given master key and options
+var scopedKey = ScopedKey.Encrypt(masterKey, (object)options);
+
+// Decrypt the key to get the key's filters and permissions
+var decrypted = ScopedKey.Decrypt(masterKey, scopedKey);
+var decryptedOptions = JObject.Parse(decrypted);
+```
