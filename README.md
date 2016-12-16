@@ -13,7 +13,7 @@ There are three versions of the .NET SDK, which vary based on the target platfor
 
 A portable class library targets .NET 4.5, Windows and Windows Phone 8+, and Xamarin for iOS and Android.
 
-A .NET 4.0 specific library makes use of the portable class library and adds a few features including scoped key generation and project settings providers which read settings from environment variables or a file.
+A .NET 4.5 specific library makes use of the portable class library and adds a few features including scoped key generation and project settings providers which read settings from environment variables or a file.
 
 For older projects and Unity, a separate .NET 3.5 library exists, though it lacks query support.
 
@@ -30,7 +30,7 @@ Install the NuGet package by running the following command from the NuGet Packag
 PM> Install-Package KeenClient
 ```
 
-The most up to date code is available in the following repository.
+The most up-to-date code is available in the following repository:
 
 ```
 https://github.com/keenlabs/keen-sdk-net
@@ -81,7 +81,7 @@ Using Global Properties
 Static global properties are added with the `KeenClient`'s `AddGlobalProperty` method:
 
 ```
-keenClient.AddGlobalProperty("clienttype", "mobile");
+keenClient.AddGlobalProperty("client_type", "mobile");
 ```
 
 Static global properties are added at the root level of all events just before they are sent or cached.
@@ -90,7 +90,7 @@ Dynamic global properties are an SDK concept that can be added in the same way, 
 
 ```
 var dynProp = new DynamicPropertyValue(() => new Random().Next(9999));
-keenClient.AddGlobalProperty("bonusfield", dynProp);
+keenClient.AddGlobalProperty("bonus_field", dynProp);
 ```
 
 The delegate function is executed each time event data is added as well as during the `AddGlobalProperty` call.
@@ -135,10 +135,10 @@ static void Main(string[] args)
     var prjSettings = new ProjectSettingsProvider("YourProjectID", writeKey: "YourWriteKey");
     var keenClient = new KeenClient(prjSettings);
 
-    keenClient.AddGlobalProperty("clienttype", "mobile");
+    keenClient.AddGlobalProperty("client_type", "mobile");
 
     var dynProp = new DynamicPropertyValue(() => new Random().Next(9999));
-    keenClient.AddGlobalProperty("bonusfield", dynProp );
+    keenClient.AddGlobalProperty("bonus_field", dynProp );
 
     // Build an event object
     var aPurchase = new
@@ -202,7 +202,7 @@ IEnumerable<MultiAnalysisParam> analyses = new List<MultiAnalysisParam>()
 {
   new MultiAnalysisParam("purchases", MultiAnalysisParam.Metric.Count()),
   new MultiAnalysisParam("max_price", MultiAnalysisParam.Metric.Maximum("price")),
-  new MultiAnalysisParam("min_price", MultiAnalysisParam.Metric.Minimum("price")),
+  new MultiAnalysisParam("min_price", MultiAnalysisParam.Metric.Minimum("price"))
 };
 
 var result = keenClient.QueryMultiAnalysis("purchases", analyses);
@@ -217,7 +217,7 @@ Funnel Analysis
 
 Returns the number of unique actors that successfully (or unsuccessfully) make it through a series of steps. “Actors” could mean users, devices, or any other identifiers that are meaningful to you. For more information about Funnels, see the [Funnel API documentation](https://keen.io/docs/api/#funnels).
 
-To perform funnel analysis, `KeenClient` exposes the methods `QueryFunnel` and `QueryFunnelAsync`, which are used as follows.
+To perform funnel analysis, `KeenClient` exposes the methods `QueryFunnel` and `QueryFunnelAsync`, which are used as follows:
 
 ```
 IEnumerable<FunnelStep> funnelSteps = new List<FunnelStep>
@@ -225,7 +225,7 @@ IEnumerable<FunnelStep> funnelSteps = new List<FunnelStep>
     new FunnelStep
     {
         EventCollection = "registered_users",
-        ActorProperty = "id",
+        ActorProperty = "id"
     },
     new FunnelStep
     {
@@ -257,7 +257,7 @@ var result = keenClient.Query(QueryType.Count(), "user_registrations", null, fil
 Grouped and Interval Query Results
 ------------
 
-To perform analysis or multi-analysis with results grouped by a column value, separated by a timeframe, or a combination of both, there versions of the `KeenClient.Query` and `KeenClient.QueryMultiAnalysis` methods available. These include `KeenClient.QueryInterval`, `KeenClient.QueryGroup`, `KeenClient.QueryIntervalGroup` and their corresponding asynchronous methods for single-analysis. For multi-analysis, similar methods exist including `KeenClient.QueryMultiAnalysisGroup`, `KeenClient.QueryMultiAnalysisInterval`, `KeenClient.QueryMultiAnalysisIntervalGroup`, and the asynchronous versions of those methods. See the Keen.io [group by](https://keen.io/docs/api/#group-by) and [interval](https://keen.io/docs/api/#interval) API documentation for more about these types of analyses.
+To perform analysis or multi-analysis with results grouped by a column value, separated by a timeframe, or a combination of both, there are versions of the `KeenClient.Query` and `KeenClient.QueryMultiAnalysis` methods available. These include `KeenClient.QueryInterval`, `KeenClient.QueryGroup`, `KeenClient.QueryIntervalGroup` and their corresponding asynchronous methods for single-analysis. For multi-analysis, similar methods exist including `KeenClient.QueryMultiAnalysisGroup`, `KeenClient.QueryMultiAnalysisInterval`, `KeenClient.QueryMultiAnalysisIntervalGroup`, and the asynchronous versions of those methods. See the Keen.io [group by](https://keen.io/docs/api/#group-by) and [interval](https://keen.io/docs/api/#interval) API documentation for more about these types of analyses.
 
 
 Scoped Keys
