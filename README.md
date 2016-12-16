@@ -54,7 +54,7 @@ Recording Events
 Event data is provided to the client as an object. A simple way to do this is with an anonymous object:
 
 ```
-var aPurchase = new
+var purchase = new
 {
     category = "magical animals",
     username = "hagrid",
@@ -63,7 +63,7 @@ var aPurchase = new
     animal_type = "norwegian ridgeback dragon"
 };
 
-keenClient.AddEvent("purchases", aPurchase);
+keenClient.AddEvent("purchases", purchase);
 ```
 
 Recording Events Asynchronously
@@ -72,7 +72,7 @@ Recording Events Asynchronously
 Sometimes you want to record events in a non-blocking manner. This is pretty simple:
 
 ```
-keenClient.AddEventAsync("purchases", aPurchase);
+keenClient.AddEventAsync("purchases", purchase);
 ```
 
 Using Global Properties
@@ -93,7 +93,7 @@ var dynProp = new DynamicPropertyValue(() => new Random().Next(9999));
 keenClient.AddGlobalProperty("bonus_field", dynProp);
 ```
 
-The delegate function is executed each time event data is added as well as during the `AddGlobalProperty` call.
+The delegate is executed each time event data is added as well as during the `AddGlobalProperty` call.
 
 Using Data Enrichment Add-ons
 ------------------------------
@@ -102,25 +102,25 @@ Keen IO can enrich event data by parsing or joining it with other data sets. Thi
 
 ```
 // Build an event object
-var aPurchase = new
+var purchase = new
 {
-  category = "magical animals",
-  username = "hagrid",
-  price = 7.13,
-  payment_type = "information",
-  animal_type = "norwegian ridgeback dragon",
-  user_ip = "8.8.8.8",
-  ua = "Mozilla/4.0 (compatible; MSIE 5.0; Windows NT; DigExt; .NET CLR 1.0.3705)"
+    category = "magical animals",
+    username = "hagrid",
+    price = 7.13,
+    payment_type = "information",
+    animal_type = "norwegian ridgeback dragon",
+    user_ip = "8.8.8.8",
+    ua = "Mozilla/4.0 (compatible; MSIE 5.0; Windows NT; DigExt; .NET CLR 1.0.3705)"
 };
 
 var addOns = new[]
 {
-  AddOn.IpToGeo("user_ip", "user_geo"),
-  AddOn.UserAgentParser("ua", "user_agent")
+    AddOn.IpToGeo("user_ip", "user_geo"),
+    AddOn.UserAgentParser("ua", "user_agent")
 };
 
 // send the event
-keenClient.AddEvent("purchases", aPurchase, addOns);
+keenClient.AddEvent("purchases", purchase, addOns);
 ```
 
 When the event is recorded the "user_geo" and "user_agent" fields will be populated automatically by the Keen.io API.
@@ -132,8 +132,8 @@ Complete Event Recording Example
 static void Main(string[] args)
 {
     // Set up the client
-    var prjSettings = new ProjectSettingsProvider("YourProjectID", writeKey: "YourWriteKey");
-    var keenClient = new KeenClient(prjSettings);
+    var projectSettings = new ProjectSettingsProvider("YourProjectID", writeKey: "YourWriteKey");
+    var keenClient = new KeenClient(projectSettings);
 
     keenClient.AddGlobalProperty("client_type", "mobile");
 
@@ -141,7 +141,7 @@ static void Main(string[] args)
     keenClient.AddGlobalProperty("bonus_field", dynProp );
 
     // Build an event object
-    var aPurchase = new
+    var purchase = new
     {
         category = "magical animals",
         username = "hagrid",
@@ -154,12 +154,12 @@ static void Main(string[] args)
 
     var addOns = new[]
     {
-      AddOn.IpToGeo("user_ip", "user_geo"),
-      AddOn.UserAgentParser("ua", "user_agent")
+        AddOn.IpToGeo("user_ip", "user_geo"),
+        AddOn.UserAgentParser("ua", "user_agent")
     };
 
     // send the event
-    keenClient.AddEvent("purchases", aPurchase, addOns);
+    keenClient.AddEvent("purchases", purchase, addOns);
 }
 ```
 
@@ -200,9 +200,9 @@ To perform multi-analysis, use the `KeenClient.QueryMultiAnalysis` family of met
 ```
 IEnumerable<MultiAnalysisParam> analyses = new List<MultiAnalysisParam>()
 {
-  new MultiAnalysisParam("purchases", MultiAnalysisParam.Metric.Count()),
-  new MultiAnalysisParam("max_price", MultiAnalysisParam.Metric.Maximum("price")),
-  new MultiAnalysisParam("min_price", MultiAnalysisParam.Metric.Minimum("price"))
+    new MultiAnalysisParam("purchases", MultiAnalysisParam.Metric.Count()),
+    new MultiAnalysisParam("max_price", MultiAnalysisParam.Metric.Maximum("price")),
+    new MultiAnalysisParam("min_price", MultiAnalysisParam.Metric.Minimum("price"))
 };
 
 var result = keenClient.QueryMultiAnalysis("purchases", analyses);
@@ -248,7 +248,7 @@ Analyses, multi-analysis, and funnel steps all support using filters to be more 
 ```
 var filters = new List<QueryFilter>()
 {
-  new QueryFilter("field1", QueryFilter.FilterOperator.GreaterThan(), "1")
+    new QueryFilter("field1", QueryFilter.FilterOperator.GreaterThan(), "1")
 };
 
 var result = keenClient.Query(QueryType.Count(), "user_registrations", null, filters: filters);
