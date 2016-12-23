@@ -190,6 +190,24 @@ The server may reject one or more events included in the cache. If this happens 
 
 Global properties are evaluated and added when AddEvent() is called, so dynamic properties will not be evaluated when SendCachedEvents() is called.
 
+Analysis
+------------
+
+To run [analyses](https://keen.io/docs/api/#analyses) on your data, use the provided `KeenClient.Query` family of methods. For example:
+
+```
+var itemCount = keenClient.Query(QueryType.Count(), "target_collection", null);
+```
+
+An `async` version of this analysis could be run as follows:
+
+```
+var itemCount = await keenClient.Query(QueryType.Count(), "target_collection", null);
+```
+
+Additional qualifiers can be added to the analysis, such as the target property to use for analyses that require it. A timeframe or list of filters to use for the analysis can also be provided. If you'd like to get results in a grouped or time interval format, the `KeenClient.QueryGroup`, `KeenClient.QueryInterval`, and `KeenClient.QueryIntervalGroup` synchronous and asynchronous methods can be used. See the Grouped and Interval Query Results and Filters sections below for more detail.
+
+
 Multi-Analysis
 ------------
 
@@ -239,6 +257,27 @@ var result = keenClient.QueryFunnel(funnelSteps);
 var registeredUsers = result.ElementAt(0);
 var registeredAndSubscribedUserCount = result.ElementAt(1);
 ```
+
+Timeframes
+------------
+
+A timeframe can be specified for analysis using the `QueryRelativeTimeframe` and `QueryAbsoluteTimeframe` classes, along with an optional `timezone` parameter passed to the `KeenClient.Query` method when using `QueryRelativeTimeframe`. The `timezone` parameter must be one of the timezones supported by the Keen.io API as specified [here](https://keen.io/docs/api/#timezone).
+
+For example:
+```
+var relativeTimeframe = QueryRelativeTimeframe.ThisWeek();
+var timezone = "US/Pacific"; // If not specified, timezone defaults to "UTC"
+
+var countUnique = keenClient.Query(QueryType.CountUnique(), "target_collection", "target_property", relativeTimeframe, timezone: timezone);
+```
+
+Here's an example using an absolute timeframe. Note that timezone information is included in the DateTime struct, and therefore shouldn't be provided as an additional parameter.
+```
+var absoluteTimeframe = new QueryAbsoluteTimeframe(DateTime.Now.AddMonths(-1), DateTime.Now));
+
+var countUnique = keenClient.Query(QueryType.CountUnique(), "target_collection", "target_property", absoluteTimeframe);
+```
+
 
 Filters
 ------------
