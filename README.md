@@ -98,7 +98,7 @@ The delegate is executed each time event data is added as well as during the `Ad
 Using Data Enrichment Add-ons
 ------------------------------
 
-Keen IO can enrich event data by parsing or joining it with other data sets. This is done through the concept of “add-ons”. See the [Keen.io API documentation](https://keen.io/docs/api/#data-enrichment) for more on this. The .NET SDK enables add-ons with the `Keen.Core.DataEnrichment.AddOn` class.
+Keen IO can enrich event data by parsing or joining it with other data sets. This is done through the concept of “add-ons”. See the [Keen IO API documentation](https://keen.io/docs/api/#data-enrichment) for more on this. The .NET SDK enables add-ons with the `Keen.Core.DataEnrichment.AddOn` class.
 
 ```
 // Build an event object
@@ -123,7 +123,7 @@ var addOns = new[]
 keenClient.AddEvent("purchases", purchase, addOns);
 ```
 
-When the event is recorded the "user_geo" and "user_agent" fields will be populated automatically by the Keen.io API.
+When the event is recorded the "user_geo" and "user_agent" fields will be populated automatically by the Keen IO API.
 
 Complete Event Recording Example
 ------------
@@ -166,7 +166,7 @@ static void Main(string[] args)
 Caching
 -------
 
-KeenClient supports an event data cache interface that allows transmission of event data to the Keen.IO server to be deferred until you call SendCachedEvents(). You may implement your own cache by supporting the IEventCache interface or you may use one of the two cache classes included, EventCacheMemory and EventCachePortable which store event data in memory and in portable storage, respectively.
+KeenClient supports an event data cache interface that allows transmission of event data to the Keen IO server to be deferred until you call SendCachedEvents(). You may implement your own cache by supporting the IEventCache interface or you may use one of the two cache classes included, EventCacheMemory and EventCachePortable which store event data in memory and in portable storage, respectively.
 
 To enable caching provide an instance supporting IEventCache when constructing KeenClient:
 
@@ -189,6 +189,24 @@ client.SendCachedEvents();
 The server may reject one or more events included in the cache. If this happens the item that was rejected will be recorded and transmission of the remaining cached events will continue. After all events in the cache have been transmitted, if any events were rejected they will be attached as instances of CachedEvent to an instance of KeenBulkException which will then be thrown. The KeenBulkException FailedEvents property may be accessed to review the failures.
 
 Global properties are evaluated and added when AddEvent() is called, so dynamic properties will not be evaluated when SendCachedEvents() is called.
+
+Analysis
+------------
+
+To run [analyses](https://keen.io/docs/api/#analyses) on your data, use the provided `KeenClient.Query` family of methods. For example:
+
+```
+var itemCount = keenClient.Query(QueryType.Count(), "target_collection", null);
+```
+
+An `async` version of this analysis could be run as follows:
+
+```
+var itemCount = await keenClient.QueryAsync(QueryType.Count(), "target_collection", null);
+```
+
+Additional qualifiers can be added to the analysis, such as the target property to use for analyses that require it. A timeframe and/or list of filters to use for the analysis can also be provided. If you'd like to get results in a grouped or time interval format, the `KeenClient.QueryGroup`, `KeenClient.QueryInterval`, and `KeenClient.QueryIntervalGroup` synchronous and asynchronous methods can be used. See the Grouped and Interval Query Results and Filters sections below for more detail.
+
 
 Multi-Analysis
 ------------
@@ -240,6 +258,27 @@ var registeredUsers = result.ElementAt(0);
 var registeredAndSubscribedUserCount = result.ElementAt(1);
 ```
 
+Timeframes
+------------
+
+A timeframe can be specified for analysis using the `QueryRelativeTimeframe` and `QueryAbsoluteTimeframe` classes, along with an optional `timezone` parameter passed to the `KeenClient.Query` method when using `QueryRelativeTimeframe`. The `timezone` parameter must be one of the timezones supported by the Keen IO API as specified [here](https://keen.io/docs/api/#timezone).
+
+For example:
+```
+var relativeTimeframe = QueryRelativeTimeframe.ThisWeek();
+var timezone = "US/Pacific"; // If not specified, timezone defaults to "UTC"
+
+var countUnique = keenClient.Query(QueryType.CountUnique(), "target_collection", "target_property", relativeTimeframe, timezone: timezone);
+```
+
+Here's an example using an absolute timeframe. Note that timezone information is included in the DateTime struct, and therefore shouldn't be provided as an additional parameter.
+```
+var absoluteTimeframe = new QueryAbsoluteTimeframe(DateTime.Now.AddMonths(-1), DateTime.Now));
+
+var countUnique = keenClient.Query(QueryType.CountUnique(), "target_collection", "target_property", absoluteTimeframe);
+```
+
+
 Filters
 ------------
 
@@ -257,13 +296,13 @@ var result = keenClient.Query(QueryType.Count(), "user_registrations", null, fil
 Grouped and Interval Query Results
 ------------
 
-To perform analysis or multi-analysis with results grouped by a column value, separated by a timeframe, or a combination of both, there are versions of the `KeenClient.Query` and `KeenClient.QueryMultiAnalysis` methods available. These include `KeenClient.QueryInterval`, `KeenClient.QueryGroup`, `KeenClient.QueryIntervalGroup` and their corresponding asynchronous methods for single-analysis. For multi-analysis, similar methods exist including `KeenClient.QueryMultiAnalysisGroup`, `KeenClient.QueryMultiAnalysisInterval`, `KeenClient.QueryMultiAnalysisIntervalGroup`, and the asynchronous versions of those methods. See the Keen.io [group by](https://keen.io/docs/api/#group-by) and [interval](https://keen.io/docs/api/#interval) API documentation for more about these types of analyses.
+To perform analysis or multi-analysis with results grouped by a column value, separated by a timeframe, or a combination of both, there are versions of the `KeenClient.Query` and `KeenClient.QueryMultiAnalysis` methods available. These include `KeenClient.QueryInterval`, `KeenClient.QueryGroup`, `KeenClient.QueryIntervalGroup` and their corresponding asynchronous methods for single-analysis. For multi-analysis, similar methods exist including `KeenClient.QueryMultiAnalysisGroup`, `KeenClient.QueryMultiAnalysisInterval`, `KeenClient.QueryMultiAnalysisIntervalGroup`, and the asynchronous versions of those methods. See the Keen IO [group by](https://keen.io/docs/api/#group-by) and [interval](https://keen.io/docs/api/#interval) API documentation for more about these types of analyses.
 
 
 Scoped Keys
 ------------
 
-Scoped keys are customized API keys you can generate yourself. Each key has a defined scope of allowed operations (read/write), along with a set of predetermined filters that are applied to every request. See the [Keen.io API reference](https://keen.io/docs/api/#scoped-keys) for more information on scoped keys.
+Scoped keys are customized API keys you can generate yourself. Each key has a defined scope of allowed operations (read/write), along with a set of predetermined filters that are applied to every request. See the [Keen IO API reference](https://keen.io/docs/api/#scoped-keys) for more information on scoped keys.
 
 The .NET 4.0 SDK includes methods for generating scoped keys. These methods aren't available in the .NET 4.5 portable library or the .NET 3.5 library. You'll find them under the `Keen.Core` namespace as `ScopedKey.Encrypt`, `ScopedKey.EncryptString`, and `ScopedKey.Decrypt`.
 
