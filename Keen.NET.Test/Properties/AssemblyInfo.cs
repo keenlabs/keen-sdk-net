@@ -4,10 +4,7 @@ using System.Runtime.InteropServices;
 
 // Friendly name and description for this assembly.
 [assembly: AssemblyTitle("Keen.Net.Test")]
-[assembly: AssemblyDescription("")]
-
-// TODO : This should probably be the same for all assemblies.
-[assembly: AssemblyProduct("Keen.Net.Test")]
+[assembly: AssemblyDescription("Keen IO SDK Tests for .NET 4/4.5+")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components. If you need to access a type in this assembly from 

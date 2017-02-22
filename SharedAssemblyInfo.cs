@@ -1,16 +1,16 @@
 ﻿using System.Reflection;
 
 
-// TODO : Set the company.
-[assembly: AssemblyCompany("")]
-
-// TODO : AssemblyProduct should be set here too.
-
-// TODO : Fix the copyright and trademark info.
-[assembly: AssemblyCopyright("Copyright ©  2014")]
+[assembly: AssemblyCompany("Keen Labs, Inc.")]
+[assembly: AssemblyCopyright("Copyright © 2014—2017 Keen IO")]
 [assembly: AssemblyTrademark("")]
+[assembly: AssemblyProduct("Keen IO .NET SDK")]
 
-// TODO : Set to the proper configuration as per build env.
-[assembly: AssemblyConfiguration("")]
+// Add more configurations as neede so as to match the build env.
+#if (DEBUG)
+[assembly: AssemblyConfiguration("Debug")]
+#else
+[assembly: AssemblyConfiguration("Release")]
+#endif
 
 [assembly: AssemblyCulture("")]
