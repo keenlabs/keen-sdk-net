@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -13,6 +14,45 @@ namespace Keen.Core
 {
     public static class KeenUtil
     {
+        private static readonly string SdkVersion;
+
+        static KeenUtil()
+        {
+            string version = GetAssemblyInformationalVersion();
+
+            // TODO : What will be the proper string to represent unknown version numbers? Is
+            // something like ".net-*" or ".net-*.*.*" OK?
+            version = (string.IsNullOrWhiteSpace(version) ? "*" : version);
+            SdkVersion = string.Format(".net-{0}", version);
+        }
+
+        /// <summary>
+        /// Retrieve a string representing the current version of the Keen IO SDK, as defined by
+        /// the AssemblyInformationVersion.
+        /// </summary>
+        /// <returns>The SDK version string.</returns>
+        public static string GetSdkVersion()
+        {
+            return SdkVersion;
+        }
+
+        private static string GetAssemblyInformationalVersion()
+        {
+            string assemblyInformationalVersion = string.Empty;
+
+            var attribute = (AssemblyInformationalVersionAttribute)
+                (Assembly.GetExecutingAssembly()
+                .GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false)
+                .FirstOrDefault());
+
+            if (null != attribute)
+            {
+                assemblyInformationalVersion = attribute.InformationalVersion;
+            }
+
+            return assemblyInformationalVersion;
+        }
+
         private static HashSet<string> validCollectionNames = new HashSet<string>();
 
         public static string ToSafeString(this object obj)
