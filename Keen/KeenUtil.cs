@@ -19,10 +19,7 @@ namespace Keen.Core
         static KeenUtil()
         {
             string version = GetAssemblyInformationalVersion();
-
-            // TODO : What will be the proper string to represent unknown version numbers? Is
-            // something like ".net-*" or ".net-*.*.*" OK?
-            version = (string.IsNullOrWhiteSpace(version) ? "*" : version);
+            version = (string.IsNullOrWhiteSpace(version) ? "0.0.0" : version);
             SdkVersion = string.Format(".net-{0}", version);
         }
 
@@ -39,11 +36,18 @@ namespace Keen.Core
         private static string GetAssemblyInformationalVersion()
         {
             string assemblyInformationalVersion = string.Empty;
+            AssemblyInformationalVersionAttribute attribute = null;
 
-            var attribute = (AssemblyInformationalVersionAttribute)
-                (Assembly.GetExecutingAssembly()
-                .GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false)
-                .FirstOrDefault());
+            try
+            {
+                attribute = (AssemblyInformationalVersionAttribute)(Assembly.GetExecutingAssembly()
+                        .GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false)
+                        .FirstOrDefault());
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine("Caught exception trying to read AssemblyInformationalVersion: {0}", e);
+            }
 
             if (null != attribute)
             {

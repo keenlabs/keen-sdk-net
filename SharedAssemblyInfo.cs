@@ -1,8 +1,8 @@
 ﻿using System.Reflection;
 
 
-[assembly: AssemblyCompany("Keen Labs, Inc.")]
-[assembly: AssemblyCopyright("Copyright © 2014—2017 Keen IO")]
+[assembly: AssemblyCompany("Keen IO")]
+[assembly: AssemblyCopyright("Copyright © 2014 Keen IO")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyProduct("Keen IO .NET SDK")]
 

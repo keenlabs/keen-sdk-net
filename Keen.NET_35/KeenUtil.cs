@@ -14,11 +14,8 @@ namespace Keen.NET_35
         static KeenUtil()
         {
             string version = GetAssemblyInformationalVersion();
-
-            // TODO : What will be the proper string to represent unknown version numbers? Is
-            // something like ".net35-*" or ".net35-*.*.*" OK?
-            version = (version.IsNullOrWhiteSpace() ? "*" : version);
-            SdkVersion = string.Format(".net35-{0}", version);
+            version = (version.IsNullOrWhiteSpace() ? "0.0.0" : version);
+            SdkVersion = string.Format(".net_35-{0}", version);
         }
 
         /// <summary>
@@ -34,11 +31,18 @@ namespace Keen.NET_35
         private static string GetAssemblyInformationalVersion()
         {
             string assemblyInformationalVersion = string.Empty;
+            AssemblyInformationalVersionAttribute[] attributes = null;
 
-            var attributes =
-                Assembly.GetExecutingAssembly()
-                .GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false)
-                as AssemblyInformationalVersionAttribute[];
+            try
+            {
+                attributes = Assembly.GetExecutingAssembly()
+                        .GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false)
+                        as AssemblyInformationalVersionAttribute[];
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine("Caught exception trying to read AssemblyInformationalVersion: " + e);
+            }
 
             if (null != attributes && 0 < attributes.Length)
             {
