@@ -20,6 +20,7 @@ namespace Keen.NET_35
                 var client = new RestClient(_serverUrl);
                 var request = new RestRequest(collection, Method.GET);
                 request.AddHeader("Authorization", _prjSettings.MasterKey);
+                request.AddHeader("Keen-Sdk", KeenUtil.GetSdkVersion());
 
                 var serverResponse = client.Execute(request);
                 if (serverResponse==null)
@@ -44,6 +45,7 @@ namespace Keen.NET_35
                 var client = new RestClient(_serverUrl);
                 var request = new RestRequest(collection, Method.DELETE);
                 request.AddHeader("Authorization", _prjSettings.MasterKey);
+                request.AddHeader("Keen-Sdk", KeenUtil.GetSdkVersion());
 
                 var serverResponse = client.Execute(request);
                 if (serverResponse == null)
@@ -71,6 +73,7 @@ namespace Keen.NET_35
                 var client = new RestClient(_serverUrl);
                 var request = new RestRequest(collection, Method.POST);
                 request.AddHeader("Authorization", _prjSettings.WriteKey);
+                request.AddHeader("Keen-Sdk", KeenUtil.GetSdkVersion());
                 request.AddParameter("application/json", anEvent.ToString(), ParameterType.RequestBody);
 
                 var serverResponse = client.Execute(request);
