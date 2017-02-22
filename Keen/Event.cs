@@ -28,6 +28,8 @@ namespace Keen.Core
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Add("Authorization", _prjSettings.MasterKey);
+                client.DefaultRequestHeaders.Add("Keen-Sdk", KeenUtil.GetSdkVersion());
+
                 var responseMsg = await client.GetAsync(_serverUrl)
                     .ConfigureAwait(continueOnCapturedContext: false);
                 var responseString = await responseMsg.Content.ReadAsStringAsync()
@@ -59,6 +61,8 @@ namespace Keen.Core
                 contentStream.Headers.Add("content-type", "application/json");
 
                 client.DefaultRequestHeaders.Add("Authorization", _prjSettings.WriteKey);
+                client.DefaultRequestHeaders.Add("Keen-Sdk", KeenUtil.GetSdkVersion());
+
                 var httpResponse = await client.PostAsync(_serverUrl, contentStream)
                     .ConfigureAwait(continueOnCapturedContext: false);
                 var responseString = await httpResponse.Content.ReadAsStringAsync()
