@@ -75,6 +75,7 @@ if ($help -or ($version -notmatch "^$semVerPattern$")) {
 # Update the version for the .NET assemblies.
 Update-AssemblyVersionAttributes $version
 
+
 # Rebuild the solution to bake the new version into the assemblies. This is using the default
 # VS2015 location for MSBuild, so change it as appropriate.
 $msBuildExe = (${env:ProgramFiles(x86)}, 'MSBuild', '14.0', 'bin', 'msbuild.exe') `
@@ -87,6 +88,7 @@ if (-not $?) {
     Write-Debug 'Failed to build solution!'
     exit
 }
+
 
 # Execute the nuget CLI either from the script's location or the PATH.
 $scriptPath = Split-Path -Path $MyInvocation.MyCommand.Path
