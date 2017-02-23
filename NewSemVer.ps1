@@ -1,8 +1,8 @@
 <#
 NewSemVer.ps1
 
-This utility helps to update the .NET assembly versions and create a new NuGet package with that
-same version.
+This utility helps to update the .NET assembly versions, rebuild the solution and create a new
+NuGet package with that same version.
 #>
 
 Param(
@@ -71,12 +71,27 @@ if ($help -or ($version -notmatch "^$semVerPattern$")) {
 	return;
 }
 
+
 # Update the version for the .NET assemblies.
 Update-AssemblyVersionAttributes $version
+
+# Rebuild the solution to bake the new version into the assemblies. This is using the default
+# VS2015 location for MSBuild, so change it as appropriate.
+$msBuildExe = (${env:ProgramFiles(x86)}, 'MSBuild', '14.0', 'bin', 'msbuild.exe') `
+    -join [IO.Path]::DirectorySeparatorChar
+'MSBuild EXE: ' + $msBuildExe
+
+& $msBuildExe ('Keen.sln','/verbosity:q','/p:configuration=Release','/t:Clean,Build')
+
+if (-not $?) {
+    Write-Debug 'Failed to build solution!'
+    exit
+}
 
 # Execute the nuget CLI either from the script's location or the PATH.
 $scriptPath = Split-Path -Path $MyInvocation.MyCommand.Path
 $env:Path += ";$scriptPath"
+
 
 # Create the .nupkg and pass the version to override the .nuspec token(s).
 & 'nuget.exe' pack KeenClient.nuspec -properties "version=$version"
