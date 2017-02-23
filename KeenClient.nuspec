@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>KeenClient</id>
-    <version>0.3.13</version>
+    <version>$version$</version>
     <authors>David Knaack, Brian Baumhover, Justin Mason</authors>
     <owners>Keen IO</owners>
     <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
