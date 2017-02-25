@@ -44,7 +44,6 @@ namespace Keen.Net.Test
             foreach (var s in new[] { "KEEN_PROJECT_ID", "KEEN_MASTER_KEY", "KEEN_WRITE_KEY", "KEEN_READ_KEY" })
                 Environment.SetEnvironmentVariable(s, null);
         }
-
     }
 
     [TestFixture]
@@ -487,6 +486,17 @@ namespace Keen.Net.Test
 
             // Idempotent, does not matter if collection does not exist.
             Assert.DoesNotThrow(() => client.DeleteCollection("DeleteColTest"));
+        }
+
+        [Test]
+        public void GetSdkVersion_Success()
+        {
+            // TODO : Decide on a better place for this when we break out tests and do a CC push.
+            string sdkVersion = KeenUtil.GetSdkVersion();
+
+            Assert.IsNotNull(sdkVersion);
+            Assert.IsNotEmpty(sdkVersion);
+            Assert.IsTrue(sdkVersion.StartsWith(".net"));
         }
     }
 

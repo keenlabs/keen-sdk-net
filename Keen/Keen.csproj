@@ -36,6 +36,12 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- A reference to the entire .NET Framework is automatically included -->
+    <Compile Include="..\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\SharedVersionInfo.cs">
+      <Link>Properties\SharedVersionInfo.cs</Link>
+    </Compile>
     <Compile Include="DataEnrichment\EventAddOn.cs" />
     <Compile Include="Query\FunnelResult.cs" />
     <Compile Include="Query\FunnelResultActors.cs" />

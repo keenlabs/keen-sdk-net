@@ -2,9 +2,9 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>KeenClient</id>
-    <version>0.3.12</version>
-    <authors>David Knaack</authors>
-    <owners>Infinity Interactive, Inc.</owners>
+    <version>$version$</version>
+    <authors>David Knaack, Brian Baumhover, Justin Mason</authors>
+    <owners>Keen IO</owners>
     <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
     <projectUrl>https://keen.io/</projectUrl>
     <iconUrl>https://www.gravatar.com/avatar/b948c4bc2de9618c488431612d2ff99d</iconUrl>
@@ -29,7 +29,7 @@
         <dependency id="Microsoft.Bcl" version="1.1.10" />
         <dependency id="Microsoft.Bcl.Build" version="1.0.21" />
         <dependency id="Microsoft.Bcl.Async" version="1.0.168" />
-        <dependency id="PCLStorage" version="1.0.6" />
+        <dependency id="PCLStorage" version="1.0.2" />
       </group>
 
       <group targetFramework="net35">

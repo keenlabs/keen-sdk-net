@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -13,6 +14,49 @@ namespace Keen.Core
 {
     public static class KeenUtil
     {
+        private static readonly string SdkVersion;
+
+        static KeenUtil()
+        {
+            string version = GetAssemblyInformationalVersion();
+            version = (string.IsNullOrWhiteSpace(version) ? "0.0.0" : version);
+            SdkVersion = string.Format(".net-{0}", version);
+        }
+
+        /// <summary>
+        /// Retrieve a string representing the current version of the Keen IO SDK, as defined by
+        /// the AssemblyInformationVersion.
+        /// </summary>
+        /// <returns>The SDK version string.</returns>
+        public static string GetSdkVersion()
+        {
+            return SdkVersion;
+        }
+
+        private static string GetAssemblyInformationalVersion()
+        {
+            string assemblyInformationalVersion = string.Empty;
+            AssemblyInformationalVersionAttribute attribute = null;
+
+            try
+            {
+                attribute = (AssemblyInformationalVersionAttribute)(Assembly.GetExecutingAssembly()
+                        .GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false)
+                        .FirstOrDefault());
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine("Caught exception trying to read AssemblyInformationalVersion: {0}", e);
+            }
+
+            if (null != attribute)
+            {
+                assemblyInformationalVersion = attribute.InformationalVersion;
+            }
+
+            return assemblyInformationalVersion;
+        }
+
         private static HashSet<string> validCollectionNames = new HashSet<string>();
 
         public static string ToSafeString(this object obj)

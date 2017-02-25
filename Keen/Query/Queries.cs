@@ -48,6 +48,7 @@ namespace Keen.Core.Query
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Add("Authorization", key);
+                client.DefaultRequestHeaders.Add("Keen-Sdk", KeenUtil.GetSdkVersion());
 
                 var responseMsg = await client.GetAsync(url).ConfigureAwait(false);
                 var responseString = await responseMsg.Content.ReadAsStringAsync().ConfigureAwait(false);

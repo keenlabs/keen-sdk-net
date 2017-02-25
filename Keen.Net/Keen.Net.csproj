@@ -76,6 +76,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\SharedVersionInfo.cs">
+      <Link>Properties\SharedVersionInfo.cs</Link>
+    </Compile>
     <Compile Include="EventCacheMemory.cs" />
     <Compile Include="ProjectSettingsProviderEnv.cs" />
     <Compile Include="ProjectSettingsProviderFile.cs" />
