@@ -24,11 +24,11 @@ $semVerPattern = '\d+.\d+.\d+(-[a-zA-Z0-9-]+)?'
 Print usage info.
 #>
 function Usage {
-	"Updates the AssemblyVersion, AssemblyInformationalVersion and AssemblyFileVersion in "
-	"the SharedVersionInfo.cs file. Then, tries to create a new NuGet package, which will fail if "
+    "Updates the AssemblyVersion, AssemblyInformationalVersion and AssemblyFileVersion in "
+    "the SharedVersionInfo.cs file. Then, tries to create a new NuGet package, which will fail if "
     "nuget.exe isn't in the PATH or the script's directory.`n"
     ".\NewSemVer.ps1 <VersionNumber>`n"
-	"   <VersionNumber>     The version number to set, for example: 1.2.3"
+    "   <VersionNumber>     The version number to set, for example: 1.2.3"
     "                       If prelease/metadata info (e.g. 1.2.3-beta) is provided, only "
     "                        AssemblyInformationalVersion will include the extra info.`n"
 }
@@ -37,38 +37,38 @@ function Usage {
 function Get-MajMinPatchVersion([string] $version) {
     return $version.Split('-'.ToCharArray(), 2)[0]
 }
- 
+
 <#
 Effect version updates in SharedVersionInfo.cs.
 #>
 function Update-AssemblyVersionAttributes ([string] $version) {
     $majMinPatchPattern = '[0-9]+(\.([0-9]+|\*)){1,3}'
-	$assemblyVersionPattern = "AssemblyVersion\(`"$majMinPatchPattern`"\)"
-	$assemblyFileVersionPattern = "AssemblyFileVersion\(`"$majMinPatchPattern`"\)"
+    $assemblyVersionPattern = "AssemblyVersion\(`"$majMinPatchPattern`"\)"
+    $assemblyFileVersionPattern = "AssemblyFileVersion\(`"$majMinPatchPattern`"\)"
     $assemblyInformationalVersionPattern = "AssemblyInformationalVersion\(`"$semVerPattern`"\)"
 
     $majMinPatchVersion = Get-MajMinPatchVersion($version)
-	$newAssemblyVersion = "AssemblyVersion(`"$majMinPatchVersion`")";
-	$newAssemblyfileVersion = "AssemblyFileVersion(`"$majMinPatchVersion`")";
+    $newAssemblyVersion = "AssemblyVersion(`"$majMinPatchVersion`")";
+    $newAssemblyfileVersion = "AssemblyFileVersion(`"$majMinPatchVersion`")";
     $newAssemblyInformationalVersion = "AssemblyInformationalVersion(`"$version`")";
-	
-	Get-ChildItem -r -filter SharedVersionInfo.cs | ForEach-Object {
-		$filename = $_.Directory.ToString() + [IO.Path]::DirectorySeparatorChar + $_.Name
-		"Setting version to $version in $filename"
-	
-		(Get-Content $filename) | ForEach-Object {
-			% {$_ -replace $assemblyVersionPattern, $newAssemblyVersion } |
-			% {$_ -replace $assemblyFileVersionPattern, $newAssemblyfileVersion } |
+    
+    Get-ChildItem -r -filter SharedVersionInfo.cs | ForEach-Object {
+        $filename = $_.Directory.ToString() + [IO.Path]::DirectorySeparatorChar + $_.Name
+        "Setting version to $version in $filename"
+    
+        (Get-Content $filename) | ForEach-Object {
+            % {$_ -replace $assemblyVersionPattern, $newAssemblyVersion } |
+            % {$_ -replace $assemblyFileVersionPattern, $newAssemblyfileVersion } |
             % {$_ -replace $assemblyInformationalVersionPattern, $newAssemblyInformationalVersion }
-		} | Set-Content $filename
-	}
+        } | Set-Content $filename
+    }
 } 
 
 
 # Handle args.
 if ($help -or ($version -notmatch "^$semVerPattern$")) {
     Usage
-	return;
+    return;
 }
 
 
