@@ -35,7 +35,7 @@ namespace Keen.Core
         /// <summary>
         /// EventCache provides a caching implementation allowing events to be cached locally
         /// instead of being sent one at a time. It is not normally necessary to use this property.
-        /// The implementation is responsible for cache  maintenance policy, such as trimming 
+        /// The implementation is responsible for cache maintenance policy, such as trimming 
         /// old entries to avoid excessive cache size.
         /// </summary>
         public IEventCache EventCache { get; private set; }
@@ -318,7 +318,7 @@ namespace Keen.Core
 
             var jEvent = PrepareUserObject(eventInfo, addOns);
 
-            // If an event cache has been provided, cache this event insead of sending it.
+            // If an event cache has been provided, cache this event instead of sending it.
             if (null != EventCache)
                 await EventCache.Add(new CachedEvent(collection, jEvent))
                     .ConfigureAwait(false);
@@ -397,7 +397,7 @@ namespace Keen.Core
         }
 
         /// <summary>
-        /// Submit all events found in the event cache. If an events are rejected by the server, 
+        /// Submit all events found in the event cache. If any events are rejected by the server,
         /// KeenCacheException will be thrown with a listing of the rejected events, each with
         /// the error message it received.
         /// </summary>
@@ -415,7 +415,7 @@ namespace Keen.Core
         }
 
         /// <summary>
-        /// Submit all events found in the event cache. If an events are rejected by the server, 
+        /// Submit all events found in the event cache. If any events are rejected by the server,
         /// KeenCacheException will be thrown with a listing of the rejected events, each with
         /// the error message it received.
         /// </summary>
@@ -472,11 +472,6 @@ namespace Keen.Core
             return await Queries.AvailableQueries();
         }
 
-
-
-
-
-
         /// <summary>
         /// Call any Keen.IO API function with the specified parameters.
         /// </summary>
@@ -487,7 +482,6 @@ namespace Keen.Core
         {
             return await Queries.Metric(queryName, parms);
         }
-
 
         /// <summary>
         /// Call any Keen.IO API function with the specified parameters. Refer to Keen API documentation for
@@ -954,6 +948,5 @@ namespace Keen.Core
                 throw ex.TryUnwrap();
             }
         }
-
     }
 }

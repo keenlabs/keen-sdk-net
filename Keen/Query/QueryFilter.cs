@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 
+
 namespace Keen.Core.Query
 {
     /// <summary>
@@ -135,7 +136,7 @@ namespace Keen.Core.Query
 
         public QueryFilter()
         {
-            
+
         }
 
         public QueryFilter(string property, FilterOperator op, object value)

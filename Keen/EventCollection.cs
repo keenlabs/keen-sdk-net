@@ -1,23 +1,23 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
+
 
 namespace Keen.Core
 {
     /// <summary>
-    /// EventCollection implements the IEventCollection interface which represents the Keen.IO EventCollection API methods.
+    /// EventCollection implements the IEventCollection interface which represents the Keen.IO
+    /// EventCollection API methods.
     /// </summary>
     internal class EventCollection : IEventCollection
     {
         private string _serverUrl;
         private IProjectSettings _prjSettings;
 
-        public async System.Threading.Tasks.Task<JObject> GetSchema(string collection)
+        public async Task<JObject> GetSchema(string collection)
         {
             using (var client = new HttpClient())
             {
@@ -40,7 +40,7 @@ namespace Keen.Core
             }
         }
 
-        public async System.Threading.Tasks.Task DeleteCollection(string collection)
+        public async Task DeleteCollection(string collection)
         {
             using (var client = new HttpClient())
             {
@@ -54,7 +54,7 @@ namespace Keen.Core
             }
         }
 
-        public async System.Threading.Tasks.Task AddEvent(string collection, JObject anEvent)
+        public async Task AddEvent(string collection, JObject anEvent)
         {
             var content = anEvent.ToString();
 
@@ -78,7 +78,7 @@ namespace Keen.Core
                     // like that, this will throw. 
                     jsonResponse = JObject.Parse(responseString);
                 }
-                catch (Exception) 
+                catch (Exception)
                 { }
 
                 // error checking, throw an exception with information from the 

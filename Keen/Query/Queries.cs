@@ -2,13 +2,10 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Dynamic;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
+
 
 namespace Keen.Core.Query
 {
@@ -20,6 +17,7 @@ namespace Keen.Core.Query
         private IProjectSettings _prjSettings;
         private string _serverUrl;
 
+
         public Queries(IProjectSettings prjSettings)
         {
             _prjSettings = prjSettings;
@@ -27,7 +25,6 @@ namespace Keen.Core.Query
             _serverUrl = string.Format("{0}projects/{1}/{2}",
                 _prjSettings.KeenUrl, _prjSettings.ProjectId, KeenConstants.QueriesResource);
         }
-
 
         private async Task<JObject> KeenWebApiRequest(string operation = "", Dictionary<string, string> parms = null)
         {
@@ -92,7 +89,7 @@ namespace Keen.Core.Query
                 throw new ArgumentNullException("queryType");
             if (string.IsNullOrWhiteSpace(collection))
                 throw new ArgumentNullException("collection");
-            if (string.IsNullOrWhiteSpace(targetProperty) && (queryType!=QueryType.Count()))
+            if (string.IsNullOrWhiteSpace(targetProperty) && (queryType != QueryType.Count()))
                 throw new ArgumentNullException("targetProperty");
 
             var parms = new Dictionary<string, string>();
@@ -395,7 +392,6 @@ namespace Keen.Core.Query
                     string grpVal = "";
                     foreach (JProperty p in o.Values<JProperty>())
                     {
-
                         if (p.Name == groupby)
                             grpVal = (string)p.Value;
                         else

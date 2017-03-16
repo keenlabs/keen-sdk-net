@@ -22,8 +22,6 @@ Installation
 
 The easiest way to get started with the Keen IO .NET SDK is to use the [KeenClient NuGet package](http://www.nuget.org/packages/KeenClient/).
 
-Note that there is currently an issue and workaround for installation of the library for .NET 3.5 targets using NuGet: [https://github.com/keenlabs/keen-sdk-net/issues/38](https://github.com/keenlabs/keen-sdk-net/issues/38).
-
 Install the NuGet package by running the following command from the NuGet Package Manager Console:
 
 ```

@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Keen.Core;
+﻿using Keen.Core;
 using System.IO;
+
 
 namespace Keen.Net
 {
@@ -15,11 +12,14 @@ namespace Keen.Net
         /// <summary>
         /// <para>Reads the project settings from a text file.</para>
         /// <para>Each setting takes one line, in the order Project ID, 
-        /// Master Key, Write Key ReadKey. Unused values should be represented
+        /// Master Key, Write Key, Read Key. Unused values should be represented
         /// with a blank line.</para>
         /// </summary>
         public ProjectSettingsProviderFile(string filePath)
         {
+            // TODO : Add Keen Server URL as one of the lines, optionally.
+            // TODO : Master key maybe should be de-emphasized and not be first.
+            // TODO : Share init of properties with base class implementation.
             var values = File.ReadAllLines(filePath);
             if (values.Length != 4)
                 throw new KeenException("Invalid project settings file, file must contain exactly 4 lines: " + filePath);

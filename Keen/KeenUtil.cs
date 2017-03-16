@@ -2,13 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+
 
 namespace Keen.Core
 {
@@ -25,7 +22,7 @@ namespace Keen.Core
 
         /// <summary>
         /// Retrieve a string representing the current version of the Keen IO SDK, as defined by
-        /// the AssemblyInformationVersion.
+        /// the AssemblyInformationalVersion.
         /// </summary>
         /// <returns>The SDK version string.</returns>
         public static string GetSdkVersion()
@@ -62,18 +59,6 @@ namespace Keen.Core
         public static string ToSafeString(this object obj)
         {
             return (obj ?? string.Empty).ToString();
-        }
-
-        public static int? TryGetInt(this string s)
-        {
-            int i;
-            return int.TryParse(s, out i) ? (int?)i : null;
-        }
-
-        public static double? TryGetDouble(this string s)
-        {
-            double i;
-            return double.TryParse(s, out i) ? (double?)i : null;
         }
 
         /// <summary>
@@ -173,7 +158,6 @@ namespace Keen.Core
             }
         }
 
-
         /// <summary>
         /// Check the 'error_code' field and throw the appropriate exception if non-null.
         /// </summary>
@@ -181,8 +165,8 @@ namespace Keen.Core
         public static void CheckApiErrorCode(dynamic apiResponse)
         {
             if (apiResponse is JArray) return;
-            
-            var errorCode = (string) apiResponse.SelectToken("$.error_code");
+
+            var errorCode = (string)apiResponse.SelectToken("$.error_code");
 
             if (errorCode != null)
             {
