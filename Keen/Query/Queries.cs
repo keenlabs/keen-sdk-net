@@ -3,7 +3,6 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 
 
@@ -14,51 +13,87 @@ namespace Keen.Core.Query
     /// </summary>
     internal class Queries : IQueries
     {
-        private IProjectSettings _prjSettings;
-        private string _serverUrl;
+        private readonly IKeenHttpClient _keenHttpClient;
+        private readonly string _queryRelativeUrl;
+        private readonly string _key;
 
 
-        public Queries(IProjectSettings prjSettings)
+        public Queries(IProjectSettings prjSettings,
+                       IKeenHttpClientProvider keenHttpClientProvider)
         {
-            _prjSettings = prjSettings;
+            if (null == prjSettings)
+            {
+                throw new ArgumentNullException(nameof(prjSettings),
+                                                "Project Settings must be provided.");
+            }
 
-            _serverUrl = string.Format("{0}projects/{1}/{2}",
-                _prjSettings.KeenUrl, _prjSettings.ProjectId, KeenConstants.QueriesResource);
+            if (null == keenHttpClientProvider)
+            {
+                throw new ArgumentNullException(nameof(keenHttpClientProvider),
+                                                "A KeenHttpClient provider must be provided.");
+            }
+
+            if (string.IsNullOrWhiteSpace(prjSettings.KeenUrl) ||
+                !Uri.IsWellFormedUriString(prjSettings.KeenUrl, UriKind.Absolute))
+            {
+                throw new KeenException(
+                    "A properly formatted KeenUrl must be provided via Project Settings.");
+            }
+
+            var serverBaseUrl = new Uri(prjSettings.KeenUrl);
+            _keenHttpClient = keenHttpClientProvider.GetForUrl(serverBaseUrl);
+            _queryRelativeUrl = KeenHttpClient.GetRelativeUrl(prjSettings.ProjectId,
+                                                              KeenConstants.QueriesResource);
+
+            // TODO : The Python SDK has changed to not automatically falling back, but rather
+            // throwing so that client devs learn to use the most appropriate key. So here we
+            // really could or should just demand the ReadKey.
+            _key = string.IsNullOrWhiteSpace(prjSettings.MasterKey) ?
+                prjSettings.ReadKey : prjSettings.MasterKey;
+
+            if (string.IsNullOrWhiteSpace(_key))
+            {
+                throw new KeenException("An API ReadKey or MasterKey is required.");
+            }
         }
 
-        private async Task<JObject> KeenWebApiRequest(string operation = "", Dictionary<string, string> parms = null)
+        public Queries(IProjectSettings prjSettings)
+            : this(prjSettings, new KeenHttpClientProvider())
         {
-            // Either an API read key or a master key is required
-            var key = string.IsNullOrWhiteSpace(_prjSettings.MasterKey) ? _prjSettings.ReadKey : _prjSettings.MasterKey;
-            if (string.IsNullOrWhiteSpace(key))
-                throw new KeenException("An API ReadKey or MasterKey is required");
+        }
 
-            var parmVals = parms == null ? "" : string.Join("&", from p in parms.Keys
-                                                                 where !string.IsNullOrEmpty(parms[p])
-                                                                 select string.Format("{0}={1}", p, Uri.EscapeDataString(parms[p])));
 
+        private async Task<JObject> KeenWebApiRequest(string operation = "",
+                                                      Dictionary<string, string> parms = null)
+        {
+            var parmVals = (parms == null) ?
+                "" : string.Join("&", from p in parms.Keys
+                                      where !string.IsNullOrEmpty(parms[p])
+                                      select string.Format("{0}={1}",
+                                                           p,
+                                                           Uri.EscapeDataString(parms[p])));
             var url = string.Format("{0}{1}{2}",
-                _serverUrl,
-                string.IsNullOrWhiteSpace(operation) ? "" : "/" + operation,
-                string.IsNullOrWhiteSpace(parmVals) ? "" : "?" + parmVals);
+                                       _queryRelativeUrl,
+                                       string.IsNullOrWhiteSpace(operation) ? "" : "/" + operation,
+                                       string.IsNullOrWhiteSpace(parmVals) ? "" : "?" + parmVals);
+            var responseMsg = await _keenHttpClient.GetAsync(url, _key).ConfigureAwait(false);
+            var responseString = await responseMsg
+                                    .Content
+                                    .ReadAsStringAsync()
+                                    .ConfigureAwait(false);
+            var response = JObject.Parse(responseString);
 
-            using (var client = new HttpClient())
+            // error checking, throw an exception with information from the json
+            // response if available, then check the HTTP response.
+            KeenUtil.CheckApiErrorCode(response);
+
+            if (!responseMsg.IsSuccessStatusCode)
             {
-                client.DefaultRequestHeaders.Add("Authorization", key);
-                client.DefaultRequestHeaders.Add("Keen-Sdk", KeenUtil.GetSdkVersion());
-
-                var responseMsg = await client.GetAsync(url).ConfigureAwait(false);
-                var responseString = await responseMsg.Content.ReadAsStringAsync().ConfigureAwait(false);
-                var response = JObject.Parse(responseString);
-
-                // error checking, throw an exception with information from the json 
-                // response if available, then check the HTTP response.
-                KeenUtil.CheckApiErrorCode((dynamic)response);
-                if (!responseMsg.IsSuccessStatusCode)
-                    throw new KeenException("Request failed with status: " + responseMsg.StatusCode);
-
-                return response;
+                throw new KeenException("Request failed with status: " +
+                                        responseMsg.StatusCode);
             }
+
+            return response;
         }
 
         public async Task<IEnumerable<KeyValuePair<string,string>>> AvailableQueries()
@@ -71,7 +106,6 @@ namespace Keen.Core.Query
         }
 
         #region metric
-
 
         public async Task<JObject> Metric(string queryName, Dictionary<string,string> parms)
         {
@@ -243,8 +277,9 @@ namespace Keen.Core.Query
             }
             return result;
         }
+
         #endregion metric
-       
+
         public async Task<IEnumerable<dynamic>> Extract(string collection, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, int latest = 0, string email = "")
         {
             var parms = new Dictionary<string, string>();
@@ -258,8 +293,6 @@ namespace Keen.Core.Query
 
             return from i in reply.Value<JArray>("result") select (dynamic)i;
         }
-
-
 
         public async Task<FunnelResult> Funnel(IEnumerable<FunnelStep> steps,
             QueryTimeframe timeframe = null, string timezone = "")
