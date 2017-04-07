@@ -178,15 +178,10 @@ namespace Keen.Core
             return string.Format("projects/{0}/{1}", projectId, resource);
         }
 
-        //internal static KeenHttpClient ForEvents(string projectId)
-        //{
-        //    return null;
-        //}
-
-        //internal static KeenHttpClient Query(string projectId)
-        //{
-        //    return null;
-        //}
+        internal static string GetRelativeUrl(string projectId, string resource)
+        {
+            return $"projects/{projectId}/{resource}";
+        }
 
         public Task<HttpResponseMessage> GetAsync(string resource, string authKey)
         {

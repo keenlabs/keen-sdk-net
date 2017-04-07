@@ -1,8 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
-using System.IO;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
 
@@ -14,87 +11,146 @@ namespace Keen.Core
     /// </summary>
     internal class EventCollection : IEventCollection
     {
-        private string _serverUrl;
-        private IProjectSettings _prjSettings;
+        private readonly IKeenHttpClient _keenHttpClient;
+        private readonly string _eventsRelativeUrl;
+        private readonly string _readKey;
+        private readonly string _writeKey;
+        private readonly string _masterKey;
+
+
+        public EventCollection(IProjectSettings prjSettings,
+                               IKeenHttpClientProvider keenHttpClientProvider)
+        {
+            if (null == prjSettings)
+            {
+                throw new ArgumentNullException(nameof(prjSettings),
+                                                "Project Settings must be provided.");
+            }
+
+            if (null == keenHttpClientProvider)
+            {
+                throw new ArgumentNullException(nameof(keenHttpClientProvider),
+                                                "A KeenHttpClient provider must be provided.");
+            }
+
+            if (string.IsNullOrWhiteSpace(prjSettings.KeenUrl) ||
+                !Uri.IsWellFormedUriString(prjSettings.KeenUrl, UriKind.Absolute))
+            {
+                throw new KeenException(
+                    "A properly formatted KeenUrl must be provided via Project Settings.");
+            }
+
+            var serverBaseUrl = new Uri(prjSettings.KeenUrl);
+            _keenHttpClient = keenHttpClientProvider.GetForUrl(serverBaseUrl);
+            _eventsRelativeUrl = KeenHttpClient.GetRelativeUrl(prjSettings.ProjectId,
+                                                               KeenConstants.EventsResource);
+
+            _readKey = prjSettings.ReadKey;
+            _writeKey = prjSettings.WriteKey;
+            _masterKey = prjSettings.MasterKey;
+        }
+
+        public EventCollection(IProjectSettings prjSettings)
+            : this(prjSettings, new KeenHttpClientProvider())
+        {
+        }
 
         public async Task<JObject> GetSchema(string collection)
         {
-            using (var client = new HttpClient())
+            // TODO : So much of this code, both in the constructor and in the actual message
+            // dispatch, response parsing and error checking is copy/paste across Queries, Event
+            // and EventCollection everywhere we use KeenHttpClient. We could shove some of that
+            // into shared factory functionality (for the ctor stuff) and some of it into the
+            // KeenHttpClient (for the dispatch/response portions).
+
+
+            // TODO : Make sure read key is sufficient instead of master key...
+            if (string.IsNullOrWhiteSpace(_readKey))
             {
-                client.DefaultRequestHeaders.Add("Authorization", _prjSettings.MasterKey);
-                client.DefaultRequestHeaders.Add("Keen-Sdk", KeenUtil.GetSdkVersion());
-
-                var responseMsg = await client.GetAsync(_serverUrl + collection)
-                    .ConfigureAwait(continueOnCapturedContext: false);
-                var responseString = await responseMsg.Content.ReadAsStringAsync()
-                    .ConfigureAwait(continueOnCapturedContext: false);
-                dynamic response = JObject.Parse(responseString);
-
-                // error checking, throw an exception with information from the json 
-                // response if available, then check the HTTP response.
-                KeenUtil.CheckApiErrorCode(response);
-                if (!responseMsg.IsSuccessStatusCode)
-                    throw new KeenException("GetSchema failed with status: " + responseMsg.StatusCode);
-
-                return response;
+                throw new KeenException("An API ReadKey is required to get collection schema.");
             }
+
+            var responseMsg = await _keenHttpClient
+                .GetAsync(GetCollectionUrl(collection), _readKey)
+                .ConfigureAwait(continueOnCapturedContext: false);
+            var responseString = await responseMsg
+                .Content
+                .ReadAsStringAsync()
+                .ConfigureAwait(continueOnCapturedContext: false);
+            dynamic response = JObject.Parse(responseString);
+
+            // error checking, throw an exception with information from the json 
+            // response if available, then check the HTTP response.
+            KeenUtil.CheckApiErrorCode(response);
+
+            if (!responseMsg.IsSuccessStatusCode)
+            {
+                throw new KeenException("GetSchema failed with status: " + responseMsg.StatusCode);
+            }
+
+            return response;
         }
 
         public async Task DeleteCollection(string collection)
         {
-            using (var client = new HttpClient())
+            if (string.IsNullOrWhiteSpace(_masterKey))
             {
-                client.DefaultRequestHeaders.Add("Authorization", _prjSettings.MasterKey);
-                client.DefaultRequestHeaders.Add("Keen-Sdk", KeenUtil.GetSdkVersion());
+                throw new KeenException("An API MasterKey is required to delete a collection.");
+            }
 
-                var responseMsg = await client.DeleteAsync(_serverUrl + collection)
-                    .ConfigureAwait(continueOnCapturedContext: false); 
-                if (!responseMsg.IsSuccessStatusCode)
-                    throw new KeenException("DeleteCollection failed with status: " + responseMsg.StatusCode);
+            var responseMsg = await _keenHttpClient
+                .DeleteAsync(GetCollectionUrl(collection), _masterKey)
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            if (!responseMsg.IsSuccessStatusCode)
+            {
+                throw new KeenException("DeleteCollection failed with status: " + responseMsg.StatusCode);
             }
         }
 
         public async Task AddEvent(string collection, JObject anEvent)
         {
+            if (string.IsNullOrWhiteSpace(_writeKey))
+            {
+                throw new KeenException("An API WriteKey is required to add events.");
+            }
+
             var content = anEvent.ToString();
 
-            using (var client = new HttpClient())
-            using (var contentStream = new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes(content))))
+            var responseMsg = await _keenHttpClient
+                .PostAsync(GetCollectionUrl(collection), _writeKey, content)
+                .ConfigureAwait(continueOnCapturedContext: false);
+            var responseString = await responseMsg
+                .Content
+                .ReadAsStringAsync()
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            JObject jsonResponse = null;
+
+            try
             {
-                contentStream.Headers.Add("content-type", "application/json");
+                // Normally the response content should be parsable JSON,
+                // but if the server returned a 404 error page or something
+                // like that, this will throw. 
+                jsonResponse = JObject.Parse(responseString);
+            }
+            catch (Exception)
+            {
+            }
 
-                client.DefaultRequestHeaders.Add("Authorization", _prjSettings.WriteKey);
-                client.DefaultRequestHeaders.Add("Keen-Sdk", KeenUtil.GetSdkVersion());
+            // error checking, throw an exception with information from the 
+            // json response if available, then check the HTTP response.
+            KeenUtil.CheckApiErrorCode(jsonResponse);
 
-                var httpResponse = await client.PostAsync(_serverUrl + collection, contentStream)
-                    .ConfigureAwait(continueOnCapturedContext: false);
-                var responseString = await httpResponse.Content.ReadAsStringAsync()
-                    .ConfigureAwait(continueOnCapturedContext: false);
-                JObject jsonResponse = null;
-                try
-                {
-                    // Normally the response content should be parsable JSON,
-                    // but if the server returned a 404 error page or something
-                    // like that, this will throw. 
-                    jsonResponse = JObject.Parse(responseString);
-                }
-                catch (Exception)
-                { }
-
-                // error checking, throw an exception with information from the 
-                // json response if available, then check the HTTP response.
-                KeenUtil.CheckApiErrorCode(jsonResponse);
-                if (!httpResponse.IsSuccessStatusCode)
-                    throw new KeenException("AddEvent failed with status: " + httpResponse);
+            if (!responseMsg.IsSuccessStatusCode)
+            {
+                throw new KeenException("AddEvent failed with status: " + responseMsg.StatusCode);
             }
         }
 
-        public EventCollection(IProjectSettings prjSettings)
+        private string GetCollectionUrl(string collection)
         {
-            _prjSettings = prjSettings;
-
-            _serverUrl = string.Format("{0}projects/{1}/{2}/",
-                _prjSettings.KeenUrl, _prjSettings.ProjectId, KeenConstants.EventsResource);
+            return $"{_eventsRelativeUrl}/{collection}";
         }
     }
 }
