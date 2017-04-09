@@ -61,7 +61,6 @@ namespace Keen.Core
         /// <returns></returns>
         public async Task<JArray> GetSchemas()
         {
-            // TODO : Make sure read key is sufficient instead of master key...
             if (string.IsNullOrWhiteSpace(_readKey))
             {
                 throw new KeenException("An API ReadKey is required to get schemas.");

@@ -1,16 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using Keen.Core;
+using Keen.Core.Query;
 using Moq;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
-using Keen.Core;
-using Keen.Core.Query;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Dynamic;
+using System.Linq;
+using System.Threading.Tasks;
+
 
 namespace Keen.Net.Test
 {
@@ -48,7 +47,7 @@ namespace Keen.Net.Test
             {
                 // Server is required for this test
                 // Also, test depends on existance of collection "AddEventTest"
-                Assert.DoesNotThrow(() => client.Query(QueryType.Count(), "AddEventTest", ""));
+                Assert.DoesNotThrow(() => client.Query(QueryType.Count(), "AddEventTest", "", QueryRelativeTimeframe.ThisHour()));
             }
         }
 
@@ -72,7 +71,7 @@ namespace Keen.Net.Test
                 queryMock = new Mock<IQueries>();
                 queryMock.Setup(m=>m.AvailableQueries())
                     .Returns(Task.FromResult(testResult));
-                
+
                 client.Queries = queryMock.Object;
             }
 
@@ -231,7 +230,6 @@ namespace Keen.Net.Test
             }
         }
 
-
         [Test]
         public async Task Query_ValidAbsoluteInterval_Success()
         {
@@ -334,6 +332,7 @@ namespace Keen.Net.Test
         {
             var client = new KeenClient(SettingsEnv);
             var filters = new List<QueryFilter>(){ new QueryFilter("field1", QueryFilter.FilterOperator.GreaterThan(), "1") };
+            var timeframe = QueryRelativeTimeframe.ThisHour();
 
             Mock<IQueries> queryMock = null;
             if (UseMocks)
@@ -343,7 +342,7 @@ namespace Keen.Net.Test
                         It.Is<QueryType>(q => q == QueryType.Count()),
                         It.Is<string>(c => c == testCol),
                         It.Is<string>(p => p == ""),
-                        It.Is<QueryTimeframe>(t => t == null),
+                        It.Is<QueryTimeframe>(t => t == timeframe),
                         It.Is<IEnumerable<QueryFilter>>(f => f == filters),
                         It.Is<string>(z => z == "")))
                     .Returns(Task.FromResult("1"));
@@ -351,7 +350,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var count = await client.QueryAsync(QueryType.Count(), testCol, "", null, filters);
+            var count = await client.QueryAsync(QueryType.Count(), testCol, "", timeframe, filters);
             Assert.IsNotNull(count);
 
             if (null != queryMock)
@@ -359,7 +358,6 @@ namespace Keen.Net.Test
                 queryMock.VerifyAll();
             }
         }
-
 
         [Test]
         public async Task CountUnique_ValidAbsolute_Success()
@@ -423,7 +421,6 @@ namespace Keen.Net.Test
                 queryMock.VerifyAll();
         }
 
-
         [Test]
         public async Task Maximum_ValidAbsolute_Success()
         {
@@ -484,8 +481,6 @@ namespace Keen.Net.Test
             if (null != queryMock)
                 queryMock.VerifyAll();
         }
-
-
 
         [Test]
         public async Task Sum_ValidAbsolute_Success()
@@ -621,6 +616,7 @@ namespace Keen.Net.Test
         {
             var client = new KeenClient(SettingsEnv);
             var prop = "field1";
+            var timeframe = QueryRelativeTimeframe.ThisHour();
             var filters = new List<QueryFilter>() { new QueryFilter("field1", QueryFilter.FilterOperator.GreaterThan(), "1") };
             var result = "hello,goodbye,I'm late";
 
@@ -632,7 +628,7 @@ namespace Keen.Net.Test
                       It.Is<QueryType>(q => q == QueryType.SelectUnique()),
                       It.Is<string>(c => c == testCol),
                       It.Is<string>(p => p == prop),
-                      It.Is<QueryRelativeTimeframe>(t => t == null),
+                      It.Is<QueryRelativeTimeframe>(t => t == timeframe),
                       It.Is<IEnumerable<QueryFilter>>(f => f == filters),
                       It.Is<string>(t => t == "")
                       ))
@@ -641,7 +637,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var reply = (await client.QueryAsync(QueryType.SelectUnique(), testCol, prop, null, filters)).ToList();
+            var reply = (await client.QueryAsync(QueryType.SelectUnique(), testCol, prop, timeframe, filters)).ToList();
 
             if (null != queryMock)
                 queryMock.VerifyAll();
@@ -736,7 +732,6 @@ namespace Keen.Net.Test
                 queryMock.VerifyAll();
         }
 
-
         [Test]
         public async Task SelectUnique_ValidRelativeInterval_Success()
         {
@@ -771,9 +766,6 @@ namespace Keen.Net.Test
             if (null != queryMock)
                 queryMock.VerifyAll();
         }
-
-
-
 
         [Test]
         public async Task ExtractResource_ValidAbsolute_Success()
@@ -841,6 +833,7 @@ namespace Keen.Net.Test
         public async Task ExtractResource_ValidFilter_Success()
         {
             var client = new KeenClient(SettingsEnv);
+            var timeframe = QueryRelativeTimeframe.ThisHour();
             var filters = new List<QueryFilter>() { new QueryFilter("field1", QueryFilter.FilterOperator.GreaterThan(), "1") };
             dynamic eo = new ExpandoObject();
             eo.field1 = "8888";
@@ -852,7 +845,7 @@ namespace Keen.Net.Test
                 queryMock = new Mock<IQueries>();
                 queryMock.Setup(m => m.Extract(
                         It.Is<string>(c => c == testCol),
-                        It.Is<QueryAbsoluteTimeframe>(t => t == null),
+                        It.Is<QueryRelativeTimeframe>(t => t == timeframe),
                         It.Is<IEnumerable<QueryFilter>>(f => f == filters),
                         It.Is<int>(l => l == 0),
                         It.Is<string>(t => t == "")
@@ -862,17 +855,18 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var reply = (await client.QueryExtractResourceAsync(testCol, null, filters)).ToList();
+            var reply = (await client.QueryExtractResourceAsync(testCol, timeframe, filters)).ToList();
 
             if (null != queryMock)
                 queryMock.VerifyAll();
         }
 
-
         [Test]
         public async Task MultiAnalysis_Valid_Success()
         {
             var client = new KeenClient(SettingsEnv);
+            var timeframe = QueryRelativeTimeframe.ThisHour();
+
             IEnumerable<MultiAnalysisParam> param = new List<MultiAnalysisParam>() 
             { 
                 new MultiAnalysisParam("first", MultiAnalysisParam.Metric.Count()),
@@ -891,7 +885,7 @@ namespace Keen.Net.Test
                 queryMock.Setup(m => m.MultiAnalysis(
                         It.Is<string>(c => c == testCol),
                         It.Is<IEnumerable<MultiAnalysisParam>>(p => p == param),
-                        It.Is<QueryTimeframe>(t => t == null),
+                        It.Is<QueryTimeframe>(t => t == timeframe),
                         It.Is<IEnumerable<QueryFilter>>(f => f == null),
                         It.Is<string>(tz => tz == "")
                       ))
@@ -900,7 +894,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var reply = await client.QueryMultiAnalysisAsync(testCol, param, null, null, "");
+            var reply = await client.QueryMultiAnalysisAsync(testCol, param, timeframe, null, "");
 
             if (null != queryMock)
             {
@@ -954,6 +948,7 @@ namespace Keen.Net.Test
         public async Task MultiAnalysis_ValidGroupBy_Success()
         {
             var client = new KeenClient(SettingsEnv);
+            var timeframe = QueryRelativeTimeframe.ThisHour();
             var groupby = "field1";
             IEnumerable<MultiAnalysisParam> param = new List<MultiAnalysisParam>() 
             { 
@@ -979,7 +974,7 @@ namespace Keen.Net.Test
                 queryMock.Setup(m => m.MultiAnalysis(
                         It.Is<string>(c => c == testCol),
                         It.Is<IEnumerable<MultiAnalysisParam>>(p => p == param),
-                        It.Is<QueryTimeframe>(t => t == null),
+                        It.Is<QueryTimeframe>(t => t == timeframe),
                         It.Is<IEnumerable<QueryFilter>>(f => f == null),
                         It.Is<string>(g => g == groupby),
                         It.Is<string>(tz => tz == "")
@@ -989,7 +984,7 @@ namespace Keen.Net.Test
                 client.Queries = queryMock.Object;
             }
 
-            var reply = (await client.QueryMultiAnalysisGroupAsync(testCol, param, null, null, groupby, "")).ToList();
+            var reply = (await client.QueryMultiAnalysisGroupAsync(testCol, param, timeframe, null, groupby, "")).ToList();
 
             if (null != queryMock)
             {
@@ -1109,7 +1104,6 @@ namespace Keen.Net.Test
                 Assert.AreEqual(reply.Count(), result.Count());
             }
         }
-
     }
 
     [TestFixture]
@@ -1169,6 +1163,5 @@ namespace Keen.Net.Test
 
             Assert.AreEqual(expectedJson, json);
         }
-
     }
 }

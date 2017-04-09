@@ -29,7 +29,7 @@ namespace Keen.Core
         {
             var secOptionsJson = JObject.FromObject(secOptions ?? new object()).ToString();
 
-            return EncryptString( apiKey, secOptionsJson, IV);
+            return EncryptString(apiKey, secOptionsJson, IV);
         }
 
         /// <summary>

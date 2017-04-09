@@ -50,11 +50,6 @@ namespace Keen.Core.Query
             // really could or should just demand the ReadKey.
             _key = string.IsNullOrWhiteSpace(prjSettings.MasterKey) ?
                 prjSettings.ReadKey : prjSettings.MasterKey;
-
-            if (string.IsNullOrWhiteSpace(_key))
-            {
-                throw new KeenException("An API ReadKey or MasterKey is required.");
-            }
         }
 
         public Queries(IProjectSettings prjSettings)
@@ -66,6 +61,11 @@ namespace Keen.Core.Query
         private async Task<JObject> KeenWebApiRequest(string operation = "",
                                                       Dictionary<string, string> parms = null)
         {
+            if (string.IsNullOrWhiteSpace(_key))
+            {
+                throw new KeenException("An API ReadKey or MasterKey is required.");
+            }
+
             var parmVals = (parms == null) ?
                 "" : string.Join("&", from p in parms.Keys
                                       where !string.IsNullOrEmpty(parms[p])

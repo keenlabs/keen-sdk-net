@@ -64,7 +64,6 @@ namespace Keen.Core
             // KeenHttpClient (for the dispatch/response portions).
 
 
-            // TODO : Make sure read key is sufficient instead of master key...
             if (string.IsNullOrWhiteSpace(_readKey))
             {
                 throw new KeenException("An API ReadKey is required to get collection schema.");

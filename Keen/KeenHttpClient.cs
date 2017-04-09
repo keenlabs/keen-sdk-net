@@ -22,10 +22,6 @@ namespace Keen.Core
         private static readonly IEnumerable<KeyValuePair<string, string>> DEFAULT_HEADERS =
             new [] { new KeyValuePair<string, string>("Keen-Sdk", KeenUtil.GetSdkVersion()) };
 
-        // TODO : Put more custom handlers in here, like retry/failure/proxy/logging handlers.
-        private static readonly DelegatingHandler[] DEFAULT_HANDLERS =
-            new[] { new LoggingHttpHandler() };
-
 
         // NOTE : We don't dispose this, should we? The point of the cache is to keep them alive
         // and share these across usages. Our internal cache impl uses WeakRefs so as to allow
@@ -38,8 +34,7 @@ namespace Keen.Core
         {
             protected override Task<HttpResponseMessage> SendAsync(
                 HttpRequestMessage request,
-                CancellationToken cancellationToken
-                )
+                CancellationToken cancellationToken)
             {
                 // TODO : Log stuff before and after request.
 
@@ -67,10 +62,10 @@ namespace Keen.Core
                                                                KeenHttpClient.DEFAULT_HEADERS);
         }
 
+
         private static HttpMessageHandler CreateHandlerChainInternal(
             HttpClientHandler innerHandler,
-            IEnumerable<DelegatingHandler> handlers
-            )
+            IEnumerable<DelegatingHandler> handlers)
         {
             // NOTE : There is no WebProxy available to the PCL profile, so we have to create an
             // IWebProxy implementation manually. Proxy is only supported on HttpClientHandler, and
@@ -89,8 +84,10 @@ namespace Keen.Core
 
             // TODO : Also, to support Proxy, we have to realize we'd be turning it on for a given
             // HttpClientHandler already installed for the HttpClient in the cache for a given URL.
-            // So, it would affect all users of that HttpClient, when really we want an abstraction
-            // to keep that sort of setting tied to.
+            // Since modifications aren't allowed for HttpClients/*Handlers, we would replace the 
+            // HttpClient, which would affect all future users of the cache requesting an
+            // HttpClient for that URL, when really we want an abstraction to keep that sort of
+            // setting tied to, which maybe is this KeenHttpClient.
 
 
             HttpMessageHandler handlerChain = (innerHandler ?? new HttpClientHandler());
@@ -108,13 +105,10 @@ namespace Keen.Core
                         "One of the given DelegatingHandler params was null.");
                 }
 
-                if (null != handler.InnerHandler)
-                {
-                    throw new ArgumentException("Encountered a non-null InnerHandler in handler " +
-                                                "chain, which would be overwritten.",
-                                                nameof(handlers));
-                }
-
+                // This will throw if the given handler has already started any requests.
+                // Basically all properties on all HttpClient/*Handler variations call
+                // CheckDisposedOrStarted() in any setter, so the entire HttpClient is pretty much
+                // locked down once it starts getting used.
                 handler.InnerHandler = handlerChain;
                 handlerChain = handler;
             }
@@ -122,10 +116,20 @@ namespace Keen.Core
             return handlerChain;
         }
 
+        private static IEnumerable<DelegatingHandler> CreateDefaultDelegatingHandlers()
+        {
+            // TODO : Put more custom handlers in here, like retry/failure/proxy/logging handlers.
+
+            // Create these every time, since *Handlers can't have properties changed after they've
+            // started handling requests for an HttpClient.
+            return new[] { new LoggingHttpHandler() };
+        }
+
         internal static HttpMessageHandler CreateDefaultHandlerChain()
         {
-            return KeenHttpClient.CreateHandlerChainInternal(null,
-                                                             KeenHttpClient.DEFAULT_HANDLERS);
+            return KeenHttpClient.CreateHandlerChainInternal(
+                null,
+                KeenHttpClient.CreateDefaultDelegatingHandlers());
         }
 
         internal static HttpMessageHandler CreateHandlerChain(params DelegatingHandler[] handlers)
@@ -138,7 +142,7 @@ namespace Keen.Core
         {
             // We want our handlers last so our required stuff isn't overridden.
             IEnumerable<DelegatingHandler> intermediateHandlers =
-                handlers.Concat(KeenHttpClient.DEFAULT_HANDLERS);
+                handlers.Concat(KeenHttpClient.CreateDefaultDelegatingHandlers());
 
             return KeenHttpClient.CreateHandlerChainInternal(innerHandler, intermediateHandlers);
         }
@@ -161,6 +165,18 @@ namespace Keen.Core
                                          KeenHttpClient.CreateDefaultHandlerChain());
         }
 
+
+        /// <summary>
+        /// Construct a KeenClient with the provided project settings and HTTP handlers. We will
+        /// construct the HTTP handler pipeline such that provided handlers are called in order for
+        /// requests, and receive responses in reverse order. The last DelegatingHandler will defer
+        /// to Keen internal handlers, and the pipeline will terminate at our own handler, which
+        /// will do nothing and defer to the given HttpClientHandler if present, in case client
+        /// code wants to do something like use WebRequestHandler functionality or otherwise add
+        /// custom behavior.
+        /// </summary>
+
+
         internal static KeenHttpClient Create(Uri baseUrl,
                                               IHttpClientProvider httpClientProvider,
                                               HttpClientHandler innerHandler,
@@ -171,11 +187,6 @@ namespace Keen.Core
                 httpClientProvider,
                 KeenHttpClient.CreateHandlerChain(innerHandler, handlers)
                 );
-        }
-
-        internal static string GetRelativeUrl(string projectId, string resource)
-        {
-            return string.Format("projects/{0}/{1}", projectId, resource);
         }
 
         internal static string GetRelativeUrl(string projectId, string resource)
@@ -207,7 +218,7 @@ namespace Keen.Core
         }
 
         // TODO : instead of (or in addition to) string, also accept HttpContent content or JObject content?
-        public Task<HttpResponseMessage> PostAsync(Uri resource, // TODO : Ensure this is provided
+        public async Task<HttpResponseMessage> PostAsync(Uri resource, // TODO : Ensure this is provided
                                                    string authKey, // TODO : Ensure this is provided
                                                    string content) // TODO : Ensure this isn't null
         {
@@ -233,7 +244,7 @@ namespace Keen.Core
                 HttpRequestMessage post = KeenHttpClient.NewPost(resource, authKey);
                 post.Content = contentStream;
 
-                return _httpClient.SendAsync(post);
+                return await _httpClient.SendAsync(post).ConfigureAwait(false);
 
                 // TODO : Should we do the KeenUtil.CheckApiErrorCode() here?
                 // TODO : Should we check the if (!responseMsg.IsSuccessStatusCode) here too?

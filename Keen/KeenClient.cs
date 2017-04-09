@@ -102,9 +102,10 @@ namespace Keen.Core
                 throw new KeenException("A URL for the server address is required.");
 
             _prjSettings = prjSettings;
-            // The EventCollection and Event interface normally should not need to 
-            // be set by callers, so the default implementation is set up here. Users 
-            // may override these by injecting an implementation via the property.
+
+            // These interfaces normally should not need to be set by client code, so the default
+            // implementation is set up here. These may be overridden by injecting an
+            // implementation via their respective properties.
             EventCollection = new EventCollection(_prjSettings);
             Event = new Event(_prjSettings);
             Queries = new Queries(_prjSettings);
@@ -161,8 +162,8 @@ namespace Keen.Core
         public async Task<JArray> GetSchemasAsync()
         {
             // Preconditions
-            if (string.IsNullOrWhiteSpace(_prjSettings.MasterKey))
-                throw new KeenException("Master API key is required for GetSchemas");
+            if (string.IsNullOrWhiteSpace(_prjSettings.ReadKey))
+                throw new KeenException("Read API key is required for GetSchemas");
 
             return await Event.GetSchemas()
                 .ConfigureAwait(continueOnCapturedContext: false);
@@ -176,7 +177,7 @@ namespace Keen.Core
         {
             try
             {
-                return Event.GetSchemas().Result;
+                return GetSchemasAsync().Result;
             }
             catch (AggregateException ex)
             {
@@ -193,8 +194,8 @@ namespace Keen.Core
         {
             // Preconditions
             KeenUtil.ValidateEventCollectionName(collection);
-            if (string.IsNullOrWhiteSpace(_prjSettings.MasterKey))
-                throw new KeenException("Master API key is required for GetSchema");
+            if (string.IsNullOrWhiteSpace(_prjSettings.ReadKey))
+                throw new KeenException("Read API key is required for GetSchema");
 
             return await EventCollection.GetSchema(collection)
                 .ConfigureAwait(continueOnCapturedContext: false);

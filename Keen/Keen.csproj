@@ -43,10 +43,17 @@
       <Link>Properties\SharedVersionInfo.cs</Link>
     </Compile>
     <Compile Include="DataEnrichment\EventAddOn.cs" />
+    <Compile Include="HttpClientCache.cs" />
+    <Compile Include="HttpClientCache2.cs" />
+    <Compile Include="IHttpClientProvider.cs" />
+    <Compile Include="IKeenHttpClient.cs" />
+    <Compile Include="KeenHttpClient.cs" />
+    <Compile Include="KeenHttpClientProvider.cs" />
     <Compile Include="Query\FunnelResult.cs" />
     <Compile Include="Query\FunnelResultActors.cs" />
     <Compile Include="Query\FunnelResultStep.cs" />
     <Compile Include="Query\FunnelStep.cs" />
+    <Compile Include="IKeenHttpClientProvider.cs" />
     <Compile Include="Query\MultiAnalysisParam.cs" />
     <Compile Include="Query\Queries.cs" />
     <Compile Include="Query\QueryFilter.cs" />

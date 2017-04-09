@@ -1,15 +1,14 @@
-﻿using System;
+﻿using Keen.Core;
+using Keen.Core.EventCache;
+using Moq;
+using Newtonsoft.Json.Linq;
+using NUnit.Framework;
+using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Threading.Tasks;
-using Keen.Core.Query;
-using Moq;
-using NUnit.Framework;
 
-using Keen.Core;
-using System.Dynamic;
-using Newtonsoft.Json.Linq;
-using Keen.Core.EventCache;
 
 namespace Keen.Net.Test
 {
@@ -213,7 +212,8 @@ namespace Keen.Net.Test
         [Test]
         public void GetCollectionSchema_InvalidProjectId_Throws()
         {
-            var settings = new ProjectSettingsProvider(projectId: "X", masterKey: SettingsEnv.MasterKey);
+            var settings = new ProjectSettingsProvider(projectId: "X",
+                                                       readKey: SettingsEnv.ReadKey);
             var client = new KeenClient(settings);
             if (UseMocks)
                 client.EventCollection = new EventCollectionMock(settings,
@@ -847,6 +847,7 @@ namespace Keen.Net.Test
         public async Task Async_DeleteCollection_Success()
         {
             var client = new KeenClient(SettingsEnv);
+
             if (UseMocks)
                 client.EventCollection = new EventCollectionMock(SettingsEnv,
                     deleteCollection: new Action<string, IProjectSettings>((c, p) =>
@@ -896,7 +897,7 @@ namespace Keen.Net.Test
                             throw new KeenInvalidApiKeyException(c);
                     }));
 
-            Assert.ThrowsAsync<Keen.Core.KeenInvalidApiKeyException>(() => client.AddEventAsync("AddEventTest", new { AProperty = "Value" }));
+            Assert.ThrowsAsync<KeenInvalidApiKeyException>(() => client.AddEventAsync("AddEventTest", new { AProperty = "Value" }));
         }
 
         [Test]
