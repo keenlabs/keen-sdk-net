@@ -140,9 +140,10 @@ namespace Keen.Core
         internal static HttpMessageHandler CreateHandlerChain(HttpClientHandler innerHandler,
                                                               params DelegatingHandler[] handlers)
         {
-            // We want our handlers last so our required stuff isn't overridden.
+            // We put our handlers first. Client code can look at the final state of the request
+            // this way. Overwriting built-in handler state is shooting oneself in the foot.
             IEnumerable<DelegatingHandler> intermediateHandlers =
-                handlers.Concat(KeenHttpClient.CreateDefaultDelegatingHandlers());
+                KeenHttpClient.CreateDefaultDelegatingHandlers().Concat(handlers);
 
             return KeenHttpClient.CreateHandlerChainInternal(innerHandler, intermediateHandlers);
         }

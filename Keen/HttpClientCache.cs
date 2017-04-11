@@ -25,11 +25,10 @@ namespace Keen.Core
         // profile to something >= .NET 4.0.
 
         // NOTE : Use WeakReference<T> in 4.5+
-        private readonly Dictionary<Uri, WeakReference> _httpClients;
-        private readonly Dictionary<Uri, List<Tuple<int, WeakReference>>> _httpClients2;
+        private readonly IDictionary<Uri, WeakReference> _httpClients;
 
         // No external construction
-        private HttpClientCache()
+        internal HttpClientCache()
         {
             _cacheLock = new object();
             _httpClients = new Dictionary<Uri, WeakReference>();

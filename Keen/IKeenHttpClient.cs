@@ -8,7 +8,7 @@ namespace Keen.Core
     /// <summary>
     /// TODO : Fill in comments in this file
     /// </summary>
-    internal interface IKeenHttpClient
+    public interface IKeenHttpClient
     {
         Task<HttpResponseMessage> DeleteAsync(Uri resource, string authKey);
         Task<HttpResponseMessage> DeleteAsync(string resource, string authKey);

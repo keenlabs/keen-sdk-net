@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
+
 namespace Keen.Core
 {
     /// <summary>
@@ -16,7 +17,7 @@ namespace Keen.Core
     public class KeenClient
     {
         private readonly IProjectSettings _prjSettings;
-        private readonly Dictionary<string, object> _globalProperties = new Dictionary<string, object>();
+        private readonly IDictionary<string, object> _globalProperties = new Dictionary<string, object>();
 
         /// <summary>
         /// EventCollection provides direct access to the Keen.IO EventCollection API methods.
@@ -83,11 +84,9 @@ namespace Keen.Core
                 throw new KeenException(string.Format("Dynamic property \"{0}\" execution returned null", propName));
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="prjSettings">A ProjectSettings instance containing the ProjectId and API keys</param>
-        public KeenClient(IProjectSettings prjSettings)
+        private KeenClient(IProjectSettings prjSettings,
+                           IEventCache eventCache,
+                           IKeenHttpClientProvider keenHttpClientProvider)
         {
             // Preconditions
             if (null == prjSettings)
@@ -103,12 +102,29 @@ namespace Keen.Core
 
             _prjSettings = prjSettings;
 
+            if (null != eventCache)
+            {
+                EventCache = eventCache;
+            }
+
+            // Use the default provider if none was passed in.
+            keenHttpClientProvider = (keenHttpClientProvider ?? new KeenHttpClientProvider());
+
             // These interfaces normally should not need to be set by client code, so the default
             // implementation is set up here. These may be overridden by injecting an
             // implementation via their respective properties.
-            EventCollection = new EventCollection(_prjSettings);
-            Event = new Event(_prjSettings);
-            Queries = new Queries(_prjSettings);
+            EventCollection = new EventCollection(_prjSettings, keenHttpClientProvider);
+            Event = new Event(_prjSettings, keenHttpClientProvider);
+            Queries = new Queries(_prjSettings, keenHttpClientProvider);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="prjSettings">A ProjectSettings instance containing the ProjectId and API keys</param>
+        public KeenClient(IProjectSettings prjSettings)
+            : this(prjSettings, null, null)
+        {
         }
 
         /// <summary>
@@ -117,9 +133,14 @@ namespace Keen.Core
         /// <param name="prjSettings">A ProjectSettings instance containing the ProjectId and API keys</param>
         /// <param name="eventCache">An IEventCache instance providing a caching strategy</param>
         public KeenClient(IProjectSettings prjSettings, IEventCache eventCache)
-            : this(prjSettings)
+            : this(prjSettings, eventCache, null)
         {
-            EventCache = eventCache;
+        }
+
+        public KeenClient(IProjectSettings prjSettings,
+                          IKeenHttpClientProvider keenHttpClientProvider)
+           : this(prjSettings, null, keenHttpClientProvider)
+        {
         }
 
         /// <summary>

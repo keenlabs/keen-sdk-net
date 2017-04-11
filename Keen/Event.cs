@@ -19,8 +19,8 @@ namespace Keen.Core
         private readonly string _writeKey;
 
 
-        public Event(IProjectSettings prjSettings,
-                     IKeenHttpClientProvider keenHttpClientProvider)
+        internal Event(IProjectSettings prjSettings,
+                       IKeenHttpClientProvider keenHttpClientProvider)
         {
             if (null == prjSettings)
             {
@@ -50,10 +50,6 @@ namespace Keen.Core
             _writeKey = prjSettings.WriteKey;
         }
 
-        public Event(IProjectSettings prjSettings)
-            : this(prjSettings, new KeenHttpClientProvider())
-        {
-        }
 
         /// <summary>
         /// Get details of all schemas in the project.

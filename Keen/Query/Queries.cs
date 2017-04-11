@@ -18,8 +18,8 @@ namespace Keen.Core.Query
         private readonly string _key;
 
 
-        public Queries(IProjectSettings prjSettings,
-                       IKeenHttpClientProvider keenHttpClientProvider)
+        internal Queries(IProjectSettings prjSettings,
+                         IKeenHttpClientProvider keenHttpClientProvider)
         {
             if (null == prjSettings)
             {
@@ -50,11 +50,6 @@ namespace Keen.Core.Query
             // really could or should just demand the ReadKey.
             _key = string.IsNullOrWhiteSpace(prjSettings.MasterKey) ?
                 prjSettings.ReadKey : prjSettings.MasterKey;
-        }
-
-        public Queries(IProjectSettings prjSettings)
-            : this(prjSettings, new KeenHttpClientProvider())
-        {
         }
 
 

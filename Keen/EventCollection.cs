@@ -18,8 +18,8 @@ namespace Keen.Core
         private readonly string _masterKey;
 
 
-        public EventCollection(IProjectSettings prjSettings,
-                               IKeenHttpClientProvider keenHttpClientProvider)
+        internal EventCollection(IProjectSettings prjSettings,
+                                 IKeenHttpClientProvider keenHttpClientProvider)
         {
             if (null == prjSettings)
             {
@@ -50,10 +50,6 @@ namespace Keen.Core
             _masterKey = prjSettings.MasterKey;
         }
 
-        public EventCollection(IProjectSettings prjSettings)
-            : this(prjSettings, new KeenHttpClientProvider())
-        {
-        }
 
         public async Task<JObject> GetSchema(string collection)
         {
