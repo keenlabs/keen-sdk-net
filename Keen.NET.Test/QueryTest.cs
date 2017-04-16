@@ -1116,9 +1116,15 @@ namespace Keen.Net.Test
         }
 
         [Test]
-        public void Constructor_InvalidValue_Throws()
+        public void Constructor_InvalidOp_Throws()
         {
-            Assert.Throws<ArgumentNullException>(() => new QueryFilter("prop", QueryFilter.FilterOperator.Equals(), null));
+            Assert.Throws<ArgumentNullException>(() => new QueryFilter("prop", null, "val"));
+        }
+
+        [Test]
+        public void Constructor_NullPropertyValue_Success()
+        {
+            Assert.DoesNotThrow(() => new QueryFilter("prop", QueryFilter.FilterOperator.Equals(), null));
         }
 
         [Test]
@@ -1139,6 +1145,20 @@ namespace Keen.Net.Test
                                         "  \"operator\": \"eq\",\r\n"+
                                         "  \"property_value\": \"val\"\r\n"+
                                         "}";
+            Assert.AreEqual(expectedJson, json);
+        }
+
+        [Test]
+        public void Serialize_NullValue_Success()
+        {
+            var filter = new QueryFilter("prop", QueryFilter.FilterOperator.Equals(), null);
+
+            var json = JObject.FromObject(filter).ToString(Newtonsoft.Json.Formatting.None);
+
+            const string expectedJson = "{\"property_name\":\"prop\"," +
+                                         "\"operator\":\"eq\"," +
+                                         "\"property_value\":null}";
+
             Assert.AreEqual(expectedJson, json);
         }
 

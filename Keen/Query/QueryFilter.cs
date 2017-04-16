@@ -146,9 +146,14 @@ namespace Keen.Core.Query
         public QueryFilter(string property, FilterOperator op, object value)
         {
             if (string.IsNullOrWhiteSpace(property))
-                throw new ArgumentNullException("property");
-            if (null == value)
-                throw new ArgumentNullException("value");
+            {
+                throw new ArgumentNullException(nameof(property), "Property name is required.");
+            }
+
+            if (null == op)
+            {
+                throw new ArgumentNullException(nameof(op), "Filter operator is required.");
+            }
 
             PropertyName = property;
             Operator = op;
