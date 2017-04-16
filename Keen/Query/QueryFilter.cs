@@ -41,7 +41,6 @@ namespace Keen.Core.Query
             /// </summary>
             public static FilterOperator Equals() { return new FilterOperator("eq"); }
 
-
             /// <summary>
             /// Not equal to.
             /// <para>Use with string, number</para>
@@ -93,11 +92,16 @@ namespace Keen.Core.Query
             public static FilterOperator Contains() { return new FilterOperator("contains"); }
 
             /// <summary>
+            /// Filter on events that do not contain the specified property value.
+            /// <para>Use with strings</para>
+            /// </summary>
+            public static FilterOperator NotContains() { return new FilterOperator("not_contains"); }
+
+            /// <summary>
             /// Used to select events within a certain radius of the provided geo coordinate.
             /// <para>Use with geo analysis</para>
             /// </summary>
             public static FilterOperator Within() { return new FilterOperator("within"); }
-
         }
 
 
