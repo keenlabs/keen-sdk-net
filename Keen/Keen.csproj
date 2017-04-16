@@ -44,10 +44,10 @@
     </Compile>
     <Compile Include="DataEnrichment\EventAddOn.cs" />
     <Compile Include="HttpClientCache.cs" />
-    <Compile Include="HttpClientCache2.cs" />
     <Compile Include="IHttpClientProvider.cs" />
     <Compile Include="IKeenHttpClient.cs" />
     <Compile Include="KeenHttpClient.cs" />
+    <Compile Include="KeenHttpClientFactory.cs" />
     <Compile Include="KeenHttpClientProvider.cs" />
     <Compile Include="Query\FunnelResult.cs" />
     <Compile Include="Query\FunnelResultActors.cs" />
