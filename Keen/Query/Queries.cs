@@ -68,9 +68,9 @@ namespace Keen.Core.Query
                                                            p,
                                                            Uri.EscapeDataString(parms[p])));
             var url = string.Format("{0}{1}{2}",
-                                       _queryRelativeUrl,
-                                       string.IsNullOrWhiteSpace(operation) ? "" : "/" + operation,
-                                       string.IsNullOrWhiteSpace(parmVals) ? "" : "?" + parmVals);
+                                    _queryRelativeUrl,
+                                    string.IsNullOrWhiteSpace(operation) ? "" : "/" + operation,
+                                    string.IsNullOrWhiteSpace(parmVals) ? "" : "?" + parmVals);
             var responseMsg = await _keenHttpClient.GetAsync(url, _key).ConfigureAwait(false);
             var responseString = await responseMsg
                                     .Content

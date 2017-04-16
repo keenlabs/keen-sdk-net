@@ -6,13 +6,23 @@ using System.Net.Http;
 
 namespace Keen.Core
 {
-    // Singleton as cache with WeakRef values in the dictionary
-
     /// <summary>
-    /// TODO : Fill in
+    /// An implementation of <see cref="IHttpClientProvider"/> that caches HttpClient instances in
+    /// a dictionary mapping the base URL to a WeakReference to the actual instance. A PRO to this
+    /// approach is that HttpClient instances will automatically be evicted when no more strong
+    /// refs exist and the GC collects. A CON to using WeakReference, besides it not being generic
+    /// in the current version of the PCL and being a fairly heavyweight class, is that rapid 
+    /// creation and releasing of owning instances like the KeenClient can still allow for the GC
+    /// to aggressively clean up HttpClient instances. Recommended usage of KeenClient shouldn't
+    /// make this a common problem, but at some point this cache can evolved to be more intelligent
+    /// about keeping instances alive deliberately.
     /// </summary>
     internal class HttpClientCache : IHttpClientProvider
     {
+        // A singleton cache that can optionally be used and shared. If new caches need to be
+        // created, use the internal ctor. One use case for this might be to have multiple
+        // HttpClient instances with different configurations cached for the same URL for use in
+        // different sets of client modules.
         internal static HttpClientCache Instance { get; } = new HttpClientCache();
 
         // Explicit static constructor, no beforefieldinit
@@ -27,6 +37,7 @@ namespace Keen.Core
         // NOTE : Use WeakReference<T> in 4.5+
         private readonly IDictionary<Uri, WeakReference> _httpClients;
 
+
         // No external construction
         internal HttpClientCache()
         {
@@ -35,32 +46,11 @@ namespace Keen.Core
         }
 
 
-        // TODO : Should we have a minimum time before evicting? If you go about creating and
-        // destroying KeenClient instances all the time, you could still see all references to
-        // a given HttpClient go away, and the GC might be quick to collect and finalize before
-        // the next KeenClient instance is created. This is bad usage of KeenClient, but doesn't
-        // mean it couldn't happen. In that case, using GCHandle (which is lighter-weight anyway)
-        // might be more appropriate, then implementing some form of timeout/GC keep-alive?
-        // e.g. - https://www.codeproject.com/articles/35152/weakreferences-as-a-good-caching-mechanism
-
-        // TODO : Maybe use Uri.IsBaseOf() to allow passing in any URI and getting the HttpClient
-        // for a common base? So if we install an HttpClient for www.stuff.com, then
-        // www.stuff.com/api/query and www.stuff.com/api/events would yield the same HttpClient.
-        // But if you install one for /api/query and one for /api/events you could pass in
-        // something like www.stuff.com/api/events/thing and get the events-specific HttpClient.
-        // It would probably be best to do this check after normal dictionary lookup in case client
-        // code passes the exact url, since it'll be faster.
-        // Maybe strip path/query/fragment stuff as such?:
-        //     baseUrl.GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped)
-        // Also include localPath? https://msdn.microsoft.com/en-us/library/7767559y(v=vs.110).aspx
-        // If we do this, change it to not be "baseUrl" but rather just "url"
-
-
         /// <summary>
-        /// TODO : Fill in
+        /// Retrieve an existing HttpClient for the given URL, or throw if it doesn't exist.
         /// </summary>
-        /// <param name="baseUrl"></param>
-        /// <returns></returns>
+        /// <param name="baseUrl">The base URL the HttpClient is tied to.</param>
+        /// <returns>The HttpClient which is expected to exist.</returns>
         public HttpClient this[Uri baseUrl]
         {
             get
@@ -92,20 +82,18 @@ namespace Keen.Core
         }
 
         /// <summary>
-        /// Given the base URL, retrieve a cached HttpClient or create one. This takes a lock,
-        /// so be wary if calling frequently from multiple threads.
+        /// Retrieve an existing HttpClient for the given URL, or create one with the given
+        /// handlers and headers.
         /// </summary>
-        /// 
-        /// <param name="baseUrl">The baseUrl for this HttpClient.</param>
-        /// <param name="handlerChain">TODO : Fill in</param>
+        /// <param name="baseUrl">The base URL the HttpClient is tied to.</param>
+        /// <param name="getHandlerChain">A factory function to create a handler chain.</param>
         /// <param name="defaultHeaders">Any headers that all requests to this URL should add by
         ///     default.</param>
         /// <returns>An HttpClient configured to handle requests for the given URL.</returns>
         public HttpClient GetOrCreateForUrl(
             Uri baseUrl,
-            HttpMessageHandler handlerChain = null,
-            IEnumerable<KeyValuePair<string, string>> defaultHeaders = null
-            )
+            Func<HttpMessageHandler> getHandlerChain = null,
+            IEnumerable<KeyValuePair<string, string>> defaultHeaders = null)
         {
             Action<HttpClient> configure = null;
 
@@ -121,23 +109,24 @@ namespace Keen.Core
             }
 
 
-            HttpClient httpClient = GetOrCreateForUrl(baseUrl, handlerChain, configure);
+            HttpClient httpClient = GetOrCreateForUrl(baseUrl, getHandlerChain, configure);
 
             return httpClient;
         }
 
         /// <summary>
-        /// TODO : Fill in
+        /// Retrieve an existing HttpClient for the given URL, or create one with the given
+        /// handlers and configuration functor.
         /// </summary>
-        /// <param name="baseUrl"></param>
-        /// <param name="handlerChain"></param>
-        /// <param name="configure"></param>
-        /// <returns></returns>
+        /// <param name="baseUrl">The base URL the HttpClient is tied to.</param>
+        /// <param name="getHandlerChain">A factory function to create a handler chain.</param>
+        /// <param name="configure">An action that takes the newly created HttpClient and
+        ///     configures it however needed before it is stored and/or returned.</param>
+        /// <returns>An HttpClient configured to handle requests for the given URL.</returns>
         public HttpClient GetOrCreateForUrl(
             Uri baseUrl,
-            HttpMessageHandler handlerChain = null,
-            Action<HttpClient> configure = null
-            )
+            Func<HttpMessageHandler> getHandlerChain = null,
+            Action<HttpClient> configure = null)
         {
             if (null == baseUrl)
             {
@@ -156,7 +145,7 @@ namespace Keen.Core
                 {
                     // If no handler chain is provided, a plain HttpClientHandler with no
                     // configuration whatsoever is installed.
-                    httpClient = new HttpClient(handlerChain ?? new HttpClientHandler());
+                    httpClient = new HttpClient(getHandlerChain?.Invoke() ?? new HttpClientHandler());
                     httpClient.BaseAddress = baseUrl;
 
                     configure?.Invoke(httpClient);
@@ -177,20 +166,10 @@ namespace Keen.Core
         }
 
         /// <summary>
-        /// TODO : Fill in
+        /// Remove any cached HttpClients associated with the given URL.
         /// </summary>
-        public void Clear()
-        {
-            lock (_cacheLock)
-            {
-                _httpClients.Clear();
-            }
-        }
-
-        /// <summary>
-        /// TODO : Fill in
-        /// </summary>
-        /// <param name="baseUrl"></param>
+        /// <param name="baseUrl">The base URL for which any cached HttpClient instances should
+        ///     be purged.</param>
         public void RemoveForUrl(Uri baseUrl)
         {
             if (null == baseUrl)
@@ -206,8 +185,46 @@ namespace Keen.Core
         }
 
         /// <summary>
-        /// Override the HttpClient provided for a given URL. This is useful for testing.
-        /// TODO : As we relax accessibility, this should remain internal, probably.
+        /// Can this provider return an HttpClient instance for the given URL? For this
+        /// implementation, we'll check if an entry exists in the cache and if the WeakReference
+        /// is still valid and a strong ref can be taken.
+        /// </summary>
+        /// <param name="baseUrl">The base URL for which we'd like to know if an HttpClient can be
+        ///     provided.</param>
+        /// <returns>True if this provider could return an HttpClient for the given URL, false
+        ///     otherwise.</returns>
+        public bool ExistsForUrl(Uri baseUrl)
+        {
+            if (null == baseUrl)
+            {
+                // We can't have null keys, so we wouldn't ever be able to look up this URL.
+                return false;
+            }
+
+            lock (_cacheLock)
+            {
+                WeakReference weakRef = null;
+                bool exists = (_httpClients.TryGetValue(baseUrl, out weakRef) &&
+                              (null != weakRef.Target as HttpClient));
+
+                return exists;
+            }
+        }
+
+        /// <summary>
+        /// Drop all HttpClient instances from the cache, no matter the URL.
+        /// </summary>
+        internal void Clear()
+        {
+            lock (_cacheLock)
+            {
+                _httpClients.Clear();
+            }
+        }
+
+        /// <summary>
+        /// Override the HttpClient provided for a given URL. This tests and replaces or inserts
+        /// all in one atomic operation. This will likely be useful for testing.
         /// </summary>
         /// <param name="baseUrl">URL to override.</param>
         /// <param name="httpClient">HttpClient instance that will do the overriding.</param>

@@ -45,6 +45,13 @@ namespace Keen.Core
             _eventsRelativeUrl = KeenHttpClient.GetRelativeUrl(prjSettings.ProjectId,
                                                                KeenConstants.EventsResource);
 
+            // TODO : It's possible we may want to change back to dynamically grabbing the keys
+            // from a stored IProjectSettings so client code can lazily assign keys. It creates a
+            // minor potential race condition, but will allow for scenarios like creating a
+            // KeenClient instance with only a master key in order to generate/acquire access keys
+            // to then set as the other keys. Otherwise a new KeenClient must be created or at
+            // least a new instance of the IEventCollection/IEvent/IQueries implementations.
+
             _readKey = prjSettings.ReadKey;
             _writeKey = prjSettings.WriteKey;
             _masterKey = prjSettings.MasterKey;

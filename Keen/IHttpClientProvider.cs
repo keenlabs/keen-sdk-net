@@ -6,36 +6,61 @@ using System.Net.Http;
 namespace Keen.Core
 {
     /// <summary>
-    /// TODO : Fill in comments in this file.
+    /// Represents a type that can provide an HttpClient for a given URL. It could act as a cache
+    /// by returning pre-existing instances, or create as necessary, or always create given the
+    /// optional configuration parameters pass in.
     /// </summary>
-    internal interface IHttpClientProvider
+    public interface IHttpClientProvider
     {
+        /// <summary>
+        /// Retrieve an existing HttpClient for the given URL.
+        /// </summary>
+        /// <param name="baseUrl">The base URL the HttpClient is tied to.</param>
+        /// <returns>The HttpClient which is expected to exist.</returns>
         HttpClient this[Uri baseUrl] { get; }
 
+        /// <summary>
+        /// Retrieve an existing HttpClient for the given URL, or create one with the given
+        /// handlers and configuration functor.
+        /// </summary>
+        /// <param name="baseUrl">The base URL the HttpClient is tied to.</param>
+        /// <param name="getHandlerChain">A factory function to create a handler chain.</param>
+        /// <param name="defaultHeaders">Any headers that all requests to this URL should add by
+        ///     default.</param>
+        /// <returns>An HttpClient configured to handle requests for the given URL.</returns>
         HttpClient GetOrCreateForUrl(
             Uri baseUrl,
-            HttpMessageHandler handlerChain = null,
+            Func<HttpMessageHandler> getHandlerChain = null,
             IEnumerable<KeyValuePair<string, string>> defaultHeaders = null
         );
 
+        /// <summary>
+        /// Retrieve an existing HttpClient for the given URL, or create one with the given
+        /// handlers and configuration functor.
+        /// </summary>
+        /// <param name="baseUrl">The base URL the HttpClient is tied to.</param>
+        /// <param name="getHandlerChain">A factory function to create a handler chain.</param>
+        /// <param name="configure">An action that takes the newly created HttpClient and
+        ///     configures it however needed before it is stored and/or returned.</param>
+        /// <returns>An HttpClient configured to handle requests for the given URL.</returns>
         HttpClient GetOrCreateForUrl(Uri baseUrl,
-                                     HttpMessageHandler handlerChain = null,
+                                     Func<HttpMessageHandler> getHandlerChain = null,
                                      Action<HttpClient> configure = null);
 
+        /// <summary>
+        /// If caching instances, remove any associated with the given URL.
+        /// </summary>
+        /// <param name="baseUrl">The base URL for which any cached HttpClient instances should
+        ///     be purged.</param>
         void RemoveForUrl(Uri baseUrl);
 
-        // TODO : Should there be a way to check if a cache entry already exists for a given url?
-        //     Could be useful in case one wants to assert or throw if it's expected that it
-        //     does/doesn't already exist, since it needs to be configured correctly.
-
-        // TODO : Should the GetOrCreate*() overloads return a value indicating whether the
-        //     HttpClient was created or previously existed? Maybe via an out param?
-
-        // TODO : Should Override() be exposed, or some other way to force update? What if you 
-        //    end up wanting two HttpClients for the same URL with different handler chains
-        //    installed? What if you want to use a Proxy from one KeenClient but not for another
-        //    KeenClient instance, but they hit the same URLs for the same exact project? You
-        //    really need to have the cache map a URL to a collection of entries that each has
-        //    some form of key.
+        /// <summary>
+        /// Can this provider return an HttpClient instance for the given URL?
+        /// </summary>
+        /// <param name="baseUrl">The base URL for which we'd like to know if an HttpClient can be
+        ///     provided.</param>
+        /// <returns>True if this provider could return an HttpClient for the given URL, false
+        ///     otherwise.</returns>
+        bool ExistsForUrl(Uri baseUrl);
     }
 }
