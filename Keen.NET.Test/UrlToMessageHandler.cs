@@ -76,24 +76,13 @@ namespace Keen.Net.Test
             }
             else
             {
-                // No handler found, so return 404
                 Console.WriteLine(string.Format("WARNING: No validator found for absolute URI: {0}",
                                                 request.RequestUri.AbsoluteUri));
 
-                // TODO : If this turns out to be useful in test code, move to a shared helper.
-                var content = new StringContent(JObject.FromObject(
-                    // Matches what the server returns and KeenUtil.CheckApiErrorCode() expects.
-                    new
-                    {
-                        message = "Resource not found.",
-                        error_code = "ResourceNotFoundError"
-                    }).ToString(Formatting.None));
-                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-
-                response = new HttpResponseMessage(HttpStatusCode.NotFound)
-                {
-                    Content = content
-                };
+                // No handler found, so return 404
+                response = await HttpTests.CreateJsonStringResponseAsync(
+                    HttpStatusCode.NotFound, "Resource not found.", "ResourceNotFoundError")
+                    .ConfigureAwait(false);
             }
 
             return response;

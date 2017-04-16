@@ -42,9 +42,18 @@ namespace Keen.Net.Test
                 await ProduceResultAsync(request, cancellationToken).ConfigureAwait(false);
 
             // Pass it along down the line if we didn't create a result already.
-            if (null == response && DeferToDefault)
+            if (null == response)
             {
-                response = await DefaultAsync(request, cancellationToken).ConfigureAwait(false);
+                if (DeferToDefault)
+                {
+                    response = await DefaultAsync(request, cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    // Create a dummy successful response so HttpClient doesn't just throw always.
+                    response = await HttpTests.CreateJsonStringResponseAsync(new { dummy = "" })
+                        .ConfigureAwait(false);
+                }
             }
 
             PostProcess(request, response);

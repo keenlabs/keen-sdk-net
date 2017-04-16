@@ -8,7 +8,10 @@ namespace Keen.Core
     {
         /// <summary>
         /// The Keen.IO URL for this project. Usually this will be the
-        /// server address and API version.
+        /// server address and API version. This should end with a '/'.
+        /// 
+        /// - e.g. https://api.keen.io/3.0/
+        /// 
         /// </summary>
         string KeenUrl { get; }
 
