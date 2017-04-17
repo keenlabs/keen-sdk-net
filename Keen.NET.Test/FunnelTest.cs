@@ -2,6 +2,7 @@
 using Keen.Core.Query;
 using Moq;
 using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -91,7 +92,7 @@ namespace Keen.Net.Test
                 queryMock = new Mock<IQueries>();
                 queryMock.Setup(m => m.Funnel(
                         It.Is<IEnumerable<FunnelStep>>(f => f.Equals(funnelsteps)),
-                        It.Is<QueryTimeframe>(t => t == timeframe),
+                        It.Is<IQueryTimeframe>(t => t == timeframe),
                         It.Is<string>(t => t == "")
                       ))
                   .Returns(Task.FromResult(expected));
@@ -152,7 +153,7 @@ namespace Keen.Net.Test
                 queryMock = new Mock<IQueries>();
                 queryMock.Setup(m => m.Funnel(
                         It.Is<IEnumerable<FunnelStep>>(f => f.Equals(funnelsteps)),
-                        It.Is<QueryTimeframe>(t => t == timeframe),
+                        It.Is<IQueryTimeframe>(t => t == timeframe),
                         It.Is<string>(t => t == "")
                       ))
                   .Returns(Task.FromResult(expected));
@@ -223,7 +224,7 @@ namespace Keen.Net.Test
                 queryMock = new Mock<IQueries>();
                 queryMock.Setup(m => m.Funnel(
                         It.Is<IEnumerable<FunnelStep>>(f => f.Equals(funnelsteps)),
-                        It.Is<QueryTimeframe>(t => t == timeframe),
+                        It.Is<IQueryTimeframe>(t => t == timeframe),
                         It.Is<string>(t => t == "")
                       ))
                   .Returns(Task.FromResult(expected));
@@ -287,7 +288,7 @@ namespace Keen.Net.Test
                 queryMock = new Mock<IQueries>();
                 queryMock.Setup(m => m.Funnel(
                         It.Is<IEnumerable<FunnelStep>>(f => f.Equals(funnelsteps)),
-                        It.Is<QueryTimeframe>(t => t == timeframe),
+                        It.Is<IQueryTimeframe>(t => t == timeframe),
                         It.Is<string>(t => t == "")
                       ))
                   .Returns(Task.FromResult(expected));
@@ -318,13 +319,11 @@ namespace Keen.Net.Test
                 {
                     EventCollection = FunnelColA,
                     ActorProperty = "id",
-                    Timeframe = timeframe, // Issue #50 : These are ignored.
                 },
                 new FunnelStep
                 {
                     EventCollection = FunnelColB,
                     ActorProperty = "id",
-                    Timeframe = timeframe,
                 },
             };
 
@@ -350,7 +349,7 @@ namespace Keen.Net.Test
                 queryMock = new Mock<IQueries>();
                 queryMock.Setup(m => m.Funnel(
                         It.Is<IEnumerable<FunnelStep>>(f => f.Equals(funnelsteps)),
-                        It.Is<QueryTimeframe>(t => t == timeframe),
+                        It.Is<IQueryTimeframe>(t => t == timeframe),
                         It.Is<string>(t => t == "")
                       ))
                   .Returns(Task.FromResult(expected));
@@ -359,6 +358,68 @@ namespace Keen.Net.Test
             }
 
             var reply = (await client.QueryFunnelAsync(funnelsteps, timeframe));
+            Assert.NotNull(reply);
+            Assert.NotNull(reply.Result);
+            Assert.True(reply.Result.SequenceEqual(expected.Result));
+            Assert.NotNull(reply.Steps);
+            Assert.AreEqual(reply.Steps.Count(), 2);
+
+            if (null != queryMock)
+                queryMock.VerifyAll();
+        }
+
+        [Test]
+        public async Task Funnel_ValidTimeframeInSteps_Success()
+        {
+            var client = new KeenClient(SettingsEnv);
+
+            IEnumerable<FunnelStep> funnelsteps = new []
+            {
+                new FunnelStep
+                {
+                    EventCollection = FunnelColA,
+                    ActorProperty = "id",
+                    Timeframe = QueryRelativeTimeframe.ThisMonth(),
+                },
+                new FunnelStep
+                {
+                    EventCollection = FunnelColB,
+                    ActorProperty = "id",
+                    Timeframe = new QueryAbsoluteTimeframe(DateTime.Now.AddDays(-30), DateTime.Now),
+                },
+            };
+
+            var expected = new FunnelResult
+            {
+                Steps = new[]
+                {
+                    new FunnelResultStep
+                    {
+                        EventCollection = FunnelColA,
+                    },
+                    new FunnelResultStep
+                    {
+                        EventCollection = FunnelColB,
+                    },
+                },
+                Result = new[] { 3, 2 }
+            };
+
+            Mock<IQueries> queryMock = null;
+            if (UseMocks)
+            {
+                queryMock = new Mock<IQueries>();
+                queryMock.Setup(m => m.Funnel(
+                        It.Is<IEnumerable<FunnelStep>>(f => f.Equals(funnelsteps)),
+                        It.Is<IQueryTimeframe>(t => null == t),
+                        It.Is<string>(t => t == "")
+                      ))
+                  .Returns(Task.FromResult(expected));
+
+                client.Queries = queryMock.Object;
+            }
+
+            var reply = (await client.QueryFunnelAsync(funnelsteps, null));
             Assert.NotNull(reply);
             Assert.NotNull(reply.Result);
             Assert.True(reply.Result.SequenceEqual(expected.Result));
@@ -415,7 +476,7 @@ namespace Keen.Net.Test
                 queryMock = new Mock<IQueries>();
                 queryMock.Setup(m => m.Funnel(
                         It.Is<IEnumerable<FunnelStep>>(f => f.Equals(funnelsteps)),
-                        It.Is<QueryTimeframe>(t => t == timeframe),
+                        It.Is<IQueryTimeframe>(t => t == timeframe),
                         It.Is<string>(t => t == "")
                       ))
                   .Returns(Task.FromResult(expected));

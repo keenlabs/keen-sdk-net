@@ -160,7 +160,7 @@ namespace Keen.Net.Test
                         It.Is<string>(c => c == testCol),
                         It.Is<string>(p => p == ""),
                         It.Is<string>(g => g == groupby),
-                        It.Is<QueryTimeframe>(t => t == timeframe),
+                        It.Is<IQueryTimeframe>(t => t == timeframe),
                         It.Is<IEnumerable<QueryFilter>>(f => f == null),
                         It.Is<string>(z => z == "")))
                     .Returns(Task.FromResult(reply));
@@ -212,7 +212,7 @@ namespace Keen.Net.Test
                         It.Is<string>(c => c == testCol),
                         It.Is<string>(p => p == ""),
                         It.Is<string>(g => g == groupby),
-                        It.Is<QueryTimeframe>(t => t == timeframe),
+                        It.Is<IQueryTimeframe>(t => t == timeframe),
                         It.Is<QueryInterval>(i => i == interval),
                         It.Is<IEnumerable<QueryFilter>>(f => f == null),
                         It.Is<string>(z => z == "")))
@@ -277,7 +277,7 @@ namespace Keen.Net.Test
                         It.Is<QueryType>(q => q == QueryType.Count()),
                         It.Is<string>(c => c == testCol),
                         It.Is<string>(p => p == ""),
-                        It.Is<QueryTimeframe>(t => t == timeframe),
+                        It.Is<IQueryTimeframe>(t => t == timeframe),
                         It.Is<IEnumerable<QueryFilter>>(f => f == null),
                         It.Is<string>(z => z == "")))
                     .Returns(Task.FromResult("0"));
@@ -311,7 +311,7 @@ namespace Keen.Net.Test
                         It.Is<QueryType>(q => q == QueryType.Count()),
                         It.Is<string>(c => c == testCol),
                         It.Is<string>(p => p == ""),
-                        It.Is<QueryTimeframe>(t => t == timeframe),
+                        It.Is<IQueryTimeframe>(t => t == timeframe),
                         It.Is<QueryInterval>(i => i == interval),
                         It.Is<IEnumerable<QueryFilter>>(f => f == null),
                         It.Is<string>(z => z == "")))
@@ -342,7 +342,7 @@ namespace Keen.Net.Test
                         It.Is<QueryType>(q => q == QueryType.Count()),
                         It.Is<string>(c => c == testCol),
                         It.Is<string>(p => p == ""),
-                        It.Is<QueryTimeframe>(t => t == timeframe),
+                        It.Is<IQueryTimeframe>(t => t == timeframe),
                         It.Is<IEnumerable<QueryFilter>>(f => f == filters),
                         It.Is<string>(z => z == "")))
                     .Returns(Task.FromResult("1"));
@@ -885,7 +885,7 @@ namespace Keen.Net.Test
                 queryMock.Setup(m => m.MultiAnalysis(
                         It.Is<string>(c => c == testCol),
                         It.Is<IEnumerable<MultiAnalysisParam>>(p => p == param),
-                        It.Is<QueryTimeframe>(t => t == timeframe),
+                        It.Is<IQueryTimeframe>(t => t == timeframe),
                         It.Is<IEnumerable<QueryFilter>>(f => f == null),
                         It.Is<string>(tz => tz == "")
                       ))
@@ -926,7 +926,7 @@ namespace Keen.Net.Test
                 queryMock.Setup(m => m.MultiAnalysis(
                         It.Is<string>(c => c == testCol),
                         It.Is<IEnumerable<MultiAnalysisParam>>(p => p == param),
-                        It.Is<QueryTimeframe>(t => t == timeframe),
+                        It.Is<IQueryTimeframe>(t => t == timeframe),
                         It.Is<IEnumerable<QueryFilter>>(f => f == null),
                         It.Is<string>(tz => tz == "")
                       ))
@@ -974,7 +974,7 @@ namespace Keen.Net.Test
                 queryMock.Setup(m => m.MultiAnalysis(
                         It.Is<string>(c => c == testCol),
                         It.Is<IEnumerable<MultiAnalysisParam>>(p => p == param),
-                        It.Is<QueryTimeframe>(t => t == timeframe),
+                        It.Is<IQueryTimeframe>(t => t == timeframe),
                         It.Is<IEnumerable<QueryFilter>>(f => f == null),
                         It.Is<string>(g => g == groupby),
                         It.Is<string>(tz => tz == "")
@@ -1038,7 +1038,7 @@ namespace Keen.Net.Test
                 queryMock.Setup(m => m.MultiAnalysis(
                         It.Is<string>(c => c == testCol),
                         It.Is<IEnumerable<MultiAnalysisParam>>(p => p == param),
-                        It.Is<QueryTimeframe>(t => t == timeframe),
+                        It.Is<IQueryTimeframe>(t => t == timeframe),
                         It.Is<QueryInterval>(i=>i==interval),
                         It.Is<IEnumerable<QueryFilter>>(f => f == null),
                         It.Is<string>(g => g == groupby),
@@ -1086,7 +1086,7 @@ namespace Keen.Net.Test
                 queryMock.Setup(m => m.MultiAnalysis(
                         It.Is<string>(c => c == testCol),
                         It.Is<IEnumerable<MultiAnalysisParam>>(p => p == param),
-                        It.Is<QueryTimeframe>(t => t == timeframe),
+                        It.Is<IQueryTimeframe>(t => t == timeframe),
                         It.Is<QueryInterval>(i => i == interval),
                         It.Is<IEnumerable<QueryFilter>>(f => f == null),
                         It.Is<string>(tz => tz == "")

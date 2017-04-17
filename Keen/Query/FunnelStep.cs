@@ -1,8 +1,6 @@
 ﻿using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+
 
 namespace Keen.Core.Query
 {
@@ -47,7 +45,7 @@ namespace Keen.Core.Query
         /// Window of time to use for the analysis. If not set, the timeframe from the funnel will be inherited, if available.
         /// </summary>
         [JsonProperty(PropertyName = "timeframe", NullValueHandling = NullValueHandling.Ignore)]
-        public QueryTimeframe Timeframe { get; set; }
+        public IQueryTimeframe Timeframe { get; set; }
 
         /// <summary>
         /// Offset from UTC in seconds. If not set, the timezone from the funnel will be inherited, if available.
@@ -61,6 +59,5 @@ namespace Keen.Core.Query
         /// </summary>
         [JsonProperty(PropertyName = "with_actors", NullValueHandling = NullValueHandling.Ignore)]
         public bool WithActors { get; set; }
-
     }
 }

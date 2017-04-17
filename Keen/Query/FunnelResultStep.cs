@@ -1,8 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Newtonsoft.Json;
+
 
 namespace Keen.Core.Query
 {
@@ -18,7 +16,8 @@ namespace Keen.Core.Query
         public IEnumerable<QueryFilter> Filters { get; set; }
 
         [JsonProperty(PropertyName = "timeframe")]
-        public QueryTimeframe Timeframe { get; set; }
+        [JsonConverter(typeof(TimeframeConverter))]
+        public IQueryTimeframe Timeframe { get; set; }
 
         [JsonProperty(PropertyName = "timezone")]
         public string TimeZone { get; set; }
@@ -31,6 +30,5 @@ namespace Keen.Core.Query
 
         [JsonProperty(PropertyName = "inverted")]
         public bool Inverted { get; set; }
-
     }
 }
