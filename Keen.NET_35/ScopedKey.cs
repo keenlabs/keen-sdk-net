@@ -27,7 +27,7 @@ namespace Keen.NET_35
         /// <param name="secOptions">An object that can be serialized to produce JSON formatted Security Options</param>
         /// <param name="IV">Optional IV, normally not required</param>
         /// <returns></returns>
-        public static string Encrypt(string apiKey, object secOptions, string IV = "")
+        public static string Encrypt(string apiKey, object secOptions, string IV = null)
         {
             var secOptionsJson = JObject.FromObject(secOptions ?? new object()).ToString(Formatting.None);
 
@@ -41,13 +41,14 @@ namespace Keen.NET_35
         /// <param name="secOptions">Security Options in JSON format</param>
         /// <param name="IV">Optional IV, normally not required</param>
         /// <returns>Hex-encoded scoped key</returns>
-        public static string EncryptString(string apiKey, string secOptions, string IV = "")
+        public static string EncryptString(string apiKey, string secOptions, string IV = null)
         {
             try
             {
-                if (!(IV.Length == 0 || IV.Length == IVHexSize))
+                if (!(null == IV || IV.Length == IVHexSize))
                     throw new KeenException(string.Format("Hex-encoded IV must be exactly {0} bytes, got {1}", IVHexSize, IV.Length));
 
+                IV = IV ?? "";
                 secOptions = secOptions ?? "";
 
                 using (var aesAlg = GetAes(ConvertKey(apiKey), IV))
@@ -131,8 +132,10 @@ namespace Keen.NET_35
             aesAlg.Mode = CipherMode.CBC;
             aesAlg.Padding = PaddingMode.PKCS7;
             aesAlg.Key = Key;
-            if (IV != "")
+
+            if (!string.IsNullOrEmpty(IV))
                 aesAlg.IV = HexToByte(IV);
+
             return aesAlg;
         }
 
