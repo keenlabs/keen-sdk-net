@@ -52,7 +52,6 @@ namespace Keen.Core.Query
                 prjSettings.ReadKey : prjSettings.MasterKey;
         }
 
-
         private async Task<JObject> KeenWebApiRequest(string operation = "",
                                                       Dictionary<string, string> parms = null)
         {
@@ -67,15 +66,19 @@ namespace Keen.Core.Query
                                       select string.Format("{0}={1}",
                                                            p,
                                                            Uri.EscapeDataString(parms[p])));
+
             var url = string.Format("{0}{1}{2}",
                                     _queryRelativeUrl,
                                     string.IsNullOrWhiteSpace(operation) ? "" : "/" + operation,
                                     string.IsNullOrWhiteSpace(parmVals) ? "" : "?" + parmVals);
+
             var responseMsg = await _keenHttpClient.GetAsync(url, _key).ConfigureAwait(false);
+
             var responseString = await responseMsg
                                     .Content
                                     .ReadAsStringAsync()
                                     .ConfigureAwait(false);
+
             var response = JObject.Parse(responseString);
 
             // error checking, throw an exception with information from the json
@@ -91,7 +94,7 @@ namespace Keen.Core.Query
             return response;
         }
 
-        public async Task<IEnumerable<KeyValuePair<string,string>>> AvailableQueries()
+        public async Task<IEnumerable<KeyValuePair<string, string>>> AvailableQueries()
         {
             var reply = await KeenWebApiRequest().ConfigureAwait(false);
             return from j in reply.Children()
@@ -278,11 +281,11 @@ namespace Keen.Core.Query
         public async Task<IEnumerable<dynamic>> Extract(string collection, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, int latest = 0, string email = "")
         {
             var parms = new Dictionary<string, string>();
-             parms.Add(KeenConstants.QueryParmEventCollection, collection);
-             parms.Add(KeenConstants.QueryParmTimeframe, timeframe.ToSafeString());
-             parms.Add(KeenConstants.QueryParmFilters, filters == null ? "" : JArray.FromObject(filters).ToString());
-             parms.Add(KeenConstants.QueryParmEmail, email);
-             parms.Add(KeenConstants.QueryParmLatest, latest > 0 ? latest.ToString() : "");
+            parms.Add(KeenConstants.QueryParmEventCollection, collection);
+            parms.Add(KeenConstants.QueryParmTimeframe, timeframe.ToSafeString());
+            parms.Add(KeenConstants.QueryParmFilters, filters == null ? "" : JArray.FromObject(filters).ToString());
+            parms.Add(KeenConstants.QueryParmEmail, email);
+            parms.Add(KeenConstants.QueryParmLatest, latest > 0 ? latest.ToString() : "");
 
             var reply = await KeenWebApiRequest(KeenConstants.QueryExtraction, parms).ConfigureAwait(false);
 
@@ -305,9 +308,7 @@ namespace Keen.Core.Query
             return o;
         }
 
-
-
-        public async Task<IDictionary<string,string>> MultiAnalysis(string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        public async Task<IDictionary<string, string>> MultiAnalysis(string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
             var jObs = analysisParams.Select(x => 
                 new JProperty( x.Label, JObject.FromObject( new {analysis_type = x.Analysis, target_property = x.TargetProperty })));
@@ -345,7 +346,7 @@ namespace Keen.Core.Query
 
             var reply = await KeenWebApiRequest(KeenConstants.QueryMultiAnalysis, parms).ConfigureAwait(false);
 
-            var result = new List<QueryGroupValue<IDictionary<string,string>>>();
+            var result = new List<QueryGroupValue<IDictionary<string, string>>>();
             foreach (JObject i in reply.Value<JArray>("result"))
             {
                 var d = new Dictionary<string, string>();
@@ -364,7 +365,7 @@ namespace Keen.Core.Query
             return result;
         }
 
-        public async Task<IEnumerable<QueryIntervalValue<IDictionary<string,string>>>> MultiAnalysis(string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+        public async Task<IEnumerable<QueryIntervalValue<IDictionary<string, string>>>> MultiAnalysis(string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
             var jObs = analysisParams.Select(x => new JProperty(x.Label, JObject.FromObject(new { analysis_type = x.Analysis, target_property = x.TargetProperty })));
             var parmsJson = JsonConvert.SerializeObject(new JObject(jObs), Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });

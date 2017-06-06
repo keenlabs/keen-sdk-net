@@ -75,10 +75,12 @@ namespace Keen.Core
             var responseMsg = await _keenHttpClient
                 .GetAsync(GetCollectionUrl(collection), _readKey)
                 .ConfigureAwait(continueOnCapturedContext: false);
+
             var responseString = await responseMsg
                 .Content
                 .ReadAsStringAsync()
                 .ConfigureAwait(continueOnCapturedContext: false);
+
             dynamic response = JObject.Parse(responseString);
 
             // error checking, throw an exception with information from the json 
@@ -122,6 +124,7 @@ namespace Keen.Core
             var responseMsg = await _keenHttpClient
                 .PostAsync(GetCollectionUrl(collection), _writeKey, content)
                 .ConfigureAwait(continueOnCapturedContext: false);
+
             var responseString = await responseMsg
                 .Content
                 .ReadAsStringAsync()
@@ -133,7 +136,7 @@ namespace Keen.Core
             {
                 // Normally the response content should be parsable JSON,
                 // but if the server returned a 404 error page or something
-                // like that, this will throw. 
+                // like that, this will throw.
                 jsonResponse = JObject.Parse(responseString);
             }
             catch (Exception)
