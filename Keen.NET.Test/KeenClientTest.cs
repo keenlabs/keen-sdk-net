@@ -375,7 +375,7 @@ namespace Keen.Net.Test
                     addEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
                     {
                         var key = JObject.Parse(ScopedKey.Decrypt(p.MasterKey, p.WriteKey));
-                        if ((key["allowed_operations"].Values<string>().First()=="write") && (p == settings) && (c == "AddEventTest") && (e["AProperty"].Value<string>()=="CustomKey"))
+                        if ((key["allowed_operations"].Values<string>().First() == "write") && (p == settings) && (c == "AddEventTest") && (e["AProperty"].Value<string>()=="CustomKey"))
                             return;
                         else
                             throw new Exception("Unexpected value");
