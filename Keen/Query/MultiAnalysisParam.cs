@@ -1,9 +1,4 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
+﻿
 namespace Keen.Core.Query
 {
     public sealed class MultiAnalysisParam
@@ -36,7 +31,7 @@ namespace Keen.Core.Query
         /// <param name="label">A user defined string that acts as a name for the analysis. 
         /// This will be returned in the results so the various analyses are easily identifiable.</param>
         /// <param name="analysis">The metric type.</param>
-        public MultiAnalysisParam( string label, Metric analysis)
+        public MultiAnalysisParam(string label, Metric analysis)
         {
             Label = label;
             Analysis = analysis;

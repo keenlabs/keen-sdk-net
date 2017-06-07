@@ -5,8 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+
 
 namespace Keen.Core
 {
@@ -21,8 +21,7 @@ namespace Keen.Core
     {
         private static Queue<string> events = new Queue<string>();
 
-        private EventCachePortable()
-        {}
+        private EventCachePortable() { }
 
         /// <summary>
         /// Create, initialize and return an instance of EventCachePortable.
@@ -49,7 +48,7 @@ namespace Keen.Core
         {
             var instance = new EventCachePortable();
 
-            var keenFolder = await getKeenFolder()
+            var keenFolder = await GetKeenFolder()
                 .ConfigureAwait(continueOnCapturedContext: false);
             var files = (await keenFolder.GetFilesAsync().ConfigureAwait(continueOnCapturedContext: false)).ToList();
 
@@ -66,7 +65,7 @@ namespace Keen.Core
             if (null == e)
                 throw new KeenException("Cached events may not be null");
 
-            var keenFolder = await getKeenFolder()
+            var keenFolder = await GetKeenFolder()
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             IFile file;
@@ -81,7 +80,7 @@ namespace Keen.Core
                 // and generating and inserting a unique name within the lock. CreateFileAsync has
                 // a CreateCollisionOption.GenerateUniqueName, but it will return the same name
                 // multiple times when called from parallel tasks.
-                // If creating and writing the file fails, loop around and 
+                // If creating and writing the file fails, loop around and generate a new name.
                 if (string.IsNullOrEmpty(name))
                     lock (events)
                     {
@@ -115,12 +114,12 @@ namespace Keen.Core
                 // this when the queue is read than to try to dequeue the name.
                 if (attempts > 100)
                     throw new KeenException("Persistent failure while saving file, aborting", lastErr);
-            } while (!done);           
+            } while (!done);
         }
 
         public async Task<CachedEvent> TryTake()
         {
-            var keenFolder = await getKeenFolder()
+            var keenFolder = await GetKeenFolder()
                 .ConfigureAwait(continueOnCapturedContext: false);
             if (!events.Any())
                 return null;
@@ -135,7 +134,7 @@ namespace Keen.Core
                 .ConfigureAwait(continueOnCapturedContext: false);
             var ce = JObject.Parse(content);
 
-			var item = new CachedEvent((string)ce.SelectToken("Collection"), (JObject)ce.SelectToken("Event"), ce.SelectToken("Error").ToObject<Exception>() );
+            var item = new CachedEvent((string)ce.SelectToken("Collection"), (JObject)ce.SelectToken("Event"), ce.SelectToken("Error").ToObject<Exception>());
             await file.DeleteAsync()
                 .ConfigureAwait(continueOnCapturedContext: false);
             return item;
@@ -143,23 +142,22 @@ namespace Keen.Core
 
         public async Task Clear()
         {
-            var keenFolder = await getKeenFolder()
+            var keenFolder = await GetKeenFolder()
                 .ConfigureAwait(continueOnCapturedContext: false);
             lock(events)
                 events.Clear();
             await keenFolder.DeleteAsync()
                 .ConfigureAwait(continueOnCapturedContext: false);
-            await getKeenFolder()
+            await GetKeenFolder()
                 .ConfigureAwait(continueOnCapturedContext: false);
         }
 
-        private static async Task<IFolder> getKeenFolder()
+        private static Task<IFolder> GetKeenFolder()
         {
             IFolder rootFolder = FileSystem.Current.LocalStorage;
-            var keenFolder = await rootFolder.CreateFolderAsync("KeenCache", CreationCollisionOption.OpenIfExists)
-                .ConfigureAwait(continueOnCapturedContext: false);
-            return keenFolder;
-        }
+            var keenFolderTask = rootFolder.CreateFolderAsync("KeenCache", CreationCollisionOption.OpenIfExists);
 
+            return keenFolderTask;
+        }
     }
 }

@@ -2,12 +2,9 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
+
 
 namespace Keen.Core
 {
@@ -16,8 +13,43 @@ namespace Keen.Core
     /// </summary>
     internal class Event : IEvent
     {
-        private IProjectSettings _prjSettings;
-        private string _serverUrl;
+        private readonly IKeenHttpClient _keenHttpClient;
+        private readonly string _eventsRelativeUrl;
+        private readonly string _readKey;
+        private readonly string _writeKey;
+
+
+        internal Event(IProjectSettings prjSettings,
+                       IKeenHttpClientProvider keenHttpClientProvider)
+        {
+            if (null == prjSettings)
+            {
+                throw new ArgumentNullException(nameof(prjSettings),
+                                                "Project Settings must be provided.");
+            }
+
+            if (null == keenHttpClientProvider)
+            {
+                throw new ArgumentNullException(nameof(keenHttpClientProvider),
+                                                "A KeenHttpClient provider must be provided.");
+            }
+
+            if (string.IsNullOrWhiteSpace(prjSettings.KeenUrl) ||
+                !Uri.IsWellFormedUriString(prjSettings.KeenUrl, UriKind.Absolute))
+            {
+                throw new KeenException(
+                    "A properly formatted KeenUrl must be provided via Project Settings.");
+            }
+
+            var serverBaseUrl = new Uri(prjSettings.KeenUrl);
+            _keenHttpClient = keenHttpClientProvider.GetForUrl(serverBaseUrl);
+            _eventsRelativeUrl = KeenHttpClient.GetRelativeUrl(prjSettings.ProjectId,
+                                                               KeenConstants.EventsResource);
+
+            _readKey = prjSettings.ReadKey;
+            _writeKey = prjSettings.WriteKey;
+        }
+
 
         /// <summary>
         /// Get details of all schemas in the project.
@@ -25,25 +57,33 @@ namespace Keen.Core
         /// <returns></returns>
         public async Task<JArray> GetSchemas()
         {
-            using (var client = new HttpClient())
+            if (string.IsNullOrWhiteSpace(_readKey))
             {
-                client.DefaultRequestHeaders.Add("Authorization", _prjSettings.MasterKey);
-                client.DefaultRequestHeaders.Add("Keen-Sdk", KeenUtil.GetSdkVersion());
-
-                var responseMsg = await client.GetAsync(_serverUrl)
-                    .ConfigureAwait(continueOnCapturedContext: false);
-                var responseString = await responseMsg.Content.ReadAsStringAsync()
-                    .ConfigureAwait(continueOnCapturedContext: false);
-                dynamic response = JArray.Parse(responseString);
-
-                // error checking, throw an exception with information from the json 
-                // response if available, then check the HTTP response.
-                KeenUtil.CheckApiErrorCode(response);
-                if (!responseMsg.IsSuccessStatusCode)
-                    throw new KeenException("GetSchemas failed with status: " + responseMsg.StatusCode);
-
-                return response;
+                throw new KeenException("An API ReadKey is required to get schemas.");
             }
+
+            var responseMsg = await _keenHttpClient
+                .GetAsync(_eventsRelativeUrl, _readKey)
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            var responseString = await responseMsg
+                .Content
+                .ReadAsStringAsync()
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            var response = JArray.Parse(responseString);
+
+            // error checking, throw an exception with information from the json 
+            // response if available, then check the HTTP response.
+            KeenUtil.CheckApiErrorCode(response);
+
+            if (!responseMsg.IsSuccessStatusCode)
+            {
+                throw new KeenException("GetSchemas failed with status: " +
+                                        responseMsg.StatusCode);
+            }
+
+            return response;
         }
 
         /// <summary>
@@ -53,60 +93,64 @@ namespace Keen.Core
         /// <returns></returns>
         public async Task<IEnumerable<CachedEvent>> AddEvents(JObject events)
         {
+            if (string.IsNullOrWhiteSpace(_writeKey))
+            {
+                throw new KeenException("An API WriteKey is required to add events.");
+            }
+
             var content = events.ToString();
 
-            using (var client = new HttpClient())
-            using (var contentStream = new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes(content))))
+            var responseMsg = await _keenHttpClient
+                .PostAsync(_eventsRelativeUrl, _writeKey, content)
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            var responseString = await responseMsg
+                .Content
+                .ReadAsStringAsync()
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            JObject jsonResponse = null;
+
+            try
             {
-                contentStream.Headers.Add("content-type", "application/json");
+                // Normally the response content should be parsable JSON,
+                // but if the server returned a 404 error page or something
+                // like that, this will throw. 
+                jsonResponse = JObject.Parse(responseString);
 
-                client.DefaultRequestHeaders.Add("Authorization", _prjSettings.WriteKey);
-                client.DefaultRequestHeaders.Add("Keen-Sdk", KeenUtil.GetSdkVersion());
-
-                var httpResponse = await client.PostAsync(_serverUrl, contentStream)
-                    .ConfigureAwait(continueOnCapturedContext: false);
-                var responseString = await httpResponse.Content.ReadAsStringAsync()
-                    .ConfigureAwait(continueOnCapturedContext: false);
-                JObject jsonResponse = null;
-                try
-                {
-                    // Normally the response content should be parsable JSON,
-                    // but if the server returned a 404 error page or something
-                    // like that, this will throw. 
-                    jsonResponse = JObject.Parse(responseString);
-                }
-                catch (Exception)
-                { }
-
-                if (!httpResponse.IsSuccessStatusCode)
-                    throw new KeenException("AddEvents failed with status: " + httpResponse);
-                if (null == jsonResponse)
-                    throw new KeenException("AddEvents failed with empty response from server.");
-
-                // error checking, return failed events in the list,
-                // or if the HTTP response is a failure, throw.
-                var failedItems = from respCols in jsonResponse.Properties()
-                                  from eventsCols in events.Properties()
-                                  where respCols.Name == eventsCols.Name
-                                  let collection = respCols.Name
-                                  let combined = eventsCols.Children().Children()
-                                    .Zip(respCols.Children().Children(),
-                                    (e, r) => new { eventObj = (JObject)e, result = (JObject)r })
-                                  from e in combined
-                                  where !(bool)(e.result.Property("success").Value)
-                                  select new CachedEvent(collection, e.eventObj, KeenUtil.GetBulkApiError(e.result));
-
-                return failedItems;
+                // TODO : Why do we not call KeenUtil.CheckApiErrorCode(jsonResponse); ??
             }
+            catch (Exception)
+            {
+            }
+
+            if (!responseMsg.IsSuccessStatusCode)
+            {
+                throw new KeenException("AddEvents failed with status: " + responseMsg.StatusCode);
+            }
+
+            if (null == jsonResponse)
+            {
+                throw new KeenException("AddEvents failed with empty response from server.");
+            }
+
+            // error checking, return failed events in the list,
+            // or if the HTTP response is a failure, throw.
+            var failedItems =
+                from respCols in jsonResponse.Properties()
+                    from eventsCols in events.Properties()
+                        where respCols.Name == eventsCols.Name
+                            let collection = respCols.Name
+                            let combined = eventsCols.Children().Children()
+                                .Zip(respCols.Children().Children(),
+                                     (e, r) => new { eventObj = (JObject)e, result = (JObject)r })
+                                from e in combined
+                                    where !(bool)(e.result.Property("success").Value)
+                                    select new CachedEvent(collection,
+                                                           e.eventObj,
+                                                           KeenUtil.GetBulkApiError(e.result));
+
+            return failedItems;
         }
-
-        public Event(IProjectSettings prjSettings)
-        {
-            _prjSettings = prjSettings;
-
-            _serverUrl = string.Format("{0}projects/{1}/{2}",
-                _prjSettings.KeenUrl, _prjSettings.ProjectId, KeenConstants.EventsResource);
-        }
-
     }
 }

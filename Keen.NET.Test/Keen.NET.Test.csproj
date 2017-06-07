@@ -93,12 +93,20 @@
     <Compile Include="EventCacheTest.cs" />
     <Compile Include="EventCollectionMock.cs" />
     <Compile Include="EventMock.cs" />
+    <Compile Include="FuncHandler.cs" />
     <Compile Include="FunnelTest.cs" />
+    <Compile Include="HttpClientHandlerMock.cs" />
+    <Compile Include="HttpTests.cs" />
+    <Compile Include="IHttpMessageHandler.cs" />
     <Compile Include="KeenClientTest.cs" />
     <Compile Include="ProjectSettingsProviderTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueryTest.cs" />
+    <Compile Include="QueryTests_Integration.cs" />
     <Compile Include="ScopedKeyTest.cs" />
+    <Compile Include="DelegatingHandlerMock.cs" />
+    <Compile Include="TestKeenHttpClientProvider.cs" />
+    <Compile Include="UrlToMessageHandler.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

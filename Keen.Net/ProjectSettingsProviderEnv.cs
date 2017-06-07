@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Keen.Core;
+﻿using Keen.Core;
+using System;
+
 
 namespace Keen.Net
 {
@@ -14,9 +12,10 @@ namespace Keen.Net
         /// <summary>
         /// <para>Reads the project settings from environment variables</para>
         /// <para>Project ID should be in variable KEEN_PROJECT_ID</para>
-        /// <para>Master Key should be in variable KEEN_MASTER_ID</para>
-        /// <para>Write Key should be in variable KEEN_WRITE_ID</para>
-        /// <para>ReadKey should be in variable KEEN_READ_ID</para>
+        /// <para>Master Key should be in variable KEEN_MASTER_KEY</para>
+        /// <para>Write Key should be in variable KEEN_WRITE_KEY</para>
+        /// <para>ReadKey should be in variable KEEN_READ_KEY</para>
+        /// <para>Keen.IO API url should be in variable KEEN_SERVER_URL</para>
         /// </summary>
         public ProjectSettingsProviderEnv()
         {

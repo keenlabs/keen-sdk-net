@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
+
 namespace Keen.Core
 {
     /// <summary>
@@ -16,7 +17,7 @@ namespace Keen.Core
     public class KeenClient
     {
         private readonly IProjectSettings _prjSettings;
-        private readonly Dictionary<string, object> _globalProperties = new Dictionary<string, object>();
+        private readonly IDictionary<string, object> _globalProperties = new Dictionary<string, object>();
 
         /// <summary>
         /// EventCollection provides direct access to the Keen.IO EventCollection API methods.
@@ -35,7 +36,7 @@ namespace Keen.Core
         /// <summary>
         /// EventCache provides a caching implementation allowing events to be cached locally
         /// instead of being sent one at a time. It is not normally necessary to use this property.
-        /// The implementation is responsible for cache  maintenance policy, such as trimming 
+        /// The implementation is responsible for cache maintenance policy, such as trimming 
         /// old entries to avoid excessive cache size.
         /// </summary>
         public IEventCache EventCache { get; private set; }
@@ -83,11 +84,9 @@ namespace Keen.Core
                 throw new KeenException(string.Format("Dynamic property \"{0}\" execution returned null", propName));
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="prjSettings">A ProjectSettings instance containing the ProjectId and API keys</param>
-        public KeenClient(IProjectSettings prjSettings)
+        private KeenClient(IProjectSettings prjSettings,
+                           IEventCache eventCache,
+                           IKeenHttpClientProvider keenHttpClientProvider)
         {
             // Preconditions
             if (null == prjSettings)
@@ -102,12 +101,30 @@ namespace Keen.Core
                 throw new KeenException("A URL for the server address is required.");
 
             _prjSettings = prjSettings;
-            // The EventCollection and Event interface normally should not need to 
-            // be set by callers, so the default implementation is set up here. Users 
-            // may override these by injecting an implementation via the property.
-            EventCollection = new EventCollection(_prjSettings);
-            Event = new Event(_prjSettings);
-            Queries = new Queries(_prjSettings);
+
+            if (null != eventCache)
+            {
+                EventCache = eventCache;
+            }
+
+            // Use the default provider if none was passed in.
+            keenHttpClientProvider = (keenHttpClientProvider ?? new KeenHttpClientProvider());
+
+            // These interfaces normally should not need to be set by client code, so the default
+            // implementation is set up here. These may be overridden by injecting an
+            // implementation via their respective properties.
+            EventCollection = new EventCollection(_prjSettings, keenHttpClientProvider);
+            Event = new Event(_prjSettings, keenHttpClientProvider);
+            Queries = new Queries(_prjSettings, keenHttpClientProvider);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="prjSettings">A ProjectSettings instance containing the ProjectId and API keys</param>
+        public KeenClient(IProjectSettings prjSettings)
+            : this(prjSettings, null, null)
+        {
         }
 
         /// <summary>
@@ -116,9 +133,14 @@ namespace Keen.Core
         /// <param name="prjSettings">A ProjectSettings instance containing the ProjectId and API keys</param>
         /// <param name="eventCache">An IEventCache instance providing a caching strategy</param>
         public KeenClient(IProjectSettings prjSettings, IEventCache eventCache)
-            : this(prjSettings)
+            : this(prjSettings, eventCache, null)
         {
-            EventCache = eventCache;
+        }
+
+        public KeenClient(IProjectSettings prjSettings,
+                          IKeenHttpClientProvider keenHttpClientProvider)
+           : this(prjSettings, null, keenHttpClientProvider)
+        {
         }
 
         /// <summary>
@@ -161,8 +183,8 @@ namespace Keen.Core
         public async Task<JArray> GetSchemasAsync()
         {
             // Preconditions
-            if (string.IsNullOrWhiteSpace(_prjSettings.MasterKey))
-                throw new KeenException("Master API key is required for GetSchemas");
+            if (string.IsNullOrWhiteSpace(_prjSettings.ReadKey))
+                throw new KeenException("Read API key is required for GetSchemas");
 
             return await Event.GetSchemas()
                 .ConfigureAwait(continueOnCapturedContext: false);
@@ -176,7 +198,7 @@ namespace Keen.Core
         {
             try
             {
-                return Event.GetSchemas().Result;
+                return GetSchemasAsync().Result;
             }
             catch (AggregateException ex)
             {
@@ -193,8 +215,8 @@ namespace Keen.Core
         {
             // Preconditions
             KeenUtil.ValidateEventCollectionName(collection);
-            if (string.IsNullOrWhiteSpace(_prjSettings.MasterKey))
-                throw new KeenException("Master API key is required for GetSchema");
+            if (string.IsNullOrWhiteSpace(_prjSettings.ReadKey))
+                throw new KeenException("Read API key is required for GetSchema");
 
             return await EventCollection.GetSchema(collection)
                 .ConfigureAwait(continueOnCapturedContext: false);
@@ -318,7 +340,7 @@ namespace Keen.Core
 
             var jEvent = PrepareUserObject(eventInfo, addOns);
 
-            // If an event cache has been provided, cache this event insead of sending it.
+            // If an event cache has been provided, cache this event instead of sending it.
             if (null != EventCache)
                 await EventCache.Add(new CachedEvent(collection, jEvent))
                     .ConfigureAwait(false);
@@ -397,7 +419,7 @@ namespace Keen.Core
         }
 
         /// <summary>
-        /// Submit all events found in the event cache. If an events are rejected by the server, 
+        /// Submit all events found in the event cache. If any events are rejected by the server,
         /// KeenCacheException will be thrown with a listing of the rejected events, each with
         /// the error message it received.
         /// </summary>
@@ -415,7 +437,7 @@ namespace Keen.Core
         }
 
         /// <summary>
-        /// Submit all events found in the event cache. If an events are rejected by the server, 
+        /// Submit all events found in the event cache. If any events are rejected by the server,
         /// KeenCacheException will be thrown with a listing of the rejected events, each with
         /// the error message it received.
         /// </summary>
@@ -472,11 +494,6 @@ namespace Keen.Core
             return await Queries.AvailableQueries();
         }
 
-
-
-
-
-
         /// <summary>
         /// Call any Keen.IO API function with the specified parameters.
         /// </summary>
@@ -487,7 +504,6 @@ namespace Keen.Core
         {
             return await Queries.Metric(queryName, parms);
         }
-
 
         /// <summary>
         /// Call any Keen.IO API function with the specified parameters. Refer to Keen API documentation for
@@ -954,6 +970,5 @@ namespace Keen.Core
                 throw ex.TryUnwrap();
             }
         }
-
     }
 }

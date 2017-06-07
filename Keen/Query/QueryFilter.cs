@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 
+
 namespace Keen.Core.Query
 {
     /// <summary>
@@ -39,7 +40,6 @@ namespace Keen.Core.Query
             /// <para>Use with string, number, boolean</para>
             /// </summary>
             public static FilterOperator Equals() { return new FilterOperator("eq"); }
-
 
             /// <summary>
             /// Not equal to.
@@ -92,11 +92,16 @@ namespace Keen.Core.Query
             public static FilterOperator Contains() { return new FilterOperator("contains"); }
 
             /// <summary>
+            /// Filter on events that do not contain the specified property value.
+            /// <para>Use with strings</para>
+            /// </summary>
+            public static FilterOperator NotContains() { return new FilterOperator("not_contains"); }
+
+            /// <summary>
             /// Used to select events within a certain radius of the provided geo coordinate.
             /// <para>Use with geo analysis</para>
             /// </summary>
             public static FilterOperator Within() { return new FilterOperator("within"); }
-
         }
 
 
@@ -135,15 +140,20 @@ namespace Keen.Core.Query
 
         public QueryFilter()
         {
-            
+
         }
 
         public QueryFilter(string property, FilterOperator op, object value)
         {
             if (string.IsNullOrWhiteSpace(property))
-                throw new ArgumentNullException("property");
-            if (null == value)
-                throw new ArgumentNullException("value");
+            {
+                throw new ArgumentNullException(nameof(property), "Property name is required.");
+            }
+
+            if (null == op)
+            {
+                throw new ArgumentNullException(nameof(op), "Filter operator is required.");
+            }
 
             PropertyName = property;
             Operator = op;

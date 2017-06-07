@@ -1,5 +1,6 @@
-﻿using System.Collections.Generic;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
+using System.Collections.Generic;
+
 
 namespace Keen.Core.DataEnrichment
 {
@@ -46,7 +47,7 @@ namespace Keen.Core.DataEnrichment
         /// <summary>
         /// Build and return an IpToGeo Data Enhancement add-on. This add-on reads
         /// an IP address from the field identified by the input parameter and writes
-        /// data about the geographical location to the field identfied by the output parameter.
+        /// data about the geographical location to the field identified by the output parameter.
         /// </summary>
         /// <param name="outputField">Name of field to store the geographical information</param>
         /// <param name="ipField">Name of field containing an IP address</param>
@@ -62,7 +63,7 @@ namespace Keen.Core.DataEnrichment
         /// Build and return a User-Agent Data Enhancement add-on. This add-on reads
         /// a user agent string from the field identified by the input parameter and parses it 
         /// into the device, browser, browser version, OS, and OS version fields and stores that
-        /// data in the field identfied by the output parameter.
+        /// data in the field identified by the output parameter.
         /// </summary>
         /// <param name="outputField">Name of field to store the parsed user agent field</param>
         /// <param name="userAgentString">Name of field containing the user agent string</param>

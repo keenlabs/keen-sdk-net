@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-
+﻿
 namespace Keen.Core
 {
     public class ProjectSettingsProvider : IProjectSettings
@@ -38,11 +33,13 @@ namespace Keen.Core
         /// <summary>
         /// Obtains project setting values as constructor parameters
         /// </summary>
-        /// <param name="keenUrl">Base Keen.IO service URL, required</param>
+        ///
         /// <param name="projectId">Keen project id, required</param>
-        /// <param name="masterKey">Master API key, required for getting schema or deleting collections</param>
+        /// <param name="masterKey">Master API key, required for certain operations, such as
+        ///     getting schema or deleting collections</param>
         /// <param name="writeKey">Write API key, required for inserting events</param>
-        /// <param name="readKey">Read API key</param>
+        /// <param name="readKey">Read API key, required for performing queries</param>
+        /// <param name="keenUrl">Base Keen.IO service URL</param>
         public ProjectSettingsProvider(string projectId, string masterKey = "", string writeKey = "", string readKey = "", string keenUrl = null)
         {
             KeenUrl = keenUrl ?? KeenConstants.ServerAddress + "/" + KeenConstants.ApiVersion + "/";

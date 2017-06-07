@@ -1,7 +1,8 @@
-﻿using System;
-using System.Threading.Tasks;
-using Keen.Core;
+﻿using Keen.Core;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Threading.Tasks;
+
 
 namespace Keen.Net.Test
 {
