@@ -19,10 +19,19 @@ namespace Keen.Core.Query
         {
             // QueryAbsoluteTimeframe has fields with JsonProperty attributes, so shouldn't need
             // custom converter support for writing JSON.
-
-            if (value is QueryRelativeTimeframe)
+            if (value is QueryAbsoluteTimeframe)
+            {
+                throw new ArgumentException("We don't expect TimeframeConverter to be used for " +
+                                            "absolute timeframes.", nameof(value));
+            }
+            else if (value is QueryRelativeTimeframe)
             {
                 writer.WriteValue(value.ToString());
+            }
+            else
+            {
+                throw new ArgumentException("Type not supported by TimeframeConverter",
+                                            nameof(value));
             }
         }
 
