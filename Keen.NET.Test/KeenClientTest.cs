@@ -370,12 +370,14 @@ namespace Keen.Net.Test
             var settings = new ProjectSettingsProvider(masterKey: SettingsEnv.MasterKey, projectId: SettingsEnv.ProjectId, writeKey: scopedKey);
 
             var client = new KeenClient(settings);
+
             if (UseMocks)
                 client.EventCollection = new EventCollectionMock(settings,
                     addEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
                     {
                         var key = JObject.Parse(ScopedKey.Decrypt(p.MasterKey, p.WriteKey));
-                        if ((key["allowed_operations"].Values<string>().First()=="write") && (p == settings) && (c == "AddEventTest") && (e["AProperty"].Value<string>()=="CustomKey"))
+
+                        if ((key["allowed_operations"].Values<string>().First() == "write") && (p == settings) && (c == "AddEventTest") && (e["AProperty"].Value<string>() == "CustomKey"))
                             return;
                         else
                             throw new Exception("Unexpected value");

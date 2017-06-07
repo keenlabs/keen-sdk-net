@@ -193,10 +193,15 @@ namespace Keen.Net.Test
             var iv = String.Concat(bytes.Select(b => b.ToString("X2"))); Trace.WriteLine("IV: " + iv);
 
             Trace.WriteLine("plaintext: " + str);
-            var scopedKey = ScopedKey.EncryptString(SettingsEnv.MasterKey, str, iv );
+            var scopedKey = ScopedKey.EncryptString(SettingsEnv.MasterKey, str, iv);
             Trace.WriteLine("encrypted: " + scopedKey);
             var decrypted = ScopedKey.Decrypt(SettingsEnv.MasterKey, scopedKey);
             Trace.WriteLine("decrypted: " + decrypted);
+
+            // Make sure the input string exactly matches the decrypted string. This input isn't of
+            // a length that is a multiple of block size or key size, so this would have required
+            // manual padding in the past. The decrypted string shouldn't have any padding now.
+            Assert.AreEqual(str, decrypted);
         }
     }
 }
