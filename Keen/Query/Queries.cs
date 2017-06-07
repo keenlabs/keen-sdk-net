@@ -52,7 +52,6 @@ namespace Keen.Core.Query
                 prjSettings.ReadKey : prjSettings.MasterKey;
         }
 
-
         private async Task<JObject> KeenWebApiRequest(string operation = "",
                                                       Dictionary<string, string> parms = null)
         {
@@ -67,15 +66,19 @@ namespace Keen.Core.Query
                                       select string.Format("{0}={1}",
                                                            p,
                                                            Uri.EscapeDataString(parms[p])));
+
             var url = string.Format("{0}{1}{2}",
                                     _queryRelativeUrl,
                                     string.IsNullOrWhiteSpace(operation) ? "" : "/" + operation,
                                     string.IsNullOrWhiteSpace(parmVals) ? "" : "?" + parmVals);
+
             var responseMsg = await _keenHttpClient.GetAsync(url, _key).ConfigureAwait(false);
+
             var responseString = await responseMsg
                                     .Content
                                     .ReadAsStringAsync()
                                     .ConfigureAwait(false);
+
             var response = JObject.Parse(responseString);
 
             // error checking, throw an exception with information from the json
@@ -91,7 +94,7 @@ namespace Keen.Core.Query
             return response;
         }
 
-        public async Task<IEnumerable<KeyValuePair<string,string>>> AvailableQueries()
+        public async Task<IEnumerable<KeyValuePair<string, string>>> AvailableQueries()
         {
             var reply = await KeenWebApiRequest().ConfigureAwait(false);
             return from j in reply.Children()
@@ -347,7 +350,7 @@ namespace Keen.Core.Query
 
             var reply = await KeenWebApiRequest(KeenConstants.QueryMultiAnalysis, parms).ConfigureAwait(false);
 
-            var result = new List<QueryGroupValue<IDictionary<string,string>>>();
+            var result = new List<QueryGroupValue<IDictionary<string, string>>>();
             foreach (JObject i in reply.Value<JArray>("result"))
             {
                 var d = new Dictionary<string, string>();

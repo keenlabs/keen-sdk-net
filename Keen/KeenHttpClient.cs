@@ -21,7 +21,7 @@ namespace Keen.Core
         private static readonly string AUTH_HEADER_KEY = "Authorization";
 
 
-        // We don't destroy this manually. Whatever code provides the HttpClient directly or via a
+        // We don't destroy this manually. Whatever code provides the HttpClient directly or via an
         // IHttpClientProvider should be sure to handle its lifetime.
         private readonly HttpClient _httpClient = null;
 
@@ -62,7 +62,7 @@ namespace Keen.Core
         {
             KeenHttpClient.RequireAuthKey(authKey);
 
-            HttpRequestMessage get = KeenHttpClient.NewGet(resource, authKey);
+            HttpRequestMessage get = CreateRequest(HttpMethod.Get, resource, authKey);
 
             return _httpClient.SendAsync(get);
         }
@@ -74,7 +74,7 @@ namespace Keen.Core
         /// Create and send a POST request with the given content to the given relative resource
         /// using the given key for authentication. 
         /// </summary>
-        /// <param name="resource">The relative resource to GET. Must be properly formatted as a
+        /// <param name="resource">The relative resource to POST. Must be properly formatted as a
         ///     relative Uri.</param>
         /// <param name="authKey">The key to use for authenticating this request.</param>
         /// <param name="content">The POST body to send.</param>
@@ -90,7 +90,7 @@ namespace Keen.Core
         /// Create and send a POST request with the given content to the given relative resource
         /// using the given key for authentication. 
         /// </summary>
-        /// <param name="resource">The relative resource to GET.</param>
+        /// <param name="resource">The relative resource to POST.</param>
         /// <param name="authKey">The key to use for authenticating this request.</param>
         /// <param name="content">The POST body to send.</param>
         /// <returns>>The response message.</returns>
@@ -117,7 +117,7 @@ namespace Keen.Core
                 contentStream.Headers.ContentType =
                     new MediaTypeHeaderValue(KeenHttpClient.JSON_CONTENT_TYPE);
 
-                HttpRequestMessage post = KeenHttpClient.NewPost(resource, authKey);
+                HttpRequestMessage post = CreateRequest(HttpMethod.Post, resource, authKey);
                 post.Content = contentStream;
 
                 return await _httpClient.SendAsync(post).ConfigureAwait(false);
@@ -159,24 +159,9 @@ namespace Keen.Core
         {
             KeenHttpClient.RequireAuthKey(authKey);
 
-            HttpRequestMessage delete = KeenHttpClient.NewDelete(resource, authKey);
+            HttpRequestMessage delete = CreateRequest(HttpMethod.Delete, resource, authKey);
 
             return _httpClient.SendAsync(delete);
-        }
-
-        private static HttpRequestMessage NewGet(Uri resource, string authKey)
-        {
-            return CreateRequest(HttpMethod.Get, resource, authKey);
-        }
-
-        private static HttpRequestMessage NewPost(Uri resource, string authKey)
-        {
-            return CreateRequest(HttpMethod.Post, resource, authKey);
-        }
-
-        private static HttpRequestMessage NewDelete(Uri resource, string authKey)
-        {
-            return CreateRequest(HttpMethod.Delete, resource, authKey);
         }
 
         private static HttpRequestMessage CreateRequest(HttpMethod verb,

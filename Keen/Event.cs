@@ -65,10 +65,12 @@ namespace Keen.Core
             var responseMsg = await _keenHttpClient
                 .GetAsync(_eventsRelativeUrl, _readKey)
                 .ConfigureAwait(continueOnCapturedContext: false);
+
             var responseString = await responseMsg
                 .Content
                 .ReadAsStringAsync()
                 .ConfigureAwait(continueOnCapturedContext: false);
+
             var response = JArray.Parse(responseString);
 
             // error checking, throw an exception with information from the json 
@@ -101,6 +103,7 @@ namespace Keen.Core
             var responseMsg = await _keenHttpClient
                 .PostAsync(_eventsRelativeUrl, _writeKey, content)
                 .ConfigureAwait(continueOnCapturedContext: false);
+
             var responseString = await responseMsg
                 .Content
                 .ReadAsStringAsync()

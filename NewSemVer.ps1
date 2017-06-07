@@ -75,10 +75,10 @@ if ($help -or ($version -notmatch "^$semVerPattern$")) {
 # Update the version for the .NET assemblies.
 Update-AssemblyVersionAttributes $version
 
-
 # Rebuild the solution to bake the new version into the assemblies. This is using the default
-# VS2015 location for MSBuild, so change it as appropriate.
-$msBuildExe = (${env:ProgramFiles(x86)}, 'MSBuild', '14.0', 'bin', 'msbuild.exe') `
+# VS2017 location for MSBuild, so change it as appropriate.
+# C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\MSBuild\15.0\Bin
+$msBuildExe = (${env:ProgramFiles(x86)}, 'Microsoft Visual Studio', '2017', 'Enterprise', 'MSBuild', '15.0', 'bin', 'msbuild.exe') `
     -join [IO.Path]::DirectorySeparatorChar
 'MSBuild EXE: ' + $msBuildExe
 

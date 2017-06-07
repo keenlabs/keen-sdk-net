@@ -14,7 +14,7 @@ namespace Keen.Core
     /// in the current version of the PCL and being a fairly heavyweight class, is that rapid 
     /// creation and releasing of owning instances like the KeenClient can still allow for the GC
     /// to aggressively clean up HttpClient instances. Recommended usage of KeenClient shouldn't
-    /// make this a common problem, but at some point this cache can evolved to be more intelligent
+    /// make this a common problem, but at some point this cache can evolve to be more intelligent
     /// about keeping instances alive deliberately.
     /// </summary>
     internal class HttpClientCache : IHttpClientProvider
