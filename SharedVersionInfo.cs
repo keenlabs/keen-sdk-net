@@ -21,6 +21,6 @@ using System.Reflection;
 [assembly: AssemblyInformationalVersion("0.3.16")]
 
 // AssemblyFileVersion can and should differ in each assembly if we get into a situation where
-// a given assembly needs to be rebuilt and we'd like to track that separatetly, but we don't
+// a given assembly needs to be rebuilt and we'd like to track that separately, but we don't
 // intend to bump the SDK version nor the NuGet version. Leave it here until then.
 [assembly: AssemblyFileVersion("0.3.16")]
