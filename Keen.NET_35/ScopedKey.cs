@@ -1,9 +1,11 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
-using System.Linq;
-using System.Text;
-using System.Security.Cryptography;
 using System.IO;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+
 
 namespace Keen.NET_35
 {
@@ -17,6 +19,7 @@ namespace Keen.NET_35
         private static readonly int KeySizeLong = 64;
         private static readonly int IVHexSize = 32;
 
+
         /// <summary>
         /// Encrypt an object containing security options to create a scoped key.
         /// </summary>
@@ -24,9 +27,9 @@ namespace Keen.NET_35
         /// <param name="secOptions">An object that can be serialized to produce JSON formatted Security Options</param>
         /// <param name="IV">Optional IV, normally not required</param>
         /// <returns></returns>
-        public static string Encrypt(string apiKey, object secOptions, string IV = "")
+        public static string Encrypt(string apiKey, object secOptions, string IV = null)
         {
-            var secOptionsJson = JObject.FromObject(secOptions ?? new object()).ToString();
+            var secOptionsJson = JObject.FromObject(secOptions ?? new object()).ToString(Formatting.None);
 
             return EncryptString( apiKey, secOptionsJson, IV);
         }
@@ -38,18 +41,15 @@ namespace Keen.NET_35
         /// <param name="secOptions">Security Options in JSON format</param>
         /// <param name="IV">Optional IV, normally not required</param>
         /// <returns>Hex-encoded scoped key</returns>
-        public static string EncryptString(string apiKey, string secOptions, string IV = "")
+        public static string EncryptString(string apiKey, string secOptions, string IV = null)
         {
             try
             {
-                if (!(IV.Length == 0 || IV.Length == IVHexSize))
+                if (!(null == IV || IV.Length == IVHexSize))
                     throw new KeenException(string.Format("Hex-encoded IV must be exactly {0} bytes, got {1}", IVHexSize, IV.Length));
 
+                IV = IV ?? "";
                 secOptions = secOptions ?? "";
-
-                // Pad the plaintext to a multiple of the key size
-                var padSize = KeySizeShort - (secOptions.Length % KeySizeShort);
-                secOptions = secOptions + Encoding.UTF8.GetString(Enumerable.Repeat((byte)padSize, padSize).ToArray());
 
                 using (var aesAlg = GetAes(ConvertKey(apiKey), IV))
                 using (var encryptor = aesAlg.CreateEncryptor())
@@ -91,7 +91,7 @@ namespace Keen.NET_35
                 using (var msCrypt = new MemoryStream(HexToByte(cryptHex)))
                 using (var csCrypt = new CryptoStream(msCrypt, decryptor, CryptoStreamMode.Read))
                 using (var srCrypt = new StreamReader(csCrypt))
-                    return RemovePadding(srCrypt.ReadToEnd());
+                    return srCrypt.ReadToEnd();
             }
             catch (Exception ex)
             {
@@ -130,22 +130,13 @@ namespace Keen.NET_35
             var aesAlg = AesCryptoServiceProvider.Create();
             aesAlg.KeySize = KeySizeShort * 8; // key size in bits
             aesAlg.Mode = CipherMode.CBC;
-            aesAlg.Padding = PaddingMode.None;
+            aesAlg.Padding = PaddingMode.PKCS7;
             aesAlg.Key = Key;
-            if (IV != "")
-                aesAlg.IV = HexToByte(IV);
-            return aesAlg;
-        }
 
-        /// <summary>
-        /// Remove PKCS5/7 padding
-        /// </summary>
-        private static string RemovePadding(string text)
-        {
-            byte padSize = Convert.ToByte(text.Last());
-            if (padSize <= KeySizeShort)
-                text = text.Substring(0, text.Length - padSize);
-            return text;
+            if (!string.IsNullOrEmpty(IV))
+                aesAlg.IV = HexToByte(IV);
+
+            return aesAlg;
         }
 
         private static string ByteToHex(byte[] a)
@@ -161,11 +152,10 @@ namespace Keen.NET_35
             Func<int,int> hexMap = (h) => h - (h < 58 ? 48 : (h < 97 ? 55 : 87));
 
             var result = new byte[hex.Length >> 1];
-            for (int i = 0; i < hex.Length >> 1; ++i)
+            for (int i = 0; i < (hex.Length >> 1); ++i)
                 result[i] = (byte)((hexMap(hex[i << 1]) << 4) + (hexMap(hex[(i << 1) + 1])));
 
             return result;
         }
-
     }
 }
