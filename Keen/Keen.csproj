@@ -50,7 +50,6 @@
     <Compile Include="KeenHttpClientFactory.cs" />
     <Compile Include="KeenHttpClientProvider.cs" />
     <Compile Include="Query\FunnelResult.cs" />
-    <Compile Include="Query\FunnelResultActors.cs" />
     <Compile Include="Query\FunnelResultStep.cs" />
     <Compile Include="Query\FunnelStep.cs" />
     <Compile Include="IKeenHttpClientProvider.cs" />
@@ -62,8 +61,9 @@
     <Compile Include="Query\QueryIntervalValue.cs" />
     <Compile Include="Query\QueryRelativeTimeframe.cs" />
     <Compile Include="Query\QueryAbsoluteTimeframe.cs" />
-    <Compile Include="Query\QueryTimeframe.cs" />
+    <Compile Include="Query\IQueryTimeframe.cs" />
     <Compile Include="Query\QueryType.cs" />
+    <Compile Include="Query\TimeframeConverter.cs" />
     <None Include="app.config" />
     <Compile Include="CachedEvent.cs" />
     <Compile Include="DynamicPropertyValue.cs" />

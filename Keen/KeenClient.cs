@@ -535,7 +535,7 @@ namespace Keen.Core
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
         public async Task<string> QueryAsync(QueryType queryType, string collection, string targetProperty,
-            QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+            IQueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
             return
                 await
@@ -554,7 +554,7 @@ namespace Keen.Core
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
         public string Query(QueryType queryType, string collection, string targetProperty,
-            QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
+            IQueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
             try
             {
@@ -578,7 +578,7 @@ namespace Keen.Core
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
         public async Task<IEnumerable<QueryGroupValue<string>>> QueryGroupAsync(QueryType queryType, string collection,
-            string targetProperty, string groupBy, QueryTimeframe timeframe = null,
+            string targetProperty, string groupBy, IQueryTimeframe timeframe = null,
             IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
             return
@@ -599,7 +599,7 @@ namespace Keen.Core
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
         public IEnumerable<QueryGroupValue<string>> QueryGroup(QueryType queryType, string collection,
-            string targetProperty, string groupBy, QueryTimeframe timeframe = null,
+            string targetProperty, string groupBy, IQueryTimeframe timeframe = null,
             IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
             try
@@ -625,7 +625,7 @@ namespace Keen.Core
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
         public async Task<IEnumerable<QueryIntervalValue<string>>> QueryIntervalAsync(QueryType queryType,
-            string collection, string targetProperty, QueryTimeframe timeframe, QueryInterval interval = null,
+            string collection, string targetProperty, IQueryTimeframe timeframe, QueryInterval interval = null,
             IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
             return
@@ -646,7 +646,7 @@ namespace Keen.Core
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
         public IEnumerable<QueryIntervalValue<string>> QueryInterval(QueryType queryType, string collection,
-            string targetProperty, QueryTimeframe timeframe, QueryInterval interval = null,
+            string targetProperty, IQueryTimeframe timeframe, QueryInterval interval = null,
             IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
             try
@@ -674,7 +674,7 @@ namespace Keen.Core
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
         public async Task<IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>>> QueryIntervalGroupAsync
-            (QueryType queryType, string collection, string targetProperty, string groupBy, QueryTimeframe timeframe,
+            (QueryType queryType, string collection, string targetProperty, string groupBy, IQueryTimeframe timeframe,
                 QueryInterval interval, IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
             return
@@ -696,7 +696,7 @@ namespace Keen.Core
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
         public IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>> QueryIntervalGroup(
-            QueryType queryType, string collection, string targetProperty, string groupBy, QueryTimeframe timeframe,
+            QueryType queryType, string collection, string targetProperty, string groupBy, IQueryTimeframe timeframe,
             QueryInterval interval, IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
             try
@@ -721,7 +721,7 @@ namespace Keen.Core
         /// <param name="email">If specified, email will be sent when the data is ready for download. Otherwise, it will be returned directly.</param>
         /// <returns></returns>
         public async Task<IEnumerable<dynamic>> QueryExtractResourceAsync(string collection,
-            QueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, int latest = 0, string email = "")
+            IQueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, int latest = 0, string email = "")
         {
             return await Queries.Extract(collection, timeframe, filters, latest, email).ConfigureAwait(false);
         }
@@ -735,7 +735,7 @@ namespace Keen.Core
         /// <param name="latest">Request up to 100 of the most recent events added to a given collection.</param>
         /// <param name="email">If specified, email will be sent when the data is ready for download. Otherwise, it will be returned directly.</param>
         /// <returns></returns>
-        public IEnumerable<dynamic> QueryExtractResource(string collection, QueryTimeframe timeframe = null,
+        public IEnumerable<dynamic> QueryExtractResource(string collection, IQueryTimeframe timeframe = null,
             IEnumerable<QueryFilter> filters = null, int latest = 0, string email = "")
         {
             try
@@ -756,7 +756,7 @@ namespace Keen.Core
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
         public async Task<FunnelResult> QueryFunnelAsync(IEnumerable<FunnelStep> steps,
-            QueryTimeframe timeframe = null, string timezone = "")
+            IQueryTimeframe timeframe = null, string timezone = "")
         {
             return await Queries.Funnel(steps, timeframe, timezone).ConfigureAwait(false);
         }
@@ -769,7 +769,7 @@ namespace Keen.Core
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
         public FunnelResult QueryFunnel(IEnumerable<FunnelStep> steps,
-            QueryTimeframe timeframe = null, string timezone = "")
+            IQueryTimeframe timeframe = null, string timezone = "")
         {
             try
             {
@@ -791,7 +791,7 @@ namespace Keen.Core
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
         public async Task<IDictionary<string, string>> QueryMultiAnalysisAsync(string collection,
-            IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null,
+            IEnumerable<MultiAnalysisParam> analysisParams, IQueryTimeframe timeframe = null,
             IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
             return
@@ -810,7 +810,7 @@ namespace Keen.Core
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
         public IDictionary<string, string> QueryMultiAnalysis(string collection,
-            IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null,
+            IEnumerable<MultiAnalysisParam> analysisParams, IQueryTimeframe timeframe = null,
             IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
             try
@@ -835,7 +835,7 @@ namespace Keen.Core
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
         public async Task<IEnumerable<QueryGroupValue<IDictionary<string, string>>>> QueryMultiAnalysisGroupAsync(
-            string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null,
+            string collection, IEnumerable<MultiAnalysisParam> analysisParams, IQueryTimeframe timeframe = null,
             IEnumerable<QueryFilter> filters = null, string groupBy = "", string timezone = "")
         {
             return
@@ -856,7 +856,7 @@ namespace Keen.Core
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
         public IEnumerable<QueryGroupValue<IDictionary<string, string>>> QueryMultiAnalysisGroup(string collection,
-            IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null,
+            IEnumerable<MultiAnalysisParam> analysisParams, IQueryTimeframe timeframe = null,
             IEnumerable<QueryFilter> filters = null, string groupBy = "", string timezone = "")
         {
             try
@@ -883,7 +883,7 @@ namespace Keen.Core
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
         public async Task<IEnumerable<QueryIntervalValue<IDictionary<string, string>>>> QueryMultiAnalysisIntervalAsync(
-            string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null,
+            string collection, IEnumerable<MultiAnalysisParam> analysisParams, IQueryTimeframe timeframe = null,
             QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
             return
@@ -904,7 +904,7 @@ namespace Keen.Core
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
         public IEnumerable<QueryIntervalValue<IDictionary<string, string>>> QueryMultiAnalysisInterval(
-            string collection, IEnumerable<MultiAnalysisParam> analysisParams, QueryTimeframe timeframe = null,
+            string collection, IEnumerable<MultiAnalysisParam> analysisParams, IQueryTimeframe timeframe = null,
             QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
             try
@@ -933,7 +933,7 @@ namespace Keen.Core
         /// <returns></returns>
         public async Task<IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<IDictionary<string, string>>>>>>
             QueryMultiAnalysisIntervalGroupAsync(string collection, IEnumerable<MultiAnalysisParam> analysisParams,
-                QueryTimeframe timeframe = null, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null,
+                IQueryTimeframe timeframe = null, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null,
                 string groupBy = "", string timezone = "")
         {
             return
@@ -956,7 +956,7 @@ namespace Keen.Core
         /// <returns></returns>
         public IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<IDictionary<string, string>>>>>
             QueryMultiAnalysisIntervalGroup(string collection, IEnumerable<MultiAnalysisParam> analysisParams,
-                QueryTimeframe timeframe = null, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null,
+                IQueryTimeframe timeframe = null, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null,
                 string groupBy = "", string timezone = "")
         {
             try

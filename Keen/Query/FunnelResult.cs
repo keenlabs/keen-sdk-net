@@ -1,8 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Newtonsoft.Json;
+
 
 namespace Keen.Core.Query
 {
@@ -16,6 +14,5 @@ namespace Keen.Core.Query
 
         [JsonProperty(PropertyName = "result", NullValueHandling = NullValueHandling.Ignore)]
         public IEnumerable<int> Result{ get; set; }
-
     }
 }

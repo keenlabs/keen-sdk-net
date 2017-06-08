@@ -129,7 +129,7 @@ namespace Keen.Core.Query
         /// <summary>
         /// The filter operator to use
         /// </summary>
-        [JsonProperty( PropertyName = "operator")]
+        [JsonProperty(PropertyName = "operator")]
         public FilterOperator Operator { get; set; }
 
         /// <summary>
