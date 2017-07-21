@@ -1,4 +1,4 @@
-keen-sdk-net
+keen-sdk-net /// Welcome #dotnetsummer friends!
 ============
 
 Overview
@@ -325,5 +325,3 @@ var scopedKey = ScopedKey.Encrypt(masterKey, (object)options);
 var decrypted = ScopedKey.Decrypt(masterKey, scopedKey);
 var decryptedOptions = JObject.Parse(decrypted);
 ```
-
-![](https://api.keen.io/3.0/projects/53ab58b636bca435e4000000/events/net_sdk_pageview?api_key=52528e758bfe93bc61c3207e412ab004563518c07d5c936799682d0a71f05be920d7a2d99e2ec31ccebe008249d7daffcb821de5e272aac0580d0eeeebb7e76743ec33e09824607a6329749521db62d1de6379f5a60d6bfe26dfcfde5e23d14f2c47fc1528624df4d8b1e375436f8c76&data=ew0KInVybCI6Imh0dHBzOi8vZ2l0aHViLmNvbS9rZWVubGFicy9rZWVuLXNkay1uZXQiLA0KIm9yZ19uYW1lIjoia2VlbmxhYnMiLA0KInJlcG9fbmFtZSI6ImtlZW4tc2RrLW5ldCINCn0)
