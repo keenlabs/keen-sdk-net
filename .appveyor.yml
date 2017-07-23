@@ -7,10 +7,13 @@ version: 1.0.{build}-{branch}
 
 skip_tags: true
 
-# branches to build
-branches:
-  only:
-    - /jm_.*/
+# branches to build, in case we want to whitelist or blacklist some
+#branches:
+#  only:
+#    - /jm_.*/
+
+# We'll probably want to filter branches and also have branch-conditional configs,
+# at which point, look here: https://www.appveyor.com/docs/branches/
 
 # skip commits with a commit message matching this regex
 # note that [skip ci] and [skip appveyor] should work anyway
@@ -21,16 +24,19 @@ branches:
 #---------------------------------#
 #    environment configuration    #
 #---------------------------------#
+
 image:
 - Visual Studio 2015
 - Visual Studio 2017
 
-# scripts that are called at very beginning, before repo cloning
+# scripts that are called at the very beginning, before repo cloning
 init:
   - git config --global core.autocrlf true
 
-# Limit the number of revisions in the history
-clone_depth: 1
+# Limit the number of revisions in the history and download as .zip file. Technically
+# these seem to be mutually exclusive.
+shallow_clone: true
+clone_depth: 5
 
 nuget:  
   disable_publish_on_pr: true
@@ -42,7 +48,7 @@ environment:
 # scripts that run after cloning repository
 install:
   # by default, all script lines are interpreted as batch
-  - echo This is batch
+  #- echo This is batch
 
 matrix:
   fast_finish: true
@@ -74,3 +80,33 @@ after_test:
   - nuget install coveralls.net -Version 0.8.0-unstable0013 -PreRelease -OutputDirectory tools
   - .\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:nunit3-console.exe -targetargs:"--noheader .\Keen.NET.Test\bin\Release\Keen.Net.Test.dll .\Keen.NET_35.Test\bin\Release\Keen.NET_35.Test.dll" -filter:"+[*]* -[*.Test]*" -register:user
   - .\tools\coveralls.net.0.8.0-unstable0013\tools\csmacnz.Coveralls.exe --opencover -i .\results.xml
+
+
+#---------------------------------#
+#         notifications           #
+#---------------------------------#
+
+# We should consider adding some notifications, e.g.:
+
+#notifications:
+
+  # Email
+#  - provider: Email
+#    to:
+#      - user1@email.com
+#      - user2@email.com
+#    subject: 'Build {{status}}'                  # optional
+#    message: "{{message}}, {{commitId}}, ..."    # optional
+#    on_build_status_changed: true
+
+  # Slack
+#  - provider: Slack
+#    incoming_webhook: http://incoming-webhook-url
+
+  # ...or using auth token
+
+#  - provider: Slack
+#    auth_token:
+#      secure: kBl9BlxvRMr9liHmnBs14A==
+#    channel: development
+#    template: "{message}, {commitId}, ..."
