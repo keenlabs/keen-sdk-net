@@ -4,7 +4,7 @@ If you're here for the #dotnetsummer hackfest, please work out of [this branch](
 keen-sdk-net
 ============
 
-[![Build status](https://ci.appveyor.com/api/projects/status/sxkqpvmlxto07y4r?svg=true)](https://ci.appveyor.com/project/masojus/keen-sdk-net)
+[![Build status](https://ci.appveyor.com/api/projects/status/sxkqpvmlxto07y4r/branch/jm_AppVeyorCI?svg=true)](https://ci.appveyor.com/project/masojus/keen-sdk-net/branch/jm_AppVeyorCI)[![Coverage Status](https://coveralls.io/repos/github/keenlabs/keen-sdk-net/badge.svg?branch=jm_AppVeyorCI)](https://coveralls.io/github/keenlabs/keen-sdk-net?branch=jm_AppVeyorCI)
 
 Overview
 -----

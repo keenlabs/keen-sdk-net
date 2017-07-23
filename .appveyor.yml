@@ -37,7 +37,7 @@ nuget:
 
 environment:
   COVERALLS_REPO_TOKEN:
-    secure: <blah>
+    secure: x5HXnLkYkCzK7mWUW6O8QjNAaYNySKhI2Q20oah9i5mvnTk4U8jLJZnVb9MSxx0a
 
 # scripts that run after cloning repository
 install:
