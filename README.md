@@ -4,6 +4,8 @@ If you're here for the #dotnetsummer hackfest, please work out of [this branch](
 keen-sdk-net
 ============
 
+[![Build status](https://ci.appveyor.com/api/projects/status/sxkqpvmlxto07y4r?svg=true)](https://ci.appveyor.com/project/masojus/keen-sdk-net)
+
 Overview
 -----
 
