@@ -1,9 +1,9 @@
 keen-sdk-net /// Welcome #dotnetsummer friends!
 ============
 
-In addition to this README, please look at the [#dotnetsummer contributing guide](./DOT_NET_SUMMER_CONTRIBUTING.md).
-
 [![Build status](https://ci.appveyor.com/api/projects/status/sxkqpvmlxto07y4r/branch/master?svg=true)](https://ci.appveyor.com/project/masojus/keen-sdk-net/branch/master) [![Coverage Status](https://coveralls.io/repos/github/keenlabs/keen-sdk-net/badge.svg?branch=master)](https://coveralls.io/github/keenlabs/keen-sdk-net?branch=master) [![NuGet](http://img.shields.io/nuget/v/KeenClient.svg)](https://www.nuget.org/packages/KeenClient/)
+
+In addition to this README, please look at the [#dotnetsummer contributing guide](./DOT_NET_SUMMER_CONTRIBUTING.md).
 
 Overview
 -----
