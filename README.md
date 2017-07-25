@@ -1,6 +1,8 @@
 keen-sdk-net /// Welcome #dotnetsummer friends!
 ============
 
+In addition to this README, please look at the [#dotnetsummer contributing guide](./DOT_NET_SUMMER_CONTRIBUTING.md).
+
 Overview
 -----
 
