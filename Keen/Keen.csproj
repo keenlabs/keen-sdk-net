@@ -42,6 +42,7 @@
     <Compile Include="..\SharedVersionInfo.cs">
       <Link>Properties\SharedVersionInfo.cs</Link>
     </Compile>
+    <Compile Include="ContractResolvers\SnakeCaseContractResolver.cs" />
     <Compile Include="DataEnrichment\EventAddOn.cs" />
     <Compile Include="HttpClientCache.cs" />
     <Compile Include="IHttpClientProvider.cs" />
