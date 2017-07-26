@@ -61,6 +61,7 @@
     <Compile Include="IKeenHttpClientProvider.cs" />
     <Compile Include="Query\MultiAnalysisParam.cs" />
     <Compile Include="Query\Queries.cs" />
+    <Compile Include="Query\QueryDefinition.cs" />
     <Compile Include="Query\QueryFilter.cs" />
     <Compile Include="Query\QueryGroupValue.cs" />
     <Compile Include="Query\QueryInterval.cs" />
