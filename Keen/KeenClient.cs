@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 
 namespace Keen.Core
 {
+    using Dataset;
+
     /// <summary>
     /// Keen.IO API access
     /// </summary>
@@ -47,6 +49,8 @@ namespace Keen.Core
         /// The default implementation can be overridden by setting a new implementation here.
         /// </summary>
         public IQueries Queries { get; set; }
+
+        public IDataset Datasets { get; set; }
 
         /// <summary>
         /// Add a static global property. This property will be added to
@@ -116,6 +120,7 @@ namespace Keen.Core
             EventCollection = new EventCollection(_prjSettings, keenHttpClientProvider);
             Event = new Event(_prjSettings, keenHttpClientProvider);
             Queries = new Queries(_prjSettings, keenHttpClientProvider);
+            Datasets = new Datasets(_prjSettings, keenHttpClientProvider);
         }
 
         /// <summary>
@@ -964,6 +969,40 @@ namespace Keen.Core
                 return
                     QueryMultiAnalysisIntervalGroupAsync(collection, analysisParams, timeframe, interval, filters,
                         groupBy, timezone).Result;
+            }
+            catch (AggregateException ex)
+            {
+                throw ex.TryUnwrap();
+            }
+        }
+
+        public async Task<JToken> QueryDatasetAsync(string datasetName, string indexBy, string timeframe)
+        {
+            return await Datasets.Results(datasetName, indexBy, timeframe);
+        }
+
+        public JToken QueryDataset(string datasetName, string indexBy, string timeframe)
+        {
+            try
+            {
+                return QueryDatasetAsync(datasetName, indexBy, timeframe).Result;
+            }
+            catch (AggregateException ex)
+            {
+                throw ex.TryUnwrap();
+            }
+        }
+
+        public async Task<DatasetDefinition> GetDatasetDefinitionAsync(string datasetName)
+        {
+            return await Datasets.Definition(datasetName);
+        }
+
+        public DatasetDefinition GetDatasetDefinition(string datasetName)
+        {
+            try
+            {
+                return GetDatasetDefinitionAsync(datasetName).Result;
             }
             catch (AggregateException ex)
             {
