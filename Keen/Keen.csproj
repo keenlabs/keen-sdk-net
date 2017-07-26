@@ -43,6 +43,11 @@
       <Link>Properties\SharedVersionInfo.cs</Link>
     </Compile>
     <Compile Include="ContractResolvers\SnakeCaseContractResolver.cs" />
+    <Compile Include="Dataset\Dataset.cs" />
+    <Compile Include="Dataset\DatasetMetadata.cs" />
+    <Compile Include="Dataset\DatasetRequest.cs" />
+    <Compile Include="Dataset\DatasetResults.cs" />
+    <Compile Include="Dataset\Datasets.cs" />
     <Compile Include="DataEnrichment\EventAddOn.cs" />
     <Compile Include="HttpClientCache.cs" />
     <Compile Include="IHttpClientProvider.cs" />
