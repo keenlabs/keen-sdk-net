@@ -41,6 +41,7 @@ nuget:
   disable_publish_on_pr: true
 
 environment:
+  CLI_VERSION: 2.0.0-preview2-006497
   COVERALLS_REPO_TOKEN:
     secure: x5HXnLkYkCzK7mWUW6O8QjNAaYNySKhI2Q20oah9i5mvnTk4U8jLJZnVb9MSxx0a
 
