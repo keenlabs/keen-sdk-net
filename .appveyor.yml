@@ -26,7 +26,6 @@ skip_tags: true
 #---------------------------------#
 
 image:
-- Visual Studio 2015
 - Visual Studio 2017
 
 # scripts that are called at the very beginning, before repo cloning
@@ -75,11 +74,11 @@ before_build:
 #---------------------------------#
 
 # Install tools needed for Code Coverage, run instrumented tests, and report coverage numbers
-after_test:
+test_script:
   - nuget install OpenCover -Version 4.6.519 -OutputDirectory tools
   - nuget install coveralls.net -Version 0.8.0-unstable0013 -PreRelease -OutputDirectory tools
-  - .\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:nunit3-console.exe -targetargs:"--noheader .\Keen.NET.Test\bin\Release\Keen.Net.Test.dll .\Keen.NET_35.Test\bin\Release\Keen.NET_35.Test.dll" -filter:"+[*]* -[*.Test]*" -register:user
-  - if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2017" ( .\tools\coveralls.net.0.8.0-unstable0013\tools\csmacnz.Coveralls.exe --opencover -i .\results.xml )
+  - .\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:nunit3-console.exe -targetargs:"--noheader .\Keen.NET.Test\bin\Release\Keen.Net.Test.dll .\Keen.NET_35.Test\bin\Release\Keen.NET_35.Test.dll --result=results.xml;format=AppVeyor" -filter:"+[*]* -[*.Test]*" -register:user
+  - .\tools\coveralls.net.0.8.0-unstable0013\tools\csmacnz.Coveralls.exe --opencover -i .\results.xml
 
 
 #---------------------------------#
