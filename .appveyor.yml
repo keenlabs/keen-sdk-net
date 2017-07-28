@@ -63,7 +63,8 @@ matrix:
 #       build configuration       #
 #---------------------------------#
 
-configuration: Release
+configuration:
+  - Release
 
 build:
   parallel: true
@@ -75,6 +76,11 @@ before_build:
   # Make sure we have the right tools version
   - dotnet --version
   - nuget restore
+
+# scripts to run after build
+after_build:
+  # After the regular build, let's also build the netstandard project...for now.
+  - dotnet build -c netstandard
 
 
 #---------------------------------#
