@@ -238,7 +238,7 @@ namespace Keen.NetStandard
                 throw ex.TryUnwrap();
             }
         }
-        /*
+        
         /// <summary>
         /// Insert multiple events in a single request.
         /// </summary>
@@ -257,6 +257,7 @@ namespace Keen.NetStandard
             }
         }
 
+        
         /// <summary>
         /// Add a collection of events to the specified collection. Assumes that
         /// objects in the collection have already been through AddEvent to receive
@@ -321,7 +322,7 @@ namespace Keen.NetStandard
                     throw new KeenBulkException("One or more events was rejected during the bulk add operation", errs);
                 // ReSharper restore PossibleMultipleEnumeration
             }
-        }*/
+        }
 
         /// <summary>
         /// Add a single event to the specified collection.
