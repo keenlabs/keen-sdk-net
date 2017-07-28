@@ -321,7 +321,7 @@ namespace Keen.NetStandard
                     throw new KeenBulkException("One or more events was rejected during the bulk add operation", errs);
                 // ReSharper restore PossibleMultipleEnumeration
             }
-        }
+        }*/
 
         /// <summary>
         /// Add a single event to the specified collection.
@@ -348,7 +348,7 @@ namespace Keen.NetStandard
                 await EventCollection.AddEvent(collection, jEvent)
                     .ConfigureAwait(false);
         }
-
+        
         /// <summary>
         /// Convert a user-supplied object to a JObject that can be sent to the Keen.IO API.
         /// 
@@ -418,6 +418,7 @@ namespace Keen.NetStandard
             }
         }
 
+        /*
         /// <summary>
         /// Submit all events found in the event cache. If any events are rejected by the server,
         /// KeenCacheException will be thrown with a listing of the rejected events, each with
