@@ -72,6 +72,8 @@ build:
   verbosity: detailed
 
 before_build:
+  # Make sure we have the right tools version
+  - dotnet --version
   - nuget restore
 
 
