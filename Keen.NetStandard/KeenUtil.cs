@@ -37,7 +37,7 @@ namespace Keen.NetStandard
 
             try
             {
-                attribute = (AssemblyInformationalVersionAttribute)(Assembly.GetExecutingAssembly()
+                attribute = (AssemblyInformationalVersionAttribute)(typeof(KeenUtil).Assembly
                         .GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false)
                         .FirstOrDefault());
             }
