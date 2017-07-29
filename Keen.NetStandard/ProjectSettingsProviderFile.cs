@@ -66,11 +66,11 @@ namespace Keen.NetStandard
                 // http://www.newtonsoft.com/json/help/html/ReadJson.htm
                 JObject jsonProjectSettings = JObject.Parse(File.ReadAllText(filePath));
 
-                _fileKeenUrl = (string)jsonProjectSettings["KEEN_SERVER_URL"];
-                _fileProjectId = (string)jsonProjectSettings["KEEN_PROJECT_ID"];
-                _fileMasterKey = (string)jsonProjectSettings["KEEN_MASTER_KEY"];
-                _fileWriteKey = (string)jsonProjectSettings["KEEN_WRITE_KEY"];
-                _fileReadKey = (string)jsonProjectSettings["KEEN_READ_KEY"];
+                _fileKeenUrl = (string)jsonProjectSettings[KeenConstants.KeenServerUrl];
+                _fileProjectId = (string)jsonProjectSettings[KeenConstants.KeenProjectId];
+                _fileMasterKey = (string)jsonProjectSettings[KeenConstants.KeenMasterKey];
+                _fileWriteKey = (string)jsonProjectSettings[KeenConstants.KeenWriteKey];
+                _fileReadKey = (string)jsonProjectSettings[KeenConstants.KeenReadKey];
             }
             else
             {
