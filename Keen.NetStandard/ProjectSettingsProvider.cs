@@ -49,10 +49,6 @@ namespace Keen.NetStandard
             ReadKey = readKey;
         }
 
-        protected ProjectSettingsProvider()
-        {
-        }
-
         public override string ToString()
         {
             return string.Format("ProjectSettingsProviderEnv:{{\nKeenUrl:{0}; \nProjectId:{1}; \nMasterKey:{2}; \nWriteKey:{3}; \nReadKey:{4};\n}}",
