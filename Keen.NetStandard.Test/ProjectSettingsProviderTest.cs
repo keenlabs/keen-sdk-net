@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NUnit.Framework;
+﻿using NUnit.Framework;
+
 
 namespace Keen.NetStandard.Tests
 {
@@ -11,15 +9,13 @@ namespace Keen.NetStandard.Tests
         [Test]
         public void Settings_DefaultInputs_Success()
         {
-            Assert.DoesNotThrow(() => new ProjectSettingsProvider("X",null));
+            Assert.DoesNotThrow(() => new ProjectSettingsProvider("X", null));
         }
+
         [Test]
         public void Settings_AllNull_Success()
         {
             Assert.DoesNotThrow(() => new ProjectSettingsProvider(null));
         }
-
-
-
     }
 }
