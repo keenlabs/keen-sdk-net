@@ -419,7 +419,6 @@ namespace Keen.NetStandard
             }
         }
 
-        /*
         /// <summary>
         /// Submit all events found in the event cache. If any events are rejected by the server,
         /// KeenCacheException will be thrown with a listing of the rejected events, each with
@@ -487,6 +486,7 @@ namespace Keen.NetStandard
                 throw new KeenBulkException("One or more cached events could not be submitted", failedEvents);
         }
 
+        /*
         /// <summary>
         /// Retrieve a list of all the queries supported by the API.
         /// </summary>
