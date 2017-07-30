@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26724.1
+VisualStudioVersion = 15.0.26621.2
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keen", "Keen\Keen.csproj", "{36D156BF-8523-42EC-9AD6-7C3AC05D699F}"
 EndProject
@@ -20,6 +20,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Keen.NetStandard", "Keen.NetStandard\Keen.NetStandard.csproj", "{711F4331-198A-4919-ACA8-C2B303E045A8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Keen.NetStandard.Test", "Keen.NetStandard.Test\Keen.NetStandard.Test.csproj", "{DC84C790-A0B0-4D40-A835-8128177F8FA3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -58,6 +60,12 @@ Global
 		{711F4331-198A-4919-ACA8-C2B303E045A8}.netstandard|Any CPU.ActiveCfg = Release|Any CPU
 		{711F4331-198A-4919-ACA8-C2B303E045A8}.netstandard|Any CPU.Build.0 = Release|Any CPU
 		{711F4331-198A-4919-ACA8-C2B303E045A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC84C790-A0B0-4D40-A835-8128177F8FA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC84C790-A0B0-4D40-A835-8128177F8FA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC84C790-A0B0-4D40-A835-8128177F8FA3}.netstandard|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC84C790-A0B0-4D40-A835-8128177F8FA3}.netstandard|Any CPU.Build.0 = Debug|Any CPU
+		{DC84C790-A0B0-4D40-A835-8128177F8FA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC84C790-A0B0-4D40-A835-8128177F8FA3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
