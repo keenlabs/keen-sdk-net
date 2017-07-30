@@ -105,6 +105,12 @@ test_script:
   - .\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:nunit3-console.exe -targetargs:"--noheader .\Keen.NET.Test\bin\Release\Keen.Net.Test.dll .\Keen.NET_35.Test\bin\Release\Keen.NET_35.Test.dll --result=results.xml;format=AppVeyor" -filter:"+[*]* -[*.Test]*" -register:user
   - .\tools\coveralls.net.0.8.0-unstable0013\tools\csmacnz.Coveralls.exe --opencover -i .\results.xml
 
+  # While we're at it, run the netstandard-specific tests. We'll figure out code coverage for these later.
+  # This won't likely report to the AppVeyor UI since we aren't specifying the output file/format. We might
+  # need to directly use the console runner or wait for a new version of the NUnit 3 Test Adapter to support
+  # the same '--result=' option as above.
+  - dotnet test .\Keen.NetStandard.Test\Keen.NetStandard.Test.csproj
+
 
 #---------------------------------#
 #         notifications           #
