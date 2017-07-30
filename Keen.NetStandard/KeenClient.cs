@@ -238,7 +238,7 @@ namespace Keen.NetStandard
                 throw ex.TryUnwrap();
             }
         }
-        /*
+        
         /// <summary>
         /// Insert multiple events in a single request.
         /// </summary>
@@ -257,6 +257,7 @@ namespace Keen.NetStandard
             }
         }
 
+        
         /// <summary>
         /// Add a collection of events to the specified collection. Assumes that
         /// objects in the collection have already been through AddEvent to receive
@@ -348,7 +349,7 @@ namespace Keen.NetStandard
                 await EventCollection.AddEvent(collection, jEvent)
                     .ConfigureAwait(false);
         }
-
+        
         /// <summary>
         /// Convert a user-supplied object to a JObject that can be sent to the Keen.IO API.
         /// 
@@ -418,6 +419,7 @@ namespace Keen.NetStandard
             }
         }
 
+        /*
         /// <summary>
         /// Submit all events found in the event cache. If any events are rejected by the server,
         /// KeenCacheException will be thrown with a listing of the rejected events, each with
