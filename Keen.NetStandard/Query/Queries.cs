@@ -103,7 +103,7 @@ namespace Keen.NetStandard.Query
                    select new KeyValuePair<string, string>(p.Name, (string)p.Value);
         }
 
-        //#region metric
+        #region metric
 
         public async Task<JObject> Metric(string queryName, Dictionary<string,string> parms)
         {
@@ -141,8 +141,6 @@ namespace Keen.NetStandard.Query
                 result = reply.Value<string>("result");
             return result;
         }
-
-        /*
 
         public async Task<IEnumerable<QueryGroupValue<string>>> Metric(QueryType queryType, string collection, string targetProperty, string groupby, IQueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
@@ -441,8 +439,5 @@ namespace Keen.NetStandard.Query
             }
             return result;
         }
-
-        */
-
     }
 }

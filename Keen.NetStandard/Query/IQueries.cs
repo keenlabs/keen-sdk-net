@@ -16,8 +16,6 @@ namespace Keen.NetStandard.Query
 
         Task<string> Metric(QueryType queryType, string collection, string targetProperty, IQueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "");
 
-        /*
-
         Task<IEnumerable<QueryGroupValue<string>>> Metric(QueryType queryType, string collection, string targetProperty, string groupBy, IQueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "");
         Task<IEnumerable<QueryIntervalValue<string>>> Metric(QueryType queryType, string collection, string targetProperty, IQueryTimeframe timeframe, QueryInterval interval, IEnumerable<QueryFilter> filters = null, string timezone = "");
         Task<IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>>> Metric(QueryType queryType, string collection, string targetProperty, string groupBy, IQueryTimeframe timeframe, QueryInterval interval, IEnumerable<QueryFilter> filters = null, string timezone = "");
@@ -30,8 +28,5 @@ namespace Keen.NetStandard.Query
         Task<IEnumerable<dynamic>> Extract(string collection, IQueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, int latest = 0, string email = "");
 
         Task<FunnelResult> Funnel(IEnumerable<FunnelStep> steps, IQueryTimeframe timeframe = null, string timeZone = "" );
-
-        */
-
     }
 }

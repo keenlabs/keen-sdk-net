@@ -568,8 +568,6 @@ namespace Keen.NetStandard
             }
         }
 
-        /*
-
         /// <summary>
         /// Returns values collected by group.
         /// </summary>
@@ -973,6 +971,6 @@ namespace Keen.NetStandard
             {
                 throw ex.TryUnwrap();
             }
-        }*/
+        }
     }
 }
