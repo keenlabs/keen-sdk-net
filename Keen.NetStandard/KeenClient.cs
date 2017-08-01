@@ -1,6 +1,6 @@
 ﻿using Keen.NetStandard.DataEnrichment;
-
 using Keen.NetStandard.EventCache;
+using Keen.NetStandard.Query;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -46,7 +46,7 @@ namespace Keen.NetStandard
         /// It is not normally necessary to use this property.
         /// The default implementation can be overridden by setting a new implementation here.
         /// </summary>
-        //public IQueries Queries { get; set; }
+        public IQueries Queries { get; set; }
 
         /// <summary>
         /// Add a static global property. This property will be added to
@@ -115,7 +115,7 @@ namespace Keen.NetStandard
             // implementation via their respective properties.
             EventCollection = new EventCollection(_prjSettings, keenHttpClientProvider);
             Event = new Event(_prjSettings, keenHttpClientProvider);
-            //Queries = new Queries(_prjSettings, keenHttpClientProvider);
+            Queries = new Queries(_prjSettings, keenHttpClientProvider);
         }
 
         /// <summary>
@@ -486,7 +486,7 @@ namespace Keen.NetStandard
                 throw new KeenBulkException("One or more cached events could not be submitted", failedEvents);
         }
 
-        /*
+        
         /// <summary>
         /// Retrieve a list of all the queries supported by the API.
         /// </summary>
@@ -567,6 +567,8 @@ namespace Keen.NetStandard
                 throw ex.TryUnwrap();
             }
         }
+
+        /*
 
         /// <summary>
         /// Returns values collected by group.
