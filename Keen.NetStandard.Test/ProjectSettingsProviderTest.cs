@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using NUnit.Framework;
 
 
@@ -61,6 +62,38 @@ namespace Keen.NetStandard.Tests
             Assert.AreEqual(settings.MasterKey, masterKey, "Master key wasn't properly set");
             Assert.AreEqual(settings.WriteKey, writeKey, "Write key wasn't properly set");
             Assert.AreEqual(settings.ReadKey, readKey, "Read key wasn't properly set");
+        }
+
+        [Test]
+        public void SettingsProviderFile_InvalidFile_Throws()
+        {
+            var fp = Path.GetTempFileName();
+            try 
+            {
+                File.WriteAllText(fp, "X\nX");
+
+                Assert.Throws<KeenException>(() => new ProjectSettingsProviderFile(fp));
+            }
+            finally
+            {
+                File.Delete(fp);
+            }
+        }
+
+        [Test]
+        public void SettingsProviderFile_ValidFile_Success()
+        {
+            var fp = Path.GetTempFileName();
+            try
+            {
+                File.WriteAllText(fp, "X\nX\nX\nX");
+
+                Assert.DoesNotThrow(() => new ProjectSettingsProviderFile(fp));
+            }
+            finally
+            {
+                File.Delete(fp);
+            }
         }
     }
 }
