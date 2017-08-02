@@ -42,5 +42,25 @@ namespace Keen.NetStandard.Tests
             var settings = new ProjectSettingsProviderEnv();
             Assert.DoesNotThrow(() => new KeenClient(settings));
         }
+
+        [Test]
+        public void SettingsProviderEnv_VarsSet_SettingsAreCorrect()
+        {
+            var projectId = "projectId";
+            var masterKey = "masterKey";
+            var writeKey = "writeKey";
+            var readKey = "readKey";
+
+            Environment.SetEnvironmentVariable(KeenConstants.KeenProjectId, projectId);
+            Environment.SetEnvironmentVariable(KeenConstants.KeenMasterKey, masterKey);
+            Environment.SetEnvironmentVariable(KeenConstants.KeenWriteKey, writeKey);
+            Environment.SetEnvironmentVariable(KeenConstants.KeenReadKey, readKey);
+
+            var settings = new ProjectSettingsProviderEnv();
+            Assert.AreEqual(settings.ProjectId, projectId, "Project id wasn't properly set");
+            Assert.AreEqual(settings.MasterKey, masterKey, "Master key wasn't properly set");
+            Assert.AreEqual(settings.WriteKey, writeKey, "Write key wasn't properly set");
+            Assert.AreEqual(settings.ReadKey, readKey, "Read key wasn't properly set");
+        }
     }
 }
