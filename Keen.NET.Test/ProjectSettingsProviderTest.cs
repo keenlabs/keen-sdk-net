@@ -14,57 +14,59 @@ namespace Keen.Net.Test
     public class ProjectSettingsProviderTest
     {
         [Test]
+        public void Settings_DefaultInputs_Success()
+        {
+            Assert.DoesNotThrow(() => new ProjectSettingsProvider("X", null));
+        }
+
+        [Test]
+        public void Settings_AllNull_Success()
+        {
+            Assert.DoesNotThrow(() => new ProjectSettingsProvider(null));
+        }
+
+        [Test]
         public void SettingsProviderEnv_VarsNotSet_Throws()
         {
-            var ProjectId = Environment.GetEnvironmentVariable("KEEN_PROJECT_ID");
-            var MasterKey = Environment.GetEnvironmentVariable("KEEN_MASTER_KEY");
-            var WriteKey = Environment.GetEnvironmentVariable("KEEN_WRITE_KEY");
-            var ReadKey = Environment.GetEnvironmentVariable("KEEN_READ_KEY");
+            Environment.SetEnvironmentVariable(KeenConstants.KeenProjectId, null);
+            Environment.SetEnvironmentVariable(KeenConstants.KeenMasterKey, null);
+            Environment.SetEnvironmentVariable(KeenConstants.KeenWriteKey, null);
+            Environment.SetEnvironmentVariable(KeenConstants.KeenReadKey, null);
 
-            try
-            {
-                Environment.SetEnvironmentVariable("KEEN_PROJECT_ID", null);
-                Environment.SetEnvironmentVariable("KEEN_MASTER_KEY", null);
-                Environment.SetEnvironmentVariable("KEEN_WRITE_KEY", null);
-                Environment.SetEnvironmentVariable("KEEN_READ_KEY", null);
-
-                var settings = new ProjectSettingsProviderEnv();
-                Assert.Throws<KeenException>(() => new KeenClient(settings));
-            }
-            finally
-            {
-                Environment.SetEnvironmentVariable("KEEN_PROJECT_ID", ProjectId);
-                Environment.SetEnvironmentVariable("KEEN_MASTER_KEY", MasterKey);
-                Environment.SetEnvironmentVariable("KEEN_WRITE_KEY", WriteKey);
-                Environment.SetEnvironmentVariable("KEEN_READ_KEY", ReadKey);
-            }
+            var settings = new ProjectSettingsProviderEnv();
+            Assert.Throws<KeenException>(() => new KeenClient(settings));
         }
 
         [Test]
         public void SettingsProviderEnv_VarsSet_Success()
         {
-            var ProjectId = Environment.GetEnvironmentVariable("KEEN_PROJECT_ID");
-            var MasterKey = Environment.GetEnvironmentVariable("KEEN_MASTER_KEY");
-            var WriteKey = Environment.GetEnvironmentVariable("KEEN_WRITE_KEY");
-            var ReadKey = Environment.GetEnvironmentVariable("KEEN_READ_KEY");
+            Environment.SetEnvironmentVariable(KeenConstants.KeenProjectId, "X");
+            Environment.SetEnvironmentVariable(KeenConstants.KeenMasterKey, "X");
+            Environment.SetEnvironmentVariable(KeenConstants.KeenWriteKey, "X");
+            Environment.SetEnvironmentVariable(KeenConstants.KeenReadKey, "X");
 
-            try
-            {
-                Environment.SetEnvironmentVariable("KEEN_PROJECT_ID", "X");
-                Environment.SetEnvironmentVariable("KEEN_MASTER_KEY", "X");
-                Environment.SetEnvironmentVariable("KEEN_WRITE_KEY", "X");
-                Environment.SetEnvironmentVariable("KEEN_READ_KEY", "X");
+            var settings = new ProjectSettingsProviderEnv();
+            Assert.DoesNotThrow(() => new KeenClient(settings));
+        }
 
-                var settings = new ProjectSettingsProviderEnv();
-                Assert.DoesNotThrow(() => new KeenClient(settings));
-            }
-            finally
-            {
-                Environment.SetEnvironmentVariable("KEEN_PROJECT_ID", ProjectId);
-                Environment.SetEnvironmentVariable("KEEN_MASTER_KEY", MasterKey);
-                Environment.SetEnvironmentVariable("KEEN_WRITE_KEY", WriteKey);
-                Environment.SetEnvironmentVariable("KEEN_READ_KEY", ReadKey);
-            }
+        [Test]
+        public void SettingsProviderEnv_VarsSet_SettingsAreCorrect()
+        {
+            var projectId = "projectId";
+            var masterKey = "masterKey";
+            var writeKey = "writeKey";
+            var readKey = "readKey";
+
+            Environment.SetEnvironmentVariable(KeenConstants.KeenProjectId, projectId);
+            Environment.SetEnvironmentVariable(KeenConstants.KeenMasterKey, masterKey);
+            Environment.SetEnvironmentVariable(KeenConstants.KeenWriteKey, writeKey);
+            Environment.SetEnvironmentVariable(KeenConstants.KeenReadKey, readKey);
+
+            var settings = new ProjectSettingsProviderEnv();
+            Assert.AreEqual(settings.ProjectId, projectId, "Project id wasn't properly set");
+            Assert.AreEqual(settings.MasterKey, masterKey, "Master key wasn't properly set");
+            Assert.AreEqual(settings.WriteKey, writeKey, "Write key wasn't properly set");
+            Assert.AreEqual(settings.ReadKey, readKey, "Read key wasn't properly set");
         }
 
         [Test]
