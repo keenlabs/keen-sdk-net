@@ -71,6 +71,18 @@ namespace Keen.NetStandard
                 _fileMasterKey = (string)jsonProjectSettings[KeenConstants.KeenMasterKey];
                 _fileWriteKey = (string)jsonProjectSettings[KeenConstants.KeenWriteKey];
                 _fileReadKey = (string)jsonProjectSettings[KeenConstants.KeenReadKey];
+
+                if (string.IsNullOrWhiteSpace(_fileProjectId))
+                {
+                    throw new KeenException($"A value for the key {KeenConstants.KeenProjectId} must be provided.");
+                }
+
+                if (string.IsNullOrWhiteSpace(_fileMasterKey) && 
+                    string.IsNullOrWhiteSpace(_fileWriteKey) &&
+                    string.IsNullOrWhiteSpace(_fileReadKey))
+                {
+                    throw new KeenException($"A value for one of {KeenConstants.KeenReadKey}, {KeenConstants.KeenWriteKey}, or {KeenConstants.KeenMasterKey} must be provided.");
+                }
             }
             else
             {

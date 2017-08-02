@@ -1,7 +1,8 @@
 ﻿using System;
 using System.IO;
 using NUnit.Framework;
-
+using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace Keen.NetStandard.Tests
 {
@@ -93,6 +94,85 @@ namespace Keen.NetStandard.Tests
             finally
             {
                 File.Delete(fp);
+            }
+        }
+
+        [Test]
+        public void SettingsProviderFile_NoKey_Throws()
+        {
+            var fileName = Path.GetTempFileName();
+            try
+            {
+                File.WriteAllText(fileName, JsonConvert.SerializeObject(
+                    new Dictionary<string, string>
+                    {
+                        [KeenConstants.KeenProjectId] = "projectId"
+                    }
+                ));
+
+                Assert.Throws<KeenException>(() => new ProjectSettingsProviderFile(fileName, isJsonFile: true));
+            }
+            finally
+            {
+                File.Delete(fileName);
+            }
+        }
+
+        [Test]
+        public void SettingsProviderFile_ValidMinimalConfig_Success()
+        {
+            var fileName = Path.GetTempFileName();
+            try
+            {
+                File.WriteAllText(fileName, JsonConvert.SerializeObject(
+                    new Dictionary<string, string>
+                    {
+                        [KeenConstants.KeenProjectId] = "projectId",
+                        [KeenConstants.KeenReadKey] = "readKey"
+                    }
+                ));
+
+                Assert.DoesNotThrow(() => new ProjectSettingsProviderFile(fileName, isJsonFile: true));
+            }
+            finally
+            {
+                File.Delete(fileName);
+            }
+        }
+
+        [Test]
+        public void SettingsProviderFile_ConfigIsCorrect_Success()
+        {
+            var projectId = "projectId";
+            var readKey = "readKey";
+            var writeKey = "writeKey";
+            var masterKey = "masterKey";
+            var baseUrl = "baseUrl";
+
+            var fileName = Path.GetTempFileName();
+            try
+            {
+                File.WriteAllText(fileName, JsonConvert.SerializeObject(
+                    new Dictionary<string, string>
+                    {
+                        [KeenConstants.KeenProjectId] = projectId,
+                        [KeenConstants.KeenReadKey] = readKey,
+                        [KeenConstants.KeenWriteKey] = writeKey,
+                        [KeenConstants.KeenMasterKey] = masterKey,
+                        [KeenConstants.KeenServerUrl] = baseUrl
+                    }
+                ));
+
+                var settings = new ProjectSettingsProviderFile(fileName, isJsonFile: true);
+                Assert.AreEqual(settings.ProjectId, projectId);
+                Assert.AreEqual(settings.ReadKey, readKey);
+                Assert.AreEqual(settings.WriteKey, writeKey);
+                Assert.AreEqual(settings.MasterKey, masterKey);
+                Assert.AreEqual(settings.KeenUrl, baseUrl);
+            }
+            finally
+            {
+                File.Delete(fileName);
             }
         }
     }
