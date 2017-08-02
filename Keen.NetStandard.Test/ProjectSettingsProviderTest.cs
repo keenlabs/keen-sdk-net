@@ -22,54 +22,54 @@ namespace Keen.NetStandard.Tests
 		[Test]
 		public void SettingsProviderEnv_VarsNotSet_Throws()
 		{
-			var ProjectId = Environment.GetEnvironmentVariable("KEEN_PROJECT_ID");
-			var MasterKey = Environment.GetEnvironmentVariable("KEEN_MASTER_KEY");
-			var WriteKey = Environment.GetEnvironmentVariable("KEEN_WRITE_KEY");
-			var ReadKey = Environment.GetEnvironmentVariable("KEEN_READ_KEY");
+            var ProjectId = Environment.GetEnvironmentVariable(KeenConstants.KeenProjectId);
+			var MasterKey = Environment.GetEnvironmentVariable(KeenConstants.KeenMasterKey);
+			var WriteKey = Environment.GetEnvironmentVariable(KeenConstants.KeenWriteKey);
+			var ReadKey = Environment.GetEnvironmentVariable(KeenConstants.KeenReadKey);
 
 			try
 			{
-				Environment.SetEnvironmentVariable("KEEN_PROJECT_ID", null);
-				Environment.SetEnvironmentVariable("KEEN_MASTER_KEY", null);
-				Environment.SetEnvironmentVariable("KEEN_WRITE_KEY", null);
-				Environment.SetEnvironmentVariable("KEEN_READ_KEY", null);
+				Environment.SetEnvironmentVariable(KeenConstants.KeenProjectId, null);
+				Environment.SetEnvironmentVariable(KeenConstants.KeenMasterKey, null);
+				Environment.SetEnvironmentVariable(KeenConstants.KeenWriteKey, null);
+				Environment.SetEnvironmentVariable(KeenConstants.KeenReadKey, null);
 
 				var settings = new ProjectSettingsProviderEnv();
 				Assert.Throws<KeenException>(() => new KeenClient(settings));
 			}
 			finally
 			{
-				Environment.SetEnvironmentVariable("KEEN_PROJECT_ID", ProjectId);
-				Environment.SetEnvironmentVariable("KEEN_MASTER_KEY", MasterKey);
-				Environment.SetEnvironmentVariable("KEEN_WRITE_KEY", WriteKey);
-				Environment.SetEnvironmentVariable("KEEN_READ_KEY", ReadKey);
+				Environment.SetEnvironmentVariable(KeenConstants.KeenProjectId, ProjectId);
+				Environment.SetEnvironmentVariable(KeenConstants.KeenMasterKey, MasterKey);
+				Environment.SetEnvironmentVariable(KeenConstants.KeenWriteKey, WriteKey);
+				Environment.SetEnvironmentVariable(KeenConstants.KeenReadKey, ReadKey);
 			}
 		}
 
 		[Test]
 		public void SettingsProviderEnv_VarsSet_Success()
 		{
-			var ProjectId = Environment.GetEnvironmentVariable("KEEN_PROJECT_ID");
-			var MasterKey = Environment.GetEnvironmentVariable("KEEN_MASTER_KEY");
-			var WriteKey = Environment.GetEnvironmentVariable("KEEN_WRITE_KEY");
-			var ReadKey = Environment.GetEnvironmentVariable("KEEN_READ_KEY");
+			var ProjectId = Environment.GetEnvironmentVariable(KeenConstants.KeenProjectId);
+			var MasterKey = Environment.GetEnvironmentVariable(KeenConstants.KeenMasterKey);
+			var WriteKey = Environment.GetEnvironmentVariable(KeenConstants.KeenWriteKey);
+			var ReadKey = Environment.GetEnvironmentVariable(KeenConstants.KeenReadKey);
 
 			try
 			{
-				Environment.SetEnvironmentVariable("KEEN_PROJECT_ID", "X");
-				Environment.SetEnvironmentVariable("KEEN_MASTER_KEY", "X");
-				Environment.SetEnvironmentVariable("KEEN_WRITE_KEY", "X");
-				Environment.SetEnvironmentVariable("KEEN_READ_KEY", "X");
+				Environment.SetEnvironmentVariable(KeenConstants.KeenProjectId, "X");
+				Environment.SetEnvironmentVariable(KeenConstants.KeenMasterKey, "X");
+				Environment.SetEnvironmentVariable(KeenConstants.KeenWriteKey, "X");
+				Environment.SetEnvironmentVariable(KeenConstants.KeenReadKey, "X");
 
 				var settings = new ProjectSettingsProviderEnv();
 				Assert.DoesNotThrow(() => new KeenClient(settings));
 			}
 			finally
 			{
-				Environment.SetEnvironmentVariable("KEEN_PROJECT_ID", ProjectId);
-				Environment.SetEnvironmentVariable("KEEN_MASTER_KEY", MasterKey);
-				Environment.SetEnvironmentVariable("KEEN_WRITE_KEY", WriteKey);
-				Environment.SetEnvironmentVariable("KEEN_READ_KEY", ReadKey);
+				Environment.SetEnvironmentVariable(KeenConstants.KeenProjectId, ProjectId);
+				Environment.SetEnvironmentVariable(KeenConstants.KeenMasterKey, MasterKey);
+				Environment.SetEnvironmentVariable(KeenConstants.KeenWriteKey, WriteKey);
+				Environment.SetEnvironmentVariable(KeenConstants.KeenReadKey, ReadKey);
 			}
 		}
     }
