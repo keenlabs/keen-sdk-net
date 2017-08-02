@@ -75,7 +75,13 @@ namespace Keen.NetStandard
             else
             {
                 // TODO : Master key maybe should be de-emphasized and not be first.
-                var values = File.ReadLines(filePath).ToList();                
+                var values = File.ReadLines(filePath).ToList();
+
+                // TODO : This file format is pretty silly. We should get rid of it.
+                if (values.Count < 2)
+                {
+                    throw new KeenException("Expected file format is a list of the project id, master key, write key, read key, and api base authority separated by newlines. At least a project id and master key need to be provided."); // </cringe>
+                }
 
                 _fileProjectId = values.ElementAtOrDefault(0);
                 _fileMasterKey = values.ElementAtOrDefault(1);

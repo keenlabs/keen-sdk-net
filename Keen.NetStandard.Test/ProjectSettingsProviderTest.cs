@@ -70,7 +70,7 @@ namespace Keen.NetStandard.Tests
             var fp = Path.GetTempFileName();
             try 
             {
-                File.WriteAllText(fp, "X\nX");
+                File.WriteAllText(fp, "X");
 
                 Assert.Throws<KeenException>(() => new ProjectSettingsProviderFile(fp));
             }
