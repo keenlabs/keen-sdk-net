@@ -18,11 +18,11 @@ namespace Keen.NetStandard
         /// <para>Keen.IO API url should be in variable KEEN_SERVER_URL</para>
         /// </summary>
         public ProjectSettingsProviderEnv()
-            : base(Environment.GetEnvironmentVariable(KeenConstants.KeenProjectId) ?? "",
-                    masterKey: Environment.GetEnvironmentVariable(KeenConstants.KeenMasterKey) ?? "",
-                    writeKey: Environment.GetEnvironmentVariable(KeenConstants.KeenWriteKey) ?? "",
-                    readKey: Environment.GetEnvironmentVariable(KeenConstants.KeenReadKey) ?? "",
-                    keenUrl: Environment.GetEnvironmentVariable(KeenConstants.KeenServerUrl) ?? KeenConstants.ServerAddress + "/" + KeenConstants.ApiVersion + "/")
+            : base(Environment.GetEnvironmentVariable(KeenConstants.KeenProjectId) ?? null,
+                   masterKey: Environment.GetEnvironmentVariable(KeenConstants.KeenMasterKey) ?? null,
+                   writeKey: Environment.GetEnvironmentVariable(KeenConstants.KeenWriteKey) ?? null,
+                   readKey: Environment.GetEnvironmentVariable(KeenConstants.KeenReadKey) ?? null,
+                   keenUrl: Environment.GetEnvironmentVariable(KeenConstants.KeenServerUrl) ?? null)
         {
 
         }

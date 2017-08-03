@@ -164,3 +164,9 @@ $RECYCLE.BIN/
 
 TestResult.xml
 Keen.VisualState.xml
+
+# Visual Studio Code
+.vscode/
+
+# Visual Studio for Mac
+*.userprefs

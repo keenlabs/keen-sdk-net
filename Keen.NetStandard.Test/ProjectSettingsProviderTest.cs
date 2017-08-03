@@ -1,6 +1,8 @@
 ﻿using System;
+using System.IO;
 using NUnit.Framework;
-
+using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace Keen.NetStandard.Tests
 {
@@ -10,13 +12,13 @@ namespace Keen.NetStandard.Tests
         [Test]
         public void Settings_DefaultInputs_Success()
         {
-            Assert.DoesNotThrow(() => new ProjectSettingsProvider("X", null));
+            Assert.DoesNotThrow(() => new ProjectSettingsProvider("X", "Y"));
         }
 
         [Test]
-        public void Settings_AllNull_Success()
+        public void Settings_AllNull_Throws()
         {
-            Assert.DoesNotThrow(() => new ProjectSettingsProvider(null));
+            Assert.Throws<KeenException>(() => new ProjectSettingsProvider(null));
         }
 
         [Test]
@@ -27,8 +29,7 @@ namespace Keen.NetStandard.Tests
             Environment.SetEnvironmentVariable(KeenConstants.KeenWriteKey, null);
             Environment.SetEnvironmentVariable(KeenConstants.KeenReadKey, null);
 
-            var settings = new ProjectSettingsProviderEnv();
-            Assert.Throws<KeenException>(() => new KeenClient(settings));
+            Assert.Throws<KeenException>(() => new ProjectSettingsProviderEnv());
         }
 
         [Test]
@@ -39,8 +40,7 @@ namespace Keen.NetStandard.Tests
             Environment.SetEnvironmentVariable(KeenConstants.KeenWriteKey, "X");
             Environment.SetEnvironmentVariable(KeenConstants.KeenReadKey, "X");
 
-            var settings = new ProjectSettingsProviderEnv();
-            Assert.DoesNotThrow(() => new KeenClient(settings));
+            Assert.DoesNotThrow(() => new ProjectSettingsProviderEnv());
         }
 
         [Test]
@@ -61,6 +61,85 @@ namespace Keen.NetStandard.Tests
             Assert.AreEqual(settings.MasterKey, masterKey, "Master key wasn't properly set");
             Assert.AreEqual(settings.WriteKey, writeKey, "Write key wasn't properly set");
             Assert.AreEqual(settings.ReadKey, readKey, "Read key wasn't properly set");
+        }
+
+        [Test]
+        public void SettingsProviderFile_NoKey_Throws()
+        {
+            var fileName = Path.GetTempFileName();
+            try
+            {
+                File.WriteAllText(fileName, JsonConvert.SerializeObject(
+                    new Dictionary<string, string>
+                    {
+                        [KeenConstants.KeenProjectId] = "projectId"
+                    }
+                ));
+
+                Assert.Throws<KeenException>(() => new ProjectSettingsProviderFile(fileName));
+            }
+            finally
+            {
+                File.Delete(fileName);
+            }
+        }
+
+        [Test]
+        public void SettingsProviderFile_ValidMinimalConfig_Success()
+        {
+            var fileName = Path.GetTempFileName();
+            try
+            {
+                File.WriteAllText(fileName, JsonConvert.SerializeObject(
+                    new Dictionary<string, string>
+                    {
+                        [KeenConstants.KeenProjectId] = "projectId",
+                        [KeenConstants.KeenReadKey] = "readKey"
+                    }
+                ));
+
+                Assert.DoesNotThrow(() => new ProjectSettingsProviderFile(fileName));
+            }
+            finally
+            {
+                File.Delete(fileName);
+            }
+        }
+
+        [Test]
+        public void SettingsProviderFile_ConfigIsCorrect_Success()
+        {
+            var projectId = "projectId";
+            var readKey = "readKey";
+            var writeKey = "writeKey";
+            var masterKey = "masterKey";
+            var baseUrl = "baseUrl";
+
+            var fileName = Path.GetTempFileName();
+            try
+            {
+                File.WriteAllText(fileName, JsonConvert.SerializeObject(
+                    new Dictionary<string, string>
+                    {
+                        [KeenConstants.KeenProjectId] = projectId,
+                        [KeenConstants.KeenReadKey] = readKey,
+                        [KeenConstants.KeenWriteKey] = writeKey,
+                        [KeenConstants.KeenMasterKey] = masterKey,
+                        [KeenConstants.KeenServerUrl] = baseUrl
+                    }
+                ));
+
+                var settings = new ProjectSettingsProviderFile(fileName);
+                Assert.AreEqual(settings.ProjectId, projectId);
+                Assert.AreEqual(settings.ReadKey, readKey);
+                Assert.AreEqual(settings.WriteKey, writeKey);
+                Assert.AreEqual(settings.MasterKey, masterKey);
+                Assert.AreEqual(settings.KeenUrl, baseUrl);
+            }
+            finally
+            {
+                File.Delete(fileName);
+            }
         }
     }
 }

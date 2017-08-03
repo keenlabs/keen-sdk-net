@@ -40,8 +40,40 @@ namespace Keen.NetStandard
         /// <param name="writeKey">Write API key, required for inserting events</param>
         /// <param name="readKey">Read API key, required for performing queries</param>
         /// <param name="keenUrl">Base Keen.IO service URL</param>
-        public ProjectSettingsProvider(string projectId, string masterKey = "", string writeKey = "", string readKey = "", string keenUrl = null)
+        public ProjectSettingsProvider(
+        	string projectId,
+        	string masterKey = null,
+        	string writeKey = null,
+        	string readKey = null,
+        	string keenUrl = null)
         {
+            Initialize(projectId, masterKey, writeKey, readKey, keenUrl);
+        }
+
+        /// <summary>
+        /// Protected constructor to allow base classes to share initialization code more conveniently than by having to pass parameters through a constructor
+        /// </summary>
+        protected ProjectSettingsProvider() {}
+
+        protected void Initialize(
+        	string projectId,
+        	string masterKey,
+        	string writeKey,
+        	string readKey,
+        	string keenUrl)
+        {
+            if (string.IsNullOrWhiteSpace(projectId))
+            {
+                throw new KeenException($"A project id must be provided.");
+            }
+
+            if (string.IsNullOrWhiteSpace(masterKey) && 
+                string.IsNullOrWhiteSpace(writeKey) &&
+                string.IsNullOrWhiteSpace(readKey))
+            {
+                throw new KeenException($"A value for a read key, write key, or master key must be provided.");
+            }
+
             KeenUrl = keenUrl ?? KeenConstants.ServerAddress + "/" + KeenConstants.ApiVersion + "/";
             ProjectId = projectId;
             MasterKey = masterKey;
