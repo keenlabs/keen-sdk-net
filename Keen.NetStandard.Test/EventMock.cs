@@ -1,14 +1,11 @@
-﻿using Keen.Core.EventCache;
+﻿using Keen.NetStandard.EventCache;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace Keen.Core
+
+namespace Keen.NetStandard.Test
 {
     /// <summary>
     /// EventMock provides an implementation of IEvent with a constructor that 
