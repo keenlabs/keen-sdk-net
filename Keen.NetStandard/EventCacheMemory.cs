@@ -26,7 +26,7 @@ namespace Keen.NetStandard
             });
         }
 
-        public Task Clear()
+        public Task ClearAsync()
         {
             return Task.Run(() =>
             {
@@ -35,7 +35,7 @@ namespace Keen.NetStandard
             });
         }
 
-        public Task<CachedEvent> TryTake()
+        public Task<CachedEvent> TryTakeAsync()
         {
             return Task.Run(() =>
             {

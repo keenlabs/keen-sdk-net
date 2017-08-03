@@ -6,7 +6,7 @@ namespace Keen.NetStandard.EventCache
     public interface IEventCache
     {
         Task AddAsync(CachedEvent e);
-        Task<CachedEvent> TryTake();
-        Task Clear();
+        Task<CachedEvent> TryTakeAsync();
+        Task ClearAsync();
     }
 }

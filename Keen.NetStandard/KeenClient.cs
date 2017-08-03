@@ -462,7 +462,7 @@ namespace Keen.NetStandard
             };
 
             // Take items from the cache and sort them by collection
-            while (null != (e = await EventCache.TryTake().ConfigureAwait(false)))
+            while (null != (e = await EventCache.TryTakeAsync().ConfigureAwait(false)))
             {
                 var batch = getListFor(e.Collection);
                 batch.Add(e);

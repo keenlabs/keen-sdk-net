@@ -34,10 +34,10 @@ namespace Keen.NetStandard.Test
         [TestCaseSource("Providers")]
         public async Task AddEvent_AddNotEmpty_Success(IEventCache cache)
         {
-            await cache.Clear();
-            Assert.Null(await cache.TryTake());
+            await cache.ClearAsync();
+            Assert.Null(await cache.TryTakeAsync());
             await cache.AddAsync(new CachedEvent("url", JObject.FromObject(new { Property = "Value" })));
-            Assert.NotNull(await cache.TryTake());
+            Assert.NotNull(await cache.TryTakeAsync());
         }
 
         [Test]
@@ -45,20 +45,20 @@ namespace Keen.NetStandard.Test
         public async Task AddEvent_AddClearEmpty_Success(IEventCache cache)
         {
             await cache.AddAsync(new CachedEvent("url", JObject.FromObject(new { Property = "Value" })));
-            await cache.Clear();
-            Assert.Null(await cache.TryTake());
+            await cache.ClearAsync();
+            Assert.Null(await cache.TryTakeAsync());
         }
 
         [Test]
         [TestCaseSource("Providers")]
         public async Task AddEvent_Iterate_Success(IEventCache cache)
         {
-            await cache.Clear();
+            await cache.ClearAsync();
             await cache.AddAsync(new CachedEvent("url", JObject.FromObject(new { Property = "Value" })));
             await cache.AddAsync(new CachedEvent("url", JObject.FromObject(new { Property = "Value" })));
-            Assert.NotNull(await cache.TryTake());
-            Assert.NotNull(await cache.TryTake());
-            Assert.Null(await cache.TryTake());
+            Assert.NotNull(await cache.TryTakeAsync());
+            Assert.NotNull(await cache.TryTakeAsync());
+            Assert.Null(await cache.TryTakeAsync());
         }
 
         [Test]
@@ -74,7 +74,7 @@ namespace Keen.NetStandard.Test
         public void CachingPCL_ClearEvents_Success(IEventCache cache)
         {
             var client = new KeenClient(SettingsEnv, cache);
-            Assert.DoesNotThrow(() => client.EventCache.Clear());
+            Assert.DoesNotThrow(() => client.EventCache.ClearAsync());
         }
 
         [Test]
@@ -92,7 +92,7 @@ namespace Keen.NetStandard.Test
         [TestCaseSource("Providers")]
         public async Task CachingPCL_SendEventsParallel_Success(IEventCache cache)
         {
-            await cache.Clear();
+            await cache.ClearAsync();
             var client = new KeenClient(SettingsEnv, cache);
             if (UseMocks)
                 client.Event = new EventMock(SettingsEnv,
@@ -104,7 +104,7 @@ namespace Keen.NetStandard.Test
                 .ForAll(e => client.AddEvent("CachedEventTest", e));
 
             await client.SendCachedEventsAsync();
-            Assert.Null(await client.EventCache.TryTake(), "Cache is empty");
+            Assert.Null(await client.EventCache.TryTakeAsync(), "Cache is empty");
         }
     }
 }
