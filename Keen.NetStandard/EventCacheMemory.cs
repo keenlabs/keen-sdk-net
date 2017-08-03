@@ -14,7 +14,7 @@ namespace Keen.NetStandard
     {
         private Queue<CachedEvent> events = new Queue<CachedEvent>();
 
-        public Task Add(CachedEvent e)
+        public Task AddAsync(CachedEvent e)
         {
             if (null == e)
                 throw new KeenException("Cached events may not be null");
@@ -26,7 +26,7 @@ namespace Keen.NetStandard
             });
         }
 
-        public Task Clear()
+        public Task ClearAsync()
         {
             return Task.Run(() =>
             {
@@ -35,7 +35,7 @@ namespace Keen.NetStandard
             });
         }
 
-        public Task<CachedEvent> TryTake()
+        public Task<CachedEvent> TryTakeAsync()
         {
             return Task.Run(() =>
             {

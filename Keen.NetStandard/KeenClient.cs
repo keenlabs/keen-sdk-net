@@ -305,7 +305,7 @@ namespace Keen.NetStandard
                 // ReSharper disable once PossibleMultipleEnumeration
                 var jEvent = PrepareUserObject(e, addOns);
                 if (null != mainCache)
-                    await mainCache.Add(new CachedEvent(collection, jEvent))
+                    await mainCache.AddAsync(new CachedEvent(collection, jEvent))
                         .ConfigureAwait(false);
                 else
                     localCache.Add(jEvent);
@@ -343,7 +343,7 @@ namespace Keen.NetStandard
 
             // If an event cache has been provided, cache this event instead of sending it.
             if (null != EventCache)
-                await EventCache.Add(new CachedEvent(collection, jEvent))
+                await EventCache.AddAsync(new CachedEvent(collection, jEvent))
                     .ConfigureAwait(false);
             else
                 await EventCollection.AddEvent(collection, jEvent)
@@ -462,7 +462,7 @@ namespace Keen.NetStandard
             };
 
             // Take items from the cache and sort them by collection
-            while (null != (e = await EventCache.TryTake().ConfigureAwait(false)))
+            while (null != (e = await EventCache.TryTakeAsync().ConfigureAwait(false)))
             {
                 var batch = getListFor(e.Collection);
                 batch.Add(e);
