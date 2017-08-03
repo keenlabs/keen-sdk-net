@@ -1,8 +1,9 @@
-﻿using System;
-using System.IO;
+﻿using Newtonsoft.Json;
 using NUnit.Framework;
-using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.IO;
+
 
 namespace Keen.NetStandard.Tests
 {

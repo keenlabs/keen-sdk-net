@@ -1,9 +1,9 @@
 ﻿using Keen.NetStandard.EventCache;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 
 
 namespace Keen.NetStandard.Test
