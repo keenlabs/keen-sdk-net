@@ -1,7 +1,4 @@
-﻿
-using Keen.NetStandard;
-using Keen.NetStandard.Query;
-using Keen.NetStandard.Test;
+﻿using Keen.NetStandard.Query;
 using Moq;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -13,12 +10,12 @@ using System.Linq;
 using System.Threading.Tasks;
 
 
-namespace Keen.Net.Test
+namespace Keen.NetStandard.Test
 {
     [TestFixture]
     public class QueryTest : TestBase
     {
-        const string testCol = "QueryTestCol";
+        private const string testCol = "QueryTestCol";
 
         public QueryTest()
         {
@@ -1140,13 +1137,12 @@ namespace Keen.Net.Test
         {
             var filter = new QueryFilter("prop", QueryFilter.FilterOperator.Equals(), "val");
 
-            var json = JObject.FromObject(filter).ToString();
+            var json = JObject.FromObject(filter).ToString(Newtonsoft.Json.Formatting.None);
 
-            const string expectedJson = "{\r\n" +
-                                        "  \"property_name\": \"prop\",\r\n"+
-                                        "  \"operator\": \"eq\",\r\n"+
-                                        "  \"property_value\": \"val\"\r\n"+
-                                        "}";
+            const string expectedJson = "{\"property_name\":\"prop\"," +
+                                        "\"operator\":\"eq\"," +
+                                        "\"property_value\":\"val\"}";
+
             Assert.AreEqual(expectedJson, json);
         }
 
@@ -1169,18 +1165,18 @@ namespace Keen.Net.Test
         {
             var filter = new QueryFilter("prop", QueryFilter.FilterOperator.Within(), new QueryFilter.GeoValue(10.0, 10.0, 5.0));
 
-            var json = JObject.FromObject(filter).ToString();
+            var json = JObject.FromObject(filter).ToString(Newtonsoft.Json.Formatting.None);
             Trace.WriteLine(json);
-            const string expectedJson = "{\r\n"+
-                                        "  \"property_name\": \"prop\",\r\n"+
-                                        "  \"operator\": \"within\",\r\n"+
-                                        "  \"property_value\": {\r\n"+
-                                        "    \"coordinates\": [\r\n"+
-                                        "      10.0,\r\n"+
-                                        "      10.0\r\n"+
-                                        "    ],\r\n"+
-                                        "    \"max_distance_miles\": 5.0\r\n"+
-                                        "  }\r\n"+
+            const string expectedJson = "{"+
+                                          "\"property_name\":\"prop\","+
+                                          "\"operator\":\"within\","+
+                                          "\"property_value\":{"+
+                                            "\"coordinates\":["+
+                                              "10.0,"+
+                                              "10.0"+
+                                            "],"+
+                                            "\"max_distance_miles\":5.0"+
+                                          "}"+
                                         "}";
 
             Assert.AreEqual(expectedJson, json);

@@ -1,5 +1,4 @@
-﻿using Keen.NetStandard;
-using Keen.NetStandard.EventCache;
+﻿using Keen.NetStandard.EventCache;
 using Moq;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -12,39 +11,6 @@ using System.Threading.Tasks;
 
 namespace Keen.NetStandard.Test
 {
-    public class TestBase
-    {
-        public static bool UseMocks = true;
-        public IProjectSettings SettingsEnv;
-
-        [OneTimeSetUp]
-        public virtual void Setup()
-        {
-            if (UseMocks)
-                SetupEnv();
-            SettingsEnv = new ProjectSettingsProviderEnv();
-        }
-
-        [OneTimeTearDown]
-        public virtual void TearDown()
-        {
-            if (UseMocks)
-                ResetEnv();
-        }
-
-        public static void SetupEnv()
-        {
-            foreach (var s in new[] { "KEEN_PROJECT_ID", "KEEN_MASTER_KEY", "KEEN_WRITE_KEY", "KEEN_READ_KEY" })
-                Environment.SetEnvironmentVariable(s, "0123456789ABCDEF0123456789ABCDEF");
-        }
-
-        public static void ResetEnv()
-        {
-            foreach (var s in new[] { "KEEN_PROJECT_ID", "KEEN_MASTER_KEY", "KEEN_WRITE_KEY", "KEEN_READ_KEY" })
-                Environment.SetEnvironmentVariable(s, null);
-        }
-    }
-
     [TestFixture]
     public class BulkEventTest : TestBase
     {
@@ -163,15 +129,13 @@ namespace Keen.NetStandard.Test
         [Test]
         public void Constructor_ProjectSettingsNoProjectID_Throws()
         {
-            var settings = new ProjectSettingsProvider(projectId: "", masterKey: "X", writeKey: "X");
-            Assert.Throws<KeenException>(() => new KeenClient(settings));
+            Assert.Throws<KeenException>(() => new ProjectSettingsProvider(projectId: "", masterKey: "X", writeKey: "X"));
         }
 
         [Test]
         public void Constructor_ProjectSettingsNoMasterOrWriteKeys_Throws()
         {
-            var settings = new ProjectSettingsProvider(projectId: "X");
-            Assert.Throws<KeenException>(() => new KeenClient(settings));
+            Assert.Throws<KeenException>(() => new ProjectSettingsProvider(projectId: "X"));
         }
 
         [Test]
@@ -734,7 +698,7 @@ namespace Keen.NetStandard.Test
         public void Caching_ClearEvents_Success()
         {
             var client = new KeenClient(SettingsEnv, new EventCacheMemory());
-            Assert.DoesNotThrow(() => client.EventCache.Clear());
+            Assert.DoesNotThrow(() => client.EventCache.ClearAsync());
         }
 
         [Test]
@@ -768,7 +732,7 @@ namespace Keen.NetStandard.Test
             client.AddEvent("CachedEventTest", new { AProperty = "AValue" });
 
             Assert.DoesNotThrow(() => client.SendCachedEvents());
-            Assert.Null(await client.EventCache.TryTake(), "Cache is empty");
+            Assert.Null(await client.EventCache.TryTakeAsync(), "Cache is empty");
         }
 
         [Test]
@@ -795,7 +759,7 @@ namespace Keen.NetStandard.Test
                 client.AddEvent("CachedEventTest", new { AProperty = "AValue" });
 
             Assert.DoesNotThrow(() => client.SendCachedEvents());
-            Assert.Null(await client.EventCache.TryTake(), "Cache is empty");
+            Assert.Null(await client.EventCache.TryTakeAsync(), "Cache is empty");
             Assert.True( !UseMocks || ( total == KeenConstants.BulkBatchSize));
         }
 
@@ -954,7 +918,7 @@ namespace Keen.NetStandard.Test
             client.AddEvent("CachedEventTest", new { AProperty = "AValue" });
 
             await client.SendCachedEventsAsync();
-            Assert.Null(await client.EventCache.TryTake(), "Cache should be empty");
+            Assert.Null(await client.EventCache.TryTakeAsync(), "Cache should be empty");
         }
 
         [Test]

@@ -41,11 +41,11 @@ namespace Keen.NetStandard
         /// <param name="readKey">Read API key, required for performing queries</param>
         /// <param name="keenUrl">Base Keen.IO service URL</param>
         public ProjectSettingsProvider(
-        	string projectId,
-        	string masterKey = null,
-        	string writeKey = null,
-        	string readKey = null,
-        	string keenUrl = null)
+            string projectId,
+            string masterKey = null,
+            string writeKey = null,
+            string readKey = null,
+            string keenUrl = null)
         {
             Initialize(projectId, masterKey, writeKey, readKey, keenUrl);
         }
@@ -56,18 +56,18 @@ namespace Keen.NetStandard
         protected ProjectSettingsProvider() {}
 
         protected void Initialize(
-        	string projectId,
-        	string masterKey,
-        	string writeKey,
-        	string readKey,
-        	string keenUrl)
+            string projectId,
+            string masterKey,
+            string writeKey,
+            string readKey,
+            string keenUrl)
         {
             if (string.IsNullOrWhiteSpace(projectId))
             {
                 throw new KeenException($"A project id must be provided.");
             }
 
-            if (string.IsNullOrWhiteSpace(masterKey) && 
+            if (string.IsNullOrWhiteSpace(masterKey) &&
                 string.IsNullOrWhiteSpace(writeKey) &&
                 string.IsNullOrWhiteSpace(readKey))
             {
