@@ -11,7 +11,7 @@ namespace Keen.NetStandard.Test
     [TestFixture]
     public class EventCacheTest : TestBase
     {
-        static readonly object[] Providers = 
+        static readonly object[] Providers =
         {
             new object[] { new EventCacheMemory() }
         };
@@ -27,7 +27,7 @@ namespace Keen.NetStandard.Test
         [TestCaseSource("Providers")]
         public async Task AddEvent_ValidObject_Success(IEventCache cache)
         {
-            await cache.Add(new CachedEvent("url", JObject.FromObject( new { Property = "Value" })));
+            await cache.Add(new CachedEvent("url", JObject.FromObject(new { Property = "Value" })));
         }
 
         [Test]
@@ -36,7 +36,7 @@ namespace Keen.NetStandard.Test
         {
             await cache.Clear();
             Assert.Null(await cache.TryTake());
-            await cache.Add(new CachedEvent("url", JObject.FromObject( new { Property = "Value" })));
+            await cache.Add(new CachedEvent("url", JObject.FromObject(new { Property = "Value" })));
             Assert.NotNull(await cache.TryTake());
         }
 
@@ -44,7 +44,7 @@ namespace Keen.NetStandard.Test
         [TestCaseSource("Providers")]
         public async Task AddEvent_AddClearEmpty_Success(IEventCache cache)
         {
-            await cache.Add( new CachedEvent("url", JObject.FromObject( new { Property = "Value" })));
+            await cache.Add(new CachedEvent("url", JObject.FromObject(new { Property = "Value" })));
             await cache.Clear();
             Assert.Null(await cache.TryTake());
         }
@@ -54,8 +54,8 @@ namespace Keen.NetStandard.Test
         public async Task AddEvent_Iterate_Success(IEventCache cache)
         {
             await cache.Clear();
-            await cache.Add( new CachedEvent("url", JObject.FromObject( new { Property = "Value" })));
-            await cache.Add( new CachedEvent("url", JObject.FromObject( new { Property = "Value" })));
+            await cache.Add(new CachedEvent("url", JObject.FromObject(new { Property = "Value" })));
+            await cache.Add(new CachedEvent("url", JObject.FromObject(new { Property = "Value" })));
             Assert.NotNull(await cache.TryTake());
             Assert.NotNull(await cache.TryTake());
             Assert.Null(await cache.TryTake());
@@ -98,10 +98,10 @@ namespace Keen.NetStandard.Test
                 client.Event = new EventMock(SettingsEnv,
                                              addEvents: (e, p) => new List<CachedEvent>());
 
-            (from i in Enumerable.Range(1,100)
+            (from i in Enumerable.Range(1, 100)
              select new { Property = "Value" })
                 .AsParallel()
-                .ForAll(e=>client.AddEvent("CachedEventTest", e));
+                .ForAll(e => client.AddEvent("CachedEventTest", e));
 
             await client.SendCachedEventsAsync();
             Assert.Null(await client.EventCache.TryTake(), "Cache is empty");

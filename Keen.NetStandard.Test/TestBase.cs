@@ -8,6 +8,13 @@ namespace Keen.NetStandard.Test
     {
         public static bool UseMocks = true;
         public IProjectSettings SettingsEnv;
+        private static string[] s_environmentKeys = new[]
+        {
+            KeenConstants.KeenProjectId,
+            KeenConstants.KeenMasterKey,
+            KeenConstants.KeenWriteKey,
+            KeenConstants.KeenReadKey
+        };
 
         [OneTimeSetUp]
         public virtual void Setup()
@@ -26,13 +33,13 @@ namespace Keen.NetStandard.Test
 
         public static void SetupEnv()
         {
-            foreach (var s in new[] { "KEEN_PROJECT_ID", "KEEN_MASTER_KEY", "KEEN_WRITE_KEY", "KEEN_READ_KEY" })
+            foreach (var s in s_environmentKeys)
                 Environment.SetEnvironmentVariable(s, "0123456789ABCDEF0123456789ABCDEF");
         }
 
         public static void ResetEnv()
         {
-            foreach (var s in new[] { "KEEN_PROJECT_ID", "KEEN_MASTER_KEY", "KEEN_WRITE_KEY", "KEEN_READ_KEY" })
+            foreach (var s in s_environmentKeys)
                 Environment.SetEnvironmentVariable(s, null);
         }
     }
