@@ -12,13 +12,13 @@ namespace Keen.NetStandard.Tests
         [Test]
         public void Settings_DefaultInputs_Success()
         {
-            Assert.DoesNotThrow(() => new ProjectSettingsProvider("X", null));
+            Assert.DoesNotThrow(() => new ProjectSettingsProvider("X", "Y"));
         }
 
         [Test]
-        public void Settings_AllNull_Success()
+        public void Settings_AllNull_Throws()
         {
-            Assert.DoesNotThrow(() => new ProjectSettingsProvider(null));
+            Assert.Throws<KeenException>(() => new ProjectSettingsProvider(null));
         }
 
         [Test]
@@ -29,8 +29,7 @@ namespace Keen.NetStandard.Tests
             Environment.SetEnvironmentVariable(KeenConstants.KeenWriteKey, null);
             Environment.SetEnvironmentVariable(KeenConstants.KeenReadKey, null);
 
-            var settings = new ProjectSettingsProviderEnv();
-            Assert.Throws<KeenException>(() => new KeenClient(settings));
+            Assert.Throws<KeenException>(() => new ProjectSettingsProviderEnv());
         }
 
         [Test]
@@ -41,8 +40,7 @@ namespace Keen.NetStandard.Tests
             Environment.SetEnvironmentVariable(KeenConstants.KeenWriteKey, "X");
             Environment.SetEnvironmentVariable(KeenConstants.KeenReadKey, "X");
 
-            var settings = new ProjectSettingsProviderEnv();
-            Assert.DoesNotThrow(() => new KeenClient(settings));
+            Assert.DoesNotThrow(() => new ProjectSettingsProviderEnv());
         }
 
         [Test]
@@ -66,38 +64,6 @@ namespace Keen.NetStandard.Tests
         }
 
         [Test]
-        public void SettingsProviderFile_InvalidFile_Throws()
-        {
-            var fp = Path.GetTempFileName();
-            try 
-            {
-                File.WriteAllText(fp, "X");
-
-                Assert.Throws<KeenException>(() => new ProjectSettingsProviderFile(fp));
-            }
-            finally
-            {
-                File.Delete(fp);
-            }
-        }
-
-        [Test]
-        public void SettingsProviderFile_ValidFile_Success()
-        {
-            var fp = Path.GetTempFileName();
-            try
-            {
-                File.WriteAllText(fp, "X\nX\nX\nX");
-
-                Assert.DoesNotThrow(() => new ProjectSettingsProviderFile(fp));
-            }
-            finally
-            {
-                File.Delete(fp);
-            }
-        }
-
-        [Test]
         public void SettingsProviderFile_NoKey_Throws()
         {
             var fileName = Path.GetTempFileName();
@@ -110,7 +76,7 @@ namespace Keen.NetStandard.Tests
                     }
                 ));
 
-                Assert.Throws<KeenException>(() => new ProjectSettingsProviderFile(fileName, isJsonFile: true));
+                Assert.Throws<KeenException>(() => new ProjectSettingsProviderFile(fileName));
             }
             finally
             {
@@ -132,7 +98,7 @@ namespace Keen.NetStandard.Tests
                     }
                 ));
 
-                Assert.DoesNotThrow(() => new ProjectSettingsProviderFile(fileName, isJsonFile: true));
+                Assert.DoesNotThrow(() => new ProjectSettingsProviderFile(fileName));
             }
             finally
             {
@@ -163,7 +129,7 @@ namespace Keen.NetStandard.Tests
                     }
                 ));
 
-                var settings = new ProjectSettingsProviderFile(fileName, isJsonFile: true);
+                var settings = new ProjectSettingsProviderFile(fileName);
                 Assert.AreEqual(settings.ProjectId, projectId);
                 Assert.AreEqual(settings.ReadKey, readKey);
                 Assert.AreEqual(settings.WriteKey, writeKey);
