@@ -20,14 +20,14 @@ namespace Keen.NetStandard.Test
         [TestCaseSource("Providers")]
         public void AddEvent_Null_Throws(IEventCache cache)
         {
-            Assert.ThrowsAsync<KeenException>(() => cache.Add(null));
+            Assert.ThrowsAsync<KeenException>(() => cache.AddAsync(null));
         }
 
         [Test]
         [TestCaseSource("Providers")]
         public async Task AddEvent_ValidObject_Success(IEventCache cache)
         {
-            await cache.Add(new CachedEvent("url", JObject.FromObject(new { Property = "Value" })));
+            await cache.AddAsync(new CachedEvent("url", JObject.FromObject(new { Property = "Value" })));
         }
 
         [Test]
@@ -36,7 +36,7 @@ namespace Keen.NetStandard.Test
         {
             await cache.Clear();
             Assert.Null(await cache.TryTake());
-            await cache.Add(new CachedEvent("url", JObject.FromObject(new { Property = "Value" })));
+            await cache.AddAsync(new CachedEvent("url", JObject.FromObject(new { Property = "Value" })));
             Assert.NotNull(await cache.TryTake());
         }
 
@@ -44,7 +44,7 @@ namespace Keen.NetStandard.Test
         [TestCaseSource("Providers")]
         public async Task AddEvent_AddClearEmpty_Success(IEventCache cache)
         {
-            await cache.Add(new CachedEvent("url", JObject.FromObject(new { Property = "Value" })));
+            await cache.AddAsync(new CachedEvent("url", JObject.FromObject(new { Property = "Value" })));
             await cache.Clear();
             Assert.Null(await cache.TryTake());
         }
@@ -54,8 +54,8 @@ namespace Keen.NetStandard.Test
         public async Task AddEvent_Iterate_Success(IEventCache cache)
         {
             await cache.Clear();
-            await cache.Add(new CachedEvent("url", JObject.FromObject(new { Property = "Value" })));
-            await cache.Add(new CachedEvent("url", JObject.FromObject(new { Property = "Value" })));
+            await cache.AddAsync(new CachedEvent("url", JObject.FromObject(new { Property = "Value" })));
+            await cache.AddAsync(new CachedEvent("url", JObject.FromObject(new { Property = "Value" })));
             Assert.NotNull(await cache.TryTake());
             Assert.NotNull(await cache.TryTake());
             Assert.Null(await cache.TryTake());

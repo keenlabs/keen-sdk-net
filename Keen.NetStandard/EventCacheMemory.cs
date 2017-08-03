@@ -14,7 +14,7 @@ namespace Keen.NetStandard
     {
         private Queue<CachedEvent> events = new Queue<CachedEvent>();
 
-        public Task Add(CachedEvent e)
+        public Task AddAsync(CachedEvent e)
         {
             if (null == e)
                 throw new KeenException("Cached events may not be null");
