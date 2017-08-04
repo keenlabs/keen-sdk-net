@@ -18,7 +18,7 @@ namespace Keen.NetStandard
     /// </summary>
     public class EventCachePortable : IEventCache
     {
-        protected static Queue<string> events = new Queue<string>();
+        protected static List<string> events = new List<string>();
 
         protected EventCachePortable() { }
 
@@ -70,7 +70,7 @@ namespace Keen.NetStandard
                     // Add each file as an event to the pending queue
                     foreach (var file in files)
                     {
-                        events.Enqueue(file.Name);
+                        events.Add(file.Name);
                     }
                 }
             }
@@ -81,7 +81,8 @@ namespace Keen.NetStandard
             if (null == e)
                 throw new KeenException("Cached events may not be null");
 
-            var keenFolder = await GetOrCreateKeenDirectory()
+            // Get/create the cache directory
+            DirectoryInfo keenFolder = await GetOrCreateKeenDirectory()
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             var attempts = 0;
@@ -102,7 +103,7 @@ namespace Keen.NetStandard
                         var i = 0;
                         while (events.Contains(name = e.Collection + i++))
                             ;
-                        events.Enqueue(name);
+                        events.Add(name);
                     }
 
                 Exception lastErr = null;
@@ -110,7 +111,7 @@ namespace Keen.NetStandard
                 {
                     var content = JObject.FromObject(e).ToString();
 
-                    await Task.Run(() => File.WriteAllText(Path.Combine(keenFolder.FullName, name), content))
+                    await Task.Run(() => File.WriteAllText(Path.Combine(GetKeenFolderPath(), name), content))
                         .ConfigureAwait(continueOnCapturedContext: false);
 
                     done = true;
@@ -131,23 +132,41 @@ namespace Keen.NetStandard
 
         public async Task<CachedEvent> TryTakeAsync()
         {
-            var keenFolder = await GetOrCreateKeenDirectory()
-                .ConfigureAwait(continueOnCapturedContext: false);
             if (!events.Any())
                 return null;
 
             string fileName;
             lock (events)
-                fileName = events.Dequeue();
-            string fullFileName = Path.Combine(keenFolder.FullName, fileName);
+            {
+                fileName = events.First();
+            }
 
-            var content = await Task.Run(() => File.ReadAllText(fullFileName))
-                .ConfigureAwait(continueOnCapturedContext: false);
-            var ce = JObject.Parse(content);
+            string fullFileName = Path.Combine(GetKeenFolderPath(), fileName);
 
-            var item = new CachedEvent((string)ce.SelectToken("Collection"), (JObject)ce.SelectToken("Event"), ce.SelectToken("Error").ToObject<Exception>());
-            await Task.Run(() => File.Delete(fullFileName))
-                .ConfigureAwait(continueOnCapturedContext: false);
+            CachedEvent item;
+            try
+            {
+                var content = await Task.Run(() => File.ReadAllText(fullFileName))
+                    .ConfigureAwait(continueOnCapturedContext: false);
+
+                var ce = JObject.Parse(content);
+
+                item = new CachedEvent(
+                    (string)ce.SelectToken("Collection"),
+                    (JObject)ce.SelectToken("Event"),
+                    ce.SelectToken("Error").ToObject<Exception>());
+
+                await Task.Run(() => File.Delete(fullFileName))
+                    .ConfigureAwait(continueOnCapturedContext: false);
+            }
+            finally
+            {
+                lock (events)
+                {
+                    events.Remove(fileName);
+                }
+            }
+
             return item;
         }
 
