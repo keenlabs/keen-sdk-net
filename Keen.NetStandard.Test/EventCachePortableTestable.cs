@@ -1,5 +1,4 @@
-﻿
-
+﻿using System.IO;
 using System.Threading.Tasks;
 
 namespace Keen.NetStandard.Tests
@@ -15,9 +14,9 @@ namespace Keen.NetStandard.Tests
             return instance;
         }
 
-        internal void ResetStaticMembers()
-        {
-            events.Clear();
-        }
+        internal void ResetStaticMembers() => events.Clear();
+
+        // TODO: Can GetKeenFolderPath just be made internal and internals made visible to this assembly?
+        internal static string GetKeenFolderPathTestable() => GetKeenFolderPath();
     }
 }

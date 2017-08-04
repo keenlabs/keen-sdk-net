@@ -54,14 +54,26 @@ namespace Keen.NetStandard
 
         public async Task Initialize()
         {
-            var keenFolder = await GetKeenFolder()
+            // Get/create the cache directory
+            DirectoryInfo keenFolder = await GetOrCreateKeenDirectory()
                 .ConfigureAwait(continueOnCapturedContext: false);
+
+            // Read all files from the cache. Each one contains a json
+            // serialized CachedEvent
             var files = await Task.Run(() => keenFolder.GetFiles()).ConfigureAwait(continueOnCapturedContext: false);
 
-            lock (events)
-                if (events.Any())
-                    foreach (var f in files)
-                        events.Enqueue(f.Name);
+            // Only bother to lock if there are files
+            if (files.Count() > 0)
+            {
+                lock (events)
+                {
+                    // Add each file as an event to the pending queue
+                    foreach (var file in files)
+                    {
+                        events.Enqueue(file.Name);
+                    }
+                }
+            }
         }
 
         public async Task AddAsync(CachedEvent e)
@@ -69,7 +81,7 @@ namespace Keen.NetStandard
             if (null == e)
                 throw new KeenException("Cached events may not be null");
 
-            var keenFolder = await GetKeenFolder()
+            var keenFolder = await GetOrCreateKeenDirectory()
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             var attempts = 0;
@@ -119,7 +131,7 @@ namespace Keen.NetStandard
 
         public async Task<CachedEvent> TryTakeAsync()
         {
-            var keenFolder = await GetKeenFolder()
+            var keenFolder = await GetOrCreateKeenDirectory()
                 .ConfigureAwait(continueOnCapturedContext: false);
             if (!events.Any())
                 return null;
@@ -141,23 +153,27 @@ namespace Keen.NetStandard
 
         public async Task ClearAsync()
         {
-            var keenFolder = await GetKeenFolder()
+            var keenFolder = await GetOrCreateKeenDirectory()
                 .ConfigureAwait(continueOnCapturedContext: false);
             lock (events)
                 events.Clear();
             await Task.Run(() => keenFolder.Delete(recursive: true))
                 .ConfigureAwait(continueOnCapturedContext: false);
-            await GetKeenFolder()
+            await GetOrCreateKeenDirectory()
                 .ConfigureAwait(continueOnCapturedContext: false);
         }
 
-        private static Task<DirectoryInfo> GetKeenFolder()
+        protected static string GetKeenFolderPath()
         {
             string localStoragePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             var entryAssembly = System.Reflection.Assembly.GetEntryAssembly();
             var appGuid = entryAssembly.GetType().GUID.ToString();
+            return Path.Combine(localStoragePath, "KeenCache", appGuid);
+        }
 
-            return Task.Run(() => Directory.CreateDirectory(Path.Combine(localStoragePath, "KeenCache", appGuid)));
+        protected static Task<DirectoryInfo> GetOrCreateKeenDirectory()
+        {
+            return Task.Run(() => Directory.CreateDirectory(GetKeenFolderPath()));
         }
     }
 }

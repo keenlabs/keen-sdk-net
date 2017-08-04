@@ -4,13 +4,34 @@ using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
+using System.IO;
 
 namespace Keen.NetStandard.Tests
 {
     [TestFixture]
-    public class EventCacheTest : TestBase
+    public class EventCacheTests : TestBase
     {
+        [SetUp]
+        public void SetUp()
+        {
+            DeleteFileCache();
+        }
+
+        [TearDown]
+        public override void TearDown()
+        {
+            DeleteFileCache();
+        }
+
+        void DeleteFileCache()
+        {
+            var cachePath = EventCachePortableTestable.GetKeenFolderPathTestable();
+            if (Directory.Exists(cachePath))
+            {
+                Directory.Delete(cachePath, recursive: true);
+            }
+        }
+
         static readonly object[] Providers =
         {
             new object[] { new EventCacheMemory() },
