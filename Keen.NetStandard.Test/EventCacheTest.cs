@@ -13,7 +13,8 @@ namespace Keen.NetStandard.Tests
     {
         static readonly object[] Providers =
         {
-            new object[] { new EventCacheMemory() }
+            new object[] { new EventCacheMemory() },
+            new object[] { EventCachePortable.New() }
         };
 
         [Test]
