@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 
-namespace Keen.NetStandard.Test
+namespace Keen.NetStandard.Tests
 {
     [TestFixture]
     public class EventCacheTest : TestBase
@@ -17,21 +17,21 @@ namespace Keen.NetStandard.Test
         };
 
         [Test]
-        [TestCaseSource("Providers")]
+        [TestCaseSource(nameof(Providers))]
         public void AddEvent_Null_Throws(IEventCache cache)
         {
             Assert.ThrowsAsync<KeenException>(() => cache.AddAsync(null));
         }
 
         [Test]
-        [TestCaseSource("Providers")]
+        [TestCaseSource(nameof(Providers))]
         public async Task AddEvent_ValidObject_Success(IEventCache cache)
         {
             await cache.AddAsync(new CachedEvent("url", JObject.FromObject(new { Property = "Value" })));
         }
 
         [Test]
-        [TestCaseSource("Providers")]
+        [TestCaseSource(nameof(Providers))]
         public async Task AddEvent_AddNotEmpty_Success(IEventCache cache)
         {
             await cache.ClearAsync();
@@ -41,7 +41,7 @@ namespace Keen.NetStandard.Test
         }
 
         [Test]
-        [TestCaseSource("Providers")]
+        [TestCaseSource(nameof(Providers))]
         public async Task AddEvent_AddClearEmpty_Success(IEventCache cache)
         {
             await cache.AddAsync(new CachedEvent("url", JObject.FromObject(new { Property = "Value" })));
@@ -50,7 +50,7 @@ namespace Keen.NetStandard.Test
         }
 
         [Test]
-        [TestCaseSource("Providers")]
+        [TestCaseSource(nameof(Providers))]
         public async Task AddEvent_Iterate_Success(IEventCache cache)
         {
             await cache.ClearAsync();
@@ -62,7 +62,7 @@ namespace Keen.NetStandard.Test
         }
 
         [Test]
-        [TestCaseSource("Providers")]
+        [TestCaseSource(nameof(Providers))]
         public void CachingPCL_SendEmptyEvents_Success(IEventCache cache)
         {
             var client = new KeenClient(SettingsEnv, cache);
@@ -70,7 +70,7 @@ namespace Keen.NetStandard.Test
         }
 
         [Test]
-        [TestCaseSource("Providers")]
+        [TestCaseSource(nameof(Providers))]
         public void CachingPCL_ClearEvents_Success(IEventCache cache)
         {
             var client = new KeenClient(SettingsEnv, cache);
@@ -78,7 +78,7 @@ namespace Keen.NetStandard.Test
         }
 
         [Test]
-        [TestCaseSource("Providers")]
+        [TestCaseSource(nameof(Providers))]
         public void CachingPCL_AddEvents_Success(IEventCache cache)
         {
             var client = new KeenClient(SettingsEnv, cache);
@@ -89,7 +89,7 @@ namespace Keen.NetStandard.Test
         }
 
         [Test]
-        [TestCaseSource("Providers")]
+        [TestCaseSource(nameof(Providers))]
         public async Task CachingPCL_SendEventsParallel_Success(IEventCache cache)
         {
             await cache.ClearAsync();
