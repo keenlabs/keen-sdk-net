@@ -18,9 +18,9 @@ namespace Keen.NetStandard
     /// </summary>
     public class EventCachePortable : IEventCache
     {
-        private static Queue<string> events = new Queue<string>();
+        protected static Queue<string> events = new Queue<string>();
 
-        private EventCachePortable() { }
+        protected EventCachePortable() { }
 
         /// <summary>
         /// Create, initialize and return an instance of EventCachePortable.
@@ -47,6 +47,13 @@ namespace Keen.NetStandard
         {
             var instance = new EventCachePortable();
 
+            await instance.Initialize();
+
+            return instance;
+        }
+
+        public async Task Initialize()
+        {
             var keenFolder = await GetKeenFolder()
                 .ConfigureAwait(continueOnCapturedContext: false);
             var files = await Task.Run(() => keenFolder.GetFiles()).ConfigureAwait(continueOnCapturedContext: false);
@@ -55,8 +62,6 @@ namespace Keen.NetStandard
                 if (events.Any())
                     foreach (var f in files)
                         events.Enqueue(f.Name);
-
-            return instance;
         }
 
         public async Task AddAsync(CachedEvent e)
@@ -93,7 +98,7 @@ namespace Keen.NetStandard
                 {
                     var content = JObject.FromObject(e).ToString();
 
-                    await Task.Run(() => File.WriteAllText(name, content))
+                    await Task.Run(() => File.WriteAllText(Path.Combine(keenFolder.FullName, name), content))
                         .ConfigureAwait(continueOnCapturedContext: false);
 
                     done = true;
@@ -122,13 +127,14 @@ namespace Keen.NetStandard
             string fileName;
             lock (events)
                 fileName = events.Dequeue();
+            string fullFileName = Path.Combine(keenFolder.FullName, fileName);
 
-            var content = await Task.Run(() => File.ReadAllText(fileName))
+            var content = await Task.Run(() => File.ReadAllText(fullFileName))
                 .ConfigureAwait(continueOnCapturedContext: false);
             var ce = JObject.Parse(content);
 
             var item = new CachedEvent((string)ce.SelectToken("Collection"), (JObject)ce.SelectToken("Event"), ce.SelectToken("Error").ToObject<Exception>());
-            await Task.Run(() => File.Delete(fileName))
+            await Task.Run(() => File.Delete(fullFileName))
                 .ConfigureAwait(continueOnCapturedContext: false);
             return item;
         }
@@ -139,7 +145,7 @@ namespace Keen.NetStandard
                 .ConfigureAwait(continueOnCapturedContext: false);
             lock (events)
                 events.Clear();
-            await Task.Run(() => keenFolder.Delete())
+            await Task.Run(() => keenFolder.Delete(recursive: true))
                 .ConfigureAwait(continueOnCapturedContext: false);
             await GetKeenFolder()
                 .ConfigureAwait(continueOnCapturedContext: false);

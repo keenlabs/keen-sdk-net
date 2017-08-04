@@ -107,5 +107,37 @@ namespace Keen.NetStandard.Tests
             await client.SendCachedEventsAsync();
             Assert.Null(await client.EventCache.TryTakeAsync(), "Cache is empty");
         }
+
+        [Test]
+        public async Task DurableCache_EventsAreSavedAndRestored()
+        {
+            // Create a test event to add to the cache
+            var testEvent = new CachedEvent("CollectionName", JObject.FromObject(new { Property = "Value" }));
+
+            // Create the cache to be tested
+            var cache = await EventCachePortableTestable.NewTestableAsync();
+
+            // Add the event to the cache
+            await cache.AddAsync(testEvent);
+
+            // Destroy the cache object and clear the static event queue
+            cache.ResetStaticMembers();
+            cache = null;
+
+            // The event should have been written to disk, and creating a new cache should populate
+            // from disk
+            var newCache = await EventCachePortable.NewAsync();
+
+            var actualEvent = await newCache.TryTakeAsync();
+
+            // Event read should be equal to the original
+            Assert.NotNull(actualEvent);
+            Assert.AreEqual(testEvent.Event, actualEvent.Event);
+            Assert.AreEqual(testEvent.Collection, actualEvent.Collection);
+            Assert.AreEqual(testEvent.Error, actualEvent.Error);
+
+            // Shouldn't be more events stored
+            Assert.Null(await newCache.TryTakeAsync());
+        }
     }
 }
