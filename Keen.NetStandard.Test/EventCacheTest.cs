@@ -35,7 +35,7 @@ namespace Keen.NetStandard.Test
         static readonly object[] Providers =
         {
             new object[] { new EventCacheMemory() },
-            new object[] { EventCachePortable.New() }
+            new object[] { EventCachePortable.InstanceTask.Value.Result }
         };
 
         [Test]
@@ -147,7 +147,7 @@ namespace Keen.NetStandard.Test
 
             // The event should have been written to disk, and creating a new cache should populate
             // from disk
-            var newCache = await EventCachePortable.NewAsync();
+            var newCache = await EventCachePortableTestable.NewTestableAsync();
 
             var actualEvent = await newCache.TryTakeAsync();
 

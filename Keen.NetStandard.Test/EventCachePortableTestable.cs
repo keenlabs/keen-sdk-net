@@ -9,7 +9,7 @@ namespace Keen.NetStandard.Test
         {
             var instance = new EventCachePortableTestable();
 
-            await instance.Initialize();
+            await instance.InitializeAsync();
 
             return instance;
         }
