@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 
-namespace Keen.NetStandard.Tests
+namespace Keen.NetStandard.Test
 {
     /// <summary>
     /// EventMock provides an implementation of IEvent with a constructor that 

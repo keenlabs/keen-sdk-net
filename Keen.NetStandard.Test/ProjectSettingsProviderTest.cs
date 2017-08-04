@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 
 
-namespace Keen.NetStandard.Tests
+namespace Keen.NetStandard.Test
 {
     [TestFixture]
     class ProjectSettingsProviderTest

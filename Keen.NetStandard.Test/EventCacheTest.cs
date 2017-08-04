@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
 
-namespace Keen.NetStandard.Tests
+namespace Keen.NetStandard.Test
 {
     [TestFixture]
     public class EventCacheTests : TestBase

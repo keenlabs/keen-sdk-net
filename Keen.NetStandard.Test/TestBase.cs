@@ -2,7 +2,7 @@
 using NUnit.Framework;
 
 
-namespace Keen.NetStandard.Tests
+namespace Keen.NetStandard.Test
 {
     public class TestBase
     {

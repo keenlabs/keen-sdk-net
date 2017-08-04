@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 
-namespace Keen.NetStandard.Tests
+namespace Keen.NetStandard.Test
 {
     class EventCachePortableTestable : EventCachePortable
     {
