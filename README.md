@@ -1,6 +1,3 @@
-If you're here for the #dotnetsummer hackfest, please work out of [this branch](https://github.com/keenlabs/keen-sdk-net/tree/dotnetsummer)!
-============
-
 keen-sdk-net
 ============
 
