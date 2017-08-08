@@ -5,7 +5,7 @@ namespace Keen.NetStandard.Test
 {
     class EventCachePortableTestable : EventCachePortable
     {
-        public static async Task<EventCachePortableTestable> NewTestableAsync()
+        internal static async Task<EventCachePortableTestable> NewTestableAsync()
         {
             var instance = new EventCachePortableTestable();
 
@@ -15,8 +15,5 @@ namespace Keen.NetStandard.Test
         }
 
         internal void ResetStaticMembers() => events.Clear();
-
-        // TODO: Can GetKeenFolderPath just be made internal and internals made visible to this assembly?
-        internal static string GetKeenFolderPathTestable() => GetKeenFolderPath();
     }
 }

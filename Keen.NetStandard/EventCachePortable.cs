@@ -2,7 +2,6 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
@@ -19,12 +18,12 @@ namespace Keen.NetStandard
     public class EventCachePortable : IEventCache
     {
         // An asynchronous, lazy loaded instance of this class.
-        private static AsyncLazy<EventCachePortable> _instanceTask =
+        static readonly AsyncLazy<EventCachePortable> _instanceAsync =
             new AsyncLazy<EventCachePortable>(
                 taskFactory: CreateInstanceAsync);
 
         // A list of events in the cache
-        protected List<string> events = new List<string>();
+        protected Queue<string> events = new Queue<string>();
 
         protected EventCachePortable() { }
 
@@ -36,13 +35,13 @@ namespace Keen.NetStandard
         /// <para>To get the EventCachePortable instance, await this property.</para>
         /// <para>The Task<EventCachePortable> is available via Value on this property.</para>
         /// <returns></returns>
-        public static AsyncLazy<EventCachePortable> InstanceTask => _instanceTask;
+        public static AsyncLazy<EventCachePortable> InstanceAsync => _instanceAsync;
 
         /// <summary>
         /// Create, initialize and return an instance of EventCachePortable.
         /// </summary>
         /// <returns></returns>
-        private static async Task<EventCachePortable> CreateInstanceAsync()
+        static async Task<EventCachePortable> CreateInstanceAsync()
         {
             var cache = new EventCachePortable();
 
@@ -67,15 +66,11 @@ namespace Keen.NetStandard
             var files = await Task.Run(() => keenFolder.GetFiles())
                 .ConfigureAwait(continueOnCapturedContext: false);
 
-            // Only bother to lock if there are files
-            if (files.Count() > 0)
+            // No need to lock since this is a singleton initializer
+            // Add each file as an event to the pending queue
+            foreach (var file in files)
             {
-                // No need to lock since this is a singleton initializer
-                // Add each file as an event to the pending queue
-                foreach (var file in files)
-                {
-                    events.Add(file.Name);
-                }
+                events.Enqueue(file.Name);
             }
         }
 
@@ -120,7 +115,7 @@ namespace Keen.NetStandard
 
             lock (events)
             {
-                events.Add(fileName);
+                events.Enqueue(fileName);
             }
 
             try
@@ -148,6 +143,7 @@ namespace Keen.NetStandard
             string fileName;
             lock (events)
             {
+                // Get the file name of the first event in the queue
                 fileName = events.First();
             }
 
@@ -178,14 +174,15 @@ namespace Keen.NetStandard
             {
                 lock (events)
                 {
-                    events.Remove(fileName);
+                    // Dequeue the event now that we're done with it
+                    events.Dequeue();
                 }
             }
 
             return item;
         }
 
-        protected static string GetKeenFolderPath()
+        internal static string GetKeenFolderPath()
         {
             string localStoragePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             var entryAssembly = System.Reflection.Assembly.GetEntryAssembly();

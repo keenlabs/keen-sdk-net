@@ -25,7 +25,7 @@ namespace Keen.NetStandard.Test
 
         void DeleteFileCache()
         {
-            var cachePath = EventCachePortableTestable.GetKeenFolderPathTestable();
+            var cachePath = EventCachePortable.GetKeenFolderPath();
             if (Directory.Exists(cachePath))
             {
                 Directory.Delete(cachePath, recursive: true);
@@ -35,7 +35,7 @@ namespace Keen.NetStandard.Test
         static readonly object[] Providers =
         {
             new object[] { new EventCacheMemory() },
-            new object[] { EventCachePortable.InstanceTask.Value.Result }
+            new object[] { EventCachePortable.InstanceAsync.Value.Result }
         };
 
         [Test]
