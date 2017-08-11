@@ -1,8 +1,7 @@
-﻿namespace Keen.Core.Dataset
-{
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 
+namespace Keen.Core.Dataset
+{
     internal class DatasetResults
     {
         public JToken Result { get; set; }

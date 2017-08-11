@@ -1,8 +1,8 @@
-﻿namespace Keen.Core.Dataset
-{
-    using System.Threading.Tasks;
-    using Newtonsoft.Json.Linq;
+﻿using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
+namespace Keen.Core.Dataset
+{
     public interface IDataset
     {
         Task<JObject> Results(string datasetName, string indexBy, string timeframe);

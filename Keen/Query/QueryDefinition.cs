@@ -1,7 +1,7 @@
-﻿namespace Keen.Core.Query
-{
-    using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
+namespace Keen.Core.Query
+{
     /// <summary>
     /// Holds information describing the query that is cached within a cached dataset.
     /// </summary>

@@ -1,7 +1,7 @@
-﻿namespace Keen.Core.ContractResolvers
-{
-    using Newtonsoft.Json.Serialization;
+﻿using Newtonsoft.Json.Serialization;
 
+namespace Keen.Core.ContractResolvers
+{
     /* 
      * Found on GithubGist https://gist.github.com/crallen/9238178
      * 

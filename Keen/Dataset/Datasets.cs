@@ -1,12 +1,11 @@
 ﻿using System;
+using System.Threading.Tasks;
+using Keen.Core.ContractResolvers;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Keen.Core.Dataset
 {
-    using System.Threading.Tasks;
-    using ContractResolvers;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
-
     internal class Datasets : IDataset
     {
         private readonly IKeenHttpClient _keenHttpClient;
