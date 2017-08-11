@@ -17,7 +17,7 @@ namespace Keen.Core.Dataset
     internal class Datasets : IDataset
     {
         private readonly IKeenHttpClient _keenHttpClient;
-        private readonly string _cachedDatasetReleativeUrl;
+        private readonly string _cachedDatasetRelativeUrl;
         private readonly string _masterKey;
 
         internal Datasets(IProjectSettings prjSettings,
@@ -44,7 +44,7 @@ namespace Keen.Core.Dataset
 
             var serverBaseUrl = new Uri(prjSettings.KeenUrl);
             _keenHttpClient = keenHttpClientProvider.GetForUrl(serverBaseUrl);
-            _cachedDatasetReleativeUrl = KeenHttpClient.GetRelativeUrl(prjSettings.ProjectId,
+            _cachedDatasetRelativeUrl = KeenHttpClient.GetRelativeUrl(prjSettings.ProjectId,
                                                               KeenConstants.DatasetsResource);
 
             _masterKey = prjSettings.MasterKey;
@@ -134,7 +134,7 @@ namespace Keen.Core.Dataset
 
         private string GetDatasetUrl(string datasetName)
         {
-            return $"{_cachedDatasetReleativeUrl}/{datasetName}";
+            return $"{_cachedDatasetRelativeUrl}/{datasetName}";
         }
     }
 }
