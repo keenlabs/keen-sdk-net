@@ -976,12 +976,26 @@ namespace Keen.Core
             }
         }
 
-        public async Task<JToken> QueryDatasetAsync(string datasetName, string indexBy, string timeframe)
+        /// <summary>
+        /// Get query results from a Cached Dataset
+        /// </summary>
+        /// <param name="datasetName">Name of cached dataset to query.</param>
+        /// <param name="indexBy">The string property value you want to retrieve results by.</param>
+        /// <param name="timeframe">Limits retrieval of results to a specific portion of the Cached Dataset</param>
+        /// <returns>An instance of Newtonsoft.Json.Linq.JObject containing query results and metadata defining the cached dataset.</returns>
+        public async Task<JObject> QueryDatasetAsync(string datasetName, string indexBy, string timeframe)
         {
             return await Datasets.Results(datasetName, indexBy, timeframe);
         }
 
-        public JToken QueryDataset(string datasetName, string indexBy, string timeframe)
+        /// <summary>
+        /// Get query results from a Cached Dataset
+        /// </summary>
+        /// <param name="datasetName">Name of cached dataset to query.</param>
+        /// <param name="indexBy">The string property value you want to retrieve results by.</param>
+        /// <param name="timeframe">Limits retrieval of results to a specific portion of the Cached Dataset</param>
+        /// <returns>An instance of Newtonsoft.Json.Linq.JObject containing query results and metadata defining the cached dataset.</returns>
+        public JObject QueryDataset(string datasetName, string indexBy, string timeframe)
         {
             try
             {
@@ -993,11 +1007,21 @@ namespace Keen.Core
             }
         }
 
+        /// <summary>
+        /// Get the definition of your cached dataset.
+        /// </summary>
+        /// <param name="datasetName">Name of cached dataset to get the definition of.</param>
+        /// <returns>An instance of Keen.Core.Dataset.DatasetDefinition containing metadata about your cached dataset.</returns>
         public async Task<DatasetDefinition> GetDatasetDefinitionAsync(string datasetName)
         {
             return await Datasets.Definition(datasetName);
         }
 
+        /// <summary>
+        /// Get the definition of your cached dataset.
+        /// </summary>
+        /// <param name="datasetName">Name of cached dataset to get the definition of.</param>
+        /// <returns>An instance of Keen.Core.Dataset.DatasetDefinition containing metadata about your cached dataset.</returns>
         public DatasetDefinition GetDatasetDefinition(string datasetName)
         {
             try
