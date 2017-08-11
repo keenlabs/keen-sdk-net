@@ -7,7 +7,7 @@ namespace Keen.Core.ContractResolvers
      * 
      * Credit to Chris Allen https://github.com/crallen 
      */
-    public class SnakeCaseContractResolver : DefaultContractResolver
+    internal class SnakeCaseContractResolver : DefaultContractResolver
     {
         protected override string ResolvePropertyName(string propertyName)
         {
