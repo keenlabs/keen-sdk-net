@@ -49,6 +49,7 @@
     <Compile Include="Dataset\DatasetResults.cs" />
     <Compile Include="Dataset\Datasets.cs" />
     <Compile Include="DataEnrichment\EventAddOn.cs" />
+    <Compile Include="Dataset\IDataset.cs" />
     <Compile Include="HttpClientCache.cs" />
     <Compile Include="IHttpClientProvider.cs" />
     <Compile Include="IKeenHttpClient.cs" />

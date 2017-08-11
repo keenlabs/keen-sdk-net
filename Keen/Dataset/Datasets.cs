@@ -6,13 +6,6 @@ namespace Keen.Core.Dataset
     using ContractResolvers;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
-    using Query;
-
-    public interface IDataset
-    {
-        Task<JObject> Results(string datasetName, string indexBy, string timeframe);
-        Task<DatasetDefinition> Definition(string datasetName);
-    }
 
     internal class Datasets : IDataset
     {
