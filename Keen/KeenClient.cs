@@ -1128,7 +1128,7 @@ namespace Keen.Core
         /// Delete a Cached Dataset 
         /// </summary>
         /// <param name="datasetName">The name of the dataset to be deleted.</param>
-        public Task DeletedDatasetAsync(string datasetName)
+        public Task DeleteDatasetAsync(string datasetName)
         {
             return Datasets.DeleteDataset(datasetName);
         }
@@ -1137,11 +1137,11 @@ namespace Keen.Core
         /// Delete a Cached Dataset 
         /// </summary>
         /// <param name="datasetName">The name of the dataset to be deleted.</param>
-        public void DeletedDataset(string datasetName)
+        public void DeleteDataset(string datasetName)
         {
             try
             {
-                DeletedDatasetAsync(datasetName).Wait();
+                DeleteDatasetAsync(datasetName).Wait();
             }
             catch (AggregateException ex)
             {
