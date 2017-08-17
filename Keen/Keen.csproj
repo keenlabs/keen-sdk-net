@@ -45,9 +45,6 @@
     <Compile Include="ContractResolvers\SnakeCaseContractResolver.cs" />
     <Compile Include="Dataset\DatasetDefinition.cs" />
     <Compile Include="Dataset\DatasetDefinitionCollection.cs" />
-    <Compile Include="Dataset\DatasetMetadata.cs" />
-    <Compile Include="Dataset\DatasetRequest.cs" />
-    <Compile Include="Dataset\DatasetResults.cs" />
     <Compile Include="Dataset\Datasets.cs" />
     <Compile Include="DataEnrichment\EventAddOn.cs" />
     <Compile Include="Dataset\IDataset.cs" />
