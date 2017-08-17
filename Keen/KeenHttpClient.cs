@@ -164,6 +164,51 @@ namespace Keen.Core
             return _httpClient.SendAsync(delete);
         }
 
+        /// <summary>
+        /// Create and send a PUT request with the given content to the given relative resource
+        /// using the given key for authentication. 
+        /// </summary>
+        /// <param name="resource">The relative resource to PUT. Must be properly formatted as a
+        ///     relative Uri.</param>
+        /// <param name="authKey">The key to use for authenticating this request.</param>
+        /// <param name="content">The PUT body to send.</param>
+        /// <returns>>The response message.</returns>
+        public Task<HttpResponseMessage> PutAsync(string resource, string authKey, string content)
+        {
+            var url = new Uri(resource, UriKind.Relative);
+
+            return PutAsync(url, authKey, content);
+        }
+
+        /// <summary>
+        /// Create and send a PUT request with the given content to the given relative resource
+        /// using the given key for authentication. 
+        /// </summary>
+        /// <param name="resource">The relative resource to PUT. Must be properly formatted as a
+        ///     relative Uri.</param>
+        /// <param name="authKey">The key to use for authenticating this request.</param>
+        /// <param name="content">The PUT body to send.</param>
+        /// <returns>>The response message.</returns>
+        public async Task<HttpResponseMessage> PutAsync(Uri resource, string authKey, string content)
+        {
+            KeenHttpClient.RequireAuthKey(authKey);
+
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                throw new ArgumentNullException(nameof(content), "Unexpected empty content.");
+            }
+
+            using (var contentStream = new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes(content))))
+            {
+                contentStream.Headers.ContentType = new MediaTypeHeaderValue(KeenHttpClient.JSON_CONTENT_TYPE);
+
+                HttpRequestMessage put = CreateRequest(HttpMethod.Put, resource, authKey);
+                put.Content = contentStream;
+
+                return await _httpClient.SendAsync(put).ConfigureAwait(false);
+            }
+        }
+
         private static HttpRequestMessage CreateRequest(HttpMethod verb,
                                                         Uri resource,
                                                         string authKey)
