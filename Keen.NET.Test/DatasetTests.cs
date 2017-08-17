@@ -1,6 +1,11 @@
 ﻿namespace Keen.Net.Test
 {
+    using System;
     using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Net.Http;
+    using System.Reflection;
     using System.Threading.Tasks;
     using Core;
     using Core.Dataset;
@@ -14,6 +19,7 @@
     {
         private const string _datasetName = "video-view";
         private const string _indexBy = "12";
+        private const string _datasetUrl = "/project/PROJECT_ID/dataset";
         private const int _listDatasetLimit = 1;
 
         [Test]
@@ -34,7 +40,7 @@
                         It.Is<string>(n => n == _datasetName),
                         It.Is<string>(i => i == _indexBy),
                         It.Is<string>(t => t == timeframe.ToString())))
-                    .Returns(Task.FromResult(result));
+                    .ReturnsAsync(result);
 
                 client.Datasets = datasetMock.Object;
             }
@@ -59,7 +65,7 @@
                 datasetMock = new Mock<IDataset>();
                 datasetMock.Setup(m => m.Definition(
                         It.Is<string>(n => n == _datasetName)))
-                    .Returns(Task.FromResult(result));
+                    .ReturnsAsync(result);
 
                 client.Datasets = datasetMock.Object;
             }
@@ -85,7 +91,7 @@
                 datasetMock.Setup(m => m.ListDefinitions(
                         It.Is<int>(n => n == _listDatasetLimit),
                         It.Is<string>(n => n == _datasetName)))
-                    .Returns(Task.FromResult(result));
+                    .ReturnsAsync(result);
 
                 client.Datasets = datasetMock.Object;
             }
@@ -109,7 +115,7 @@
             {
                 datasetMock = new Mock<IDataset>();
                 datasetMock.Setup(m => m.ListAllDefinitions())
-                    .Returns(Task.FromResult(result));
+                    .ReturnsAsync(result);
 
                 client.Datasets = datasetMock.Object;
             }
@@ -134,7 +140,7 @@
                 datasetMock = new Mock<IDataset>();
                 datasetMock.Setup(m => m.CreateDataset(
                         It.Is<DatasetDefinition>(n => n != null)))
-                    .Returns(Task.FromResult(result));
+                    .ReturnsAsync(result);
 
                 client.Datasets = datasetMock.Object;
             }
@@ -165,6 +171,66 @@
             client.DeleteDataset(_datasetName);
 
             datasetMock?.VerifyAll();
+        }
+
+        [Test]
+        public void SerializeDefinition_Success()
+        {
+            var apiResponse = File.ReadAllText($"{this.GetLocalPath()}/ApiResponses/GetDatasetDefinition.json");
+
+            IKeenHttpClientProvider httpClientProvider = null;
+
+            if (UseMocks)
+            {
+                httpClientProvider = GetMockHttpClientProviderForGetAsync(apiResponse);
+            }
+
+            var client = new KeenClient(SettingsEnv, httpClientProvider);
+
+            var dataset = client.GetDatasetDefinition(_datasetName);
+
+            Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.DatasetName));
+            Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.DisplayName));
+            Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.IndexBy));
+            Assert.IsNotNull(dataset.LastScheduledDate);
+            Assert.IsNotNull(dataset.LatestSubtimeframeAvailable);
+            Assert.IsNotNull(dataset.Query);
+            Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.Query.ProjectId));
+            Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.Query.AnalysisType));
+            Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.Query.EventCollection));
+            Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.Query.Timeframe));
+            Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.Query.Interval));
+            Assert.IsNotNull(dataset.Query.GroupBy);
+            Assert.IsTrue(dataset.Query.GroupBy.Count() == 1);
+            Assert.IsNotNull(dataset.Query.Filters);
+            Assert.IsTrue(dataset.Query.Filters.Count() == 1);
+            Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.Query.Filters.FirstOrDefault().PropertyName));
+            Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.Query.Filters.FirstOrDefault().Operator));
+        }
+
+        private string GetLocalPath()
+        {
+            var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase);
+            return new Uri(path).LocalPath;
+        }
+
+        private IKeenHttpClientProvider GetMockHttpClientProviderForGetAsync(string response)
+        {
+            var httpResponseMessage = new HttpResponseMessage
+            {
+                Content = new StringContent(response)
+            };
+
+            var mockHttpClient = new Mock<IKeenHttpClient>();
+            mockHttpClient.Setup(m => m.GetAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>()))
+                .Returns(Task.FromResult(httpResponseMessage));
+
+            return new TestKeenHttpClientProvider
+            {
+                ProvideKeenHttpClient = (url) => mockHttpClient.Object
+            };
         }
     }
 }
