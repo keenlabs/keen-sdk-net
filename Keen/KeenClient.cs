@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace Keen.Core
 {
+    using System.Linq.Expressions;
     using Dataset;
 
     /// <summary>
@@ -1039,9 +1040,33 @@ namespace Keen.Core
             return Datasets.ListDefinitions(limit, afterName);
         }
 
+        public DatasetDefinitionCollection ListDatasetDefinitions(int limit = 10, string afterName = null)
+        {
+            try
+            {
+                return ListDatasetDefinitionsAsync().Result;
+            }
+            catch(AggregateException ex)
+            {
+                throw ex.TryUnwrap();
+            }
+        }
+
         public Task<IEnumerable<DatasetDefinition>> ListAllDatasetDefinitionsAsync()
         {
             return Datasets.ListAllDefinitions();
+        }
+
+        public IEnumerable<DatasetDefinition> ListAllDatasetDefinitions()
+        {
+            try
+            {
+                return ListAllDatasetDefinitionsAsync().Result;
+            }
+            catch (AggregateException ex)
+            {
+                throw ex.TryUnwrap();
+            }
         }
 
         public Task<DatasetDefinition> CreateDatasetAsync(DatasetDefinition dataset)
@@ -1049,9 +1074,33 @@ namespace Keen.Core
             return Datasets.CreateDataset(dataset);
         }
 
-        public Task DeletedDataset(string datasetName)
+        public DatasetDefinition CreateDataset(DatasetDefinition dataset)
+        {
+            try
+            {
+                return CreateDatasetAsync(dataset).Result;
+            }
+            catch (AggregateException ex)
+            {
+                throw ex.TryUnwrap();
+            }
+        }
+
+        public Task DeletedDatasetAsync(string datasetName)
         {
             return Datasets.DeleteDataset(datasetName);
+        }
+
+        public void DeletedDataset(string datasetName)
+        {
+            try
+            {
+                DeletedDatasetAsync(datasetName).Wait();
+            }
+            catch (AggregateException ex)
+            {
+                throw ex.TryUnwrap();
+            }
         }
     }
 }
