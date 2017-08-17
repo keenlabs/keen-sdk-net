@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using Keen.Core.Query;
+using System.Linq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
 
 namespace Keen.Core.Dataset
 {
-    using System.Linq;
-    using System.Text.RegularExpressions;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
-
     public class DatasetDefinition
     {
         /// <summary>
