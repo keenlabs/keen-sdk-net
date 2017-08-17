@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Data;
     using System.IO;
     using System.Linq;
     using System.Net.Http;
@@ -189,23 +190,34 @@
 
             var dataset = client.GetDatasetDefinition(_datasetName);
 
-            Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.DatasetName));
-            Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.DisplayName));
-            Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.IndexBy));
-            Assert.IsNotNull(dataset.LastScheduledDate);
-            Assert.IsNotNull(dataset.LatestSubtimeframeAvailable);
-            Assert.IsNotNull(dataset.Query);
-            Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.Query.ProjectId));
-            Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.Query.AnalysisType));
-            Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.Query.EventCollection));
-            Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.Query.Timeframe));
-            Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.Query.Interval));
-            Assert.IsNotNull(dataset.Query.GroupBy);
-            Assert.IsTrue(dataset.Query.GroupBy.Count() == 1);
-            Assert.IsNotNull(dataset.Query.Filters);
-            Assert.IsTrue(dataset.Query.Filters.Count() == 1);
-            Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.Query.Filters.FirstOrDefault().PropertyName));
-            Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.Query.Filters.FirstOrDefault().Operator));
+            AssertDatasetIsPopulated(dataset);
+        }
+
+        [Test]
+        public void SerializeDefinitionCollection_Success()
+        {
+            var apiResponse = File.ReadAllText($"{this.GetLocalPath()}/ApiResponses/ListDatasetDefinitions.json");
+
+            IKeenHttpClientProvider httpClientProvider = null;
+
+            if (UseMocks)
+            {
+                httpClientProvider = GetMockHttpClientProviderForGetAsync(apiResponse);
+            }
+
+            var client = new KeenClient(SettingsEnv, httpClientProvider);
+
+            var datasetCollection = client.ListDatasetDefinitions();
+
+            Assert.IsNotNull(datasetCollection);
+            Assert.IsNotNull(datasetCollection.Datasets);
+            Assert.IsTrue(datasetCollection.Datasets.Any());
+            Assert.IsTrue(!string.IsNullOrWhiteSpace(datasetCollection.NextPageUrl));
+
+            foreach (var item in datasetCollection.Datasets)
+            {
+                AssertDatasetIsPopulated(item);
+            }
         }
 
         private string GetLocalPath()
@@ -231,6 +243,38 @@
             {
                 ProvideKeenHttpClient = (url) => mockHttpClient.Object
             };
+        }
+
+        private void AssertDatasetIsPopulated(DatasetDefinition dataset)
+        {
+            Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.DatasetName));
+            Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.DisplayName));
+            Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.IndexBy));
+            Assert.IsNotNull(dataset.LastScheduledDate);
+            Assert.IsNotNull(dataset.LatestSubtimeframeAvailable);
+            Assert.IsNotNull(dataset.Query);
+            Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.Query.ProjectId));
+            Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.Query.AnalysisType));
+            Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.Query.EventCollection));
+            Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.Query.Timeframe));
+            Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.Query.Interval));
+            Assert.IsNotNull(dataset.Query.GroupBy);
+            Assert.IsTrue(dataset.Query.GroupBy.Count() == 1);
+
+            if (dataset.Query.Filters != null)
+            {
+                foreach (var filter in dataset.Query.Filters)
+                {
+                    AssertFilterIsPopulated(filter);
+                }   
+            }
+        }
+
+        private void AssertFilterIsPopulated(QueryFilter filter)
+        {
+            Assert.IsNotNull(filter);
+            Assert.IsTrue(!string.IsNullOrWhiteSpace(filter.PropertyName));
+            Assert.IsTrue(!string.IsNullOrWhiteSpace(filter.Operator));
         }
     }
 }
