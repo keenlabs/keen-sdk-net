@@ -67,9 +67,9 @@ namespace Keen.Core.Dataset
         }
     }
 
-    /*
-     * This is used because the PUT endpoints take a string for index_by, but return an array of strings.
-     */
+    /// <summary>
+    /// This is used because the PUT endpoints take a string for index_by, but return an array of strings.
+    /// </summary>
     internal class DatasetDefinitionConverter : JsonConverter
     {
         /* This prevents JToken.ToObject form recursively calling ReadJson until the stack runs out */
@@ -90,7 +90,7 @@ namespace Keen.Core.Dataset
 
             var indexByList = token["index_by"]?.ToArray();
 
-            //Setting index_by to null so that Serializing without this converter doesnt run into issues.
+            //Setting index_by to null so that Serializing without this converter doesnt run into issues facing an incorrect data type.
             token["index_by"] = null;
 
             _isNested = true;

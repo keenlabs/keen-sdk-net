@@ -73,9 +73,9 @@ namespace Keen.Core.Query
         }
     }
 
-    /*
-     * This is used because the PUT endpoint for a dataset take a string for group_by, but return an array of strings.
-     */
+    /// <summary>
+    /// This is used because the PUT endpoint for a dataset take a string for group_by, but return an array of strings.
+    /// </summary>
     internal class QueryDefinitionConverter : JsonConverter
     {
         /* This prevents JToken.ToObject form recursively calling ReadJson until the stack runs out */

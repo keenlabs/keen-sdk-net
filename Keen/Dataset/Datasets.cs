@@ -10,6 +10,9 @@ using Keen.Core.Query;
 
 namespace Keen.Core.Dataset
 {
+    /// <summary>
+    /// Datasets implements the IDataset interface which represents the Keen.IO Cached Datasets API methods.
+    /// </summary>
     internal class Datasets : IDataset
     {
         private const int MAX_DATASET_DEFINITION_LIST_LIMIT = 100;
@@ -40,8 +43,6 @@ namespace Keen.Core.Dataset
                 throw new KeenException(
                     "A properly formatted KeenUrl must be provided via Project Settings.");
             }
-
-            
 
             var serverBaseUrl = new Uri(prjSettings.KeenUrl);
             _keenHttpClient = keenHttpClientProvider.GetForUrl(serverBaseUrl);
