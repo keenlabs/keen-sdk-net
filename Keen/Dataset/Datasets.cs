@@ -130,7 +130,7 @@ namespace Keen.Core.Dataset
                 throw new KeenException($"Request failed with status: {responseMessage.StatusCode}");
             }
 
-            return JsonConvert.DeserializeObject<DatasetDefinition>(responseString, new JsonSerializerSettings { ContractResolver = new SnakeCaseContractResolver() });
+            return JsonConvert.DeserializeObject<DatasetDefinition>(responseString, this.GetSerializerSettings());
         }
 
         public async Task<DatasetDefinitionCollection> ListDefinitions(int limit = 10, string afterName = null)
