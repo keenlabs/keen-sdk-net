@@ -17,7 +17,7 @@
         private const int _listDatasetLimit = 1;
 
         [Test]
-        public async Task GetDatasetResults_Success()
+        public void GetDatasetResults_Success()
         {
             var timeframe = QueryRelativeTimeframe.ThisNMinutes(12);
 
@@ -39,14 +39,14 @@
                 client.Datasets = datasetMock.Object;
             }
 
-            var dataset = await client.QueryDatasetAsync(_datasetName, _indexBy, timeframe.ToString());
+            var dataset = client.QueryDataset(_datasetName, _indexBy, timeframe.ToString());
             Assert.IsNotNull(dataset);
 
             datasetMock?.VerifyAll();
         }
 
         [Test]
-        public async Task GetDatasetDefinition_Success()
+        public void GetDatasetDefinition_Success()
         {
             var result = new DatasetDefinition();
 
@@ -64,14 +64,14 @@
                 client.Datasets = datasetMock.Object;
             }
 
-            var datasetDefinition = await client.GetDatasetDefinitionAsync(_datasetName);
+            var datasetDefinition = client.GetDatasetDefinition(_datasetName);
             Assert.IsNotNull(datasetDefinition);
 
             datasetMock?.VerifyAll();
         }
 
         [Test]
-        public async Task ListDatasetDefinitions_Success()
+        public void ListDatasetDefinitions_Success()
         {
             var result = new DatasetDefinitionCollection();
 
@@ -90,14 +90,14 @@
                 client.Datasets = datasetMock.Object;
             }
 
-            var datasetDefinitionCollection = await client.ListDatasetDefinitionsAsync(_listDatasetLimit, _datasetName);
+            var datasetDefinitionCollection = client.ListDatasetDefinitions(_listDatasetLimit, _datasetName);
             Assert.IsNotNull(datasetDefinitionCollection);
 
             datasetMock?.VerifyAll();
         }
 
         [Test]
-        public async Task ListDatasetAllDefinitions_Success()
+        public void ListDatasetAllDefinitions_Success()
         {
             IEnumerable<DatasetDefinition> result = new List<DatasetDefinition>();
 
@@ -114,14 +114,14 @@
                 client.Datasets = datasetMock.Object;
             }
 
-            var datasetDefinitions = await client.ListAllDatasetDefinitionsAsync();
+            var datasetDefinitions = client.ListAllDatasetDefinitions();
             Assert.IsNotNull(datasetDefinitions);
 
             datasetMock?.VerifyAll();
         }
 
         [Test]
-        public async Task CreateDataset_Success()
+        public void CreateDataset_Success()
         {
             var result = new DatasetDefinition();
 
@@ -139,14 +139,14 @@
                 client.Datasets = datasetMock.Object;
             }
 
-            var datasetDefinition = await client.CreateDatasetAsync(new DatasetDefinition());
+            var datasetDefinition = client.CreateDataset(new DatasetDefinition());
             Assert.IsNotNull(datasetDefinition);
 
             datasetMock?.VerifyAll();
         }
 
         [Test]
-        public async Task DeleteDataset_Success()
+        public void DeleteDataset_Success()
         {
             var client = new KeenClient(SettingsEnv);
 
@@ -162,7 +162,7 @@
                 client.Datasets = datasetMock.Object;
             }
 
-            await client.DeleteDatasetAsync(_datasetName);
+            client.DeleteDataset(_datasetName);
 
             datasetMock?.VerifyAll();
         }
