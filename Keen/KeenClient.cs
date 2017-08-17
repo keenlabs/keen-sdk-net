@@ -1033,5 +1033,25 @@ namespace Keen.Core
                 throw ex.TryUnwrap();
             }
         }
+
+        public Task<DatasetDefinitionCollection> ListDatasetDefinitionsAsync(int limit = 10, string afterName = null)
+        {
+            return Datasets.ListDefinitions(limit, afterName);
+        }
+
+        public Task<IEnumerable<DatasetDefinition>> ListAllDatasetDefinitionsAsync()
+        {
+            return Datasets.ListAllDefinitions();
+        }
+
+        public Task<DatasetDefinition> CreateDatasetAsync(DatasetDefinition dataset)
+        {
+            return Datasets.CreateDataset(dataset);
+        }
+
+        public Task DeletedDataset(string datasetName)
+        {
+            return Datasets.DeleteDataset(datasetName);
+        }
     }
 }
