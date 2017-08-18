@@ -1064,7 +1064,7 @@ namespace Keen.Core
         {
             try
             {
-                return ListDatasetDefinitionsAsync().Result;
+                return ListDatasetDefinitionsAsync(limit, afterName).Result;
             }
             catch(AggregateException ex)
             {
