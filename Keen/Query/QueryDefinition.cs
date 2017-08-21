@@ -1,13 +1,11 @@
 ﻿using System.Collections.Generic;
+using System;
+using System.Linq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Keen.Core.Query
 {
-    using System;
-    using System.Linq;
-    using Dataset;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
-
     /// <summary>
     /// Holds information describing the query that is cached within a cached dataset.
     /// </summary>

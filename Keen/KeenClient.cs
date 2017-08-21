@@ -7,13 +7,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-
+using Keen.Core.Dataset;
 
 namespace Keen.Core
 {
-    using System.Linq.Expressions;
-    using Dataset;
-
     /// <summary>
     /// Keen.IO API access
     /// </summary>
