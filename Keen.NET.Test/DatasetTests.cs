@@ -145,23 +145,178 @@ namespace Keen.Net.Test
 
             var client = new KeenClient(SettingsEnv, httpClientProvider);
 
-            var newDataSet = new DatasetDefinition
-            {
-                DatasetName = "count-purchases-gte-100-by-country-daily",
-                DisplayName = "Count Daily Product Purchases Over $100 by Country",
-                IndexBy = "product.id",
-                Query = new QueryDefinition
-                {
-                    AnalysisType = "count",
-                    EventCollection = "purchases",
-                    Timeframe = "this_500_days",
-                    Interval = "daily"
-                }
-            };
+            var newDataSet = CreateDatasetDefinition();
 
             var dataset = client.CreateDataset(newDataSet);
 
             AssertDatasetIsPopulated(dataset);
+        }
+
+        [Test]
+        public void DatasetValidation_Throws()
+        {
+            var dataset = new DatasetDefinition();
+
+            Assert.Throws<KeenException>(() => dataset.Validate());
+
+            dataset.DatasetName = "count-purchases-gte-100-by-country-daily";
+
+            Assert.Throws<KeenException>(() => dataset.Validate());
+
+            dataset.DisplayName = "Count Daily Product Purchases Over $100 by Country";
+
+            Assert.Throws<KeenException>(() => dataset.Validate());
+
+            dataset.IndexBy = "product.id";
+
+            Assert.Throws<KeenException>(() => dataset.Validate());
+
+            dataset.Query = new QueryDefinition();
+
+            Assert.Throws<KeenException>(() => dataset.Validate());
+
+            dataset.Query.AnalysisType = "count";
+
+            Assert.Throws<KeenException>(() => dataset.Validate());
+
+            dataset.Query.EventCollection = "purchases";
+
+            Assert.Throws<KeenException>(() => dataset.Validate());
+
+            dataset.Query.Timeframe = "this_500_days";
+
+            Assert.Throws<KeenException>(() => dataset.Validate());
+
+            dataset.Query.Interval = "daily";
+
+            Assert.DoesNotThrow(() => dataset.Validate());
+        }
+
+        [Test]
+        public void Results_Throws()
+        {
+            IKeenHttpClientProvider httpClientProvider = null;
+
+            if (UseMocks)
+            {
+                httpClientProvider = GetMockHttpClientProviderForGetAsync("{}", HttpStatusCode.InternalServerError);
+            }
+
+            var client = new KeenClient(SettingsEnv, httpClientProvider);
+
+            Assert.Throws<KeenException>(() => client.QueryDataset(null, _indexBy, _timeframe));
+            Assert.Throws<KeenException>(() => client.QueryDataset(_datasetName, null, _timeframe));
+            Assert.Throws<KeenException>(() => client.QueryDataset(_datasetName, _indexBy, null));
+
+            Assert.Throws<KeenException>(() => client.QueryDataset(_datasetName, _indexBy, _timeframe));
+
+            var brokenClient = new KeenClient(new ProjectSettingsProvider("5011efa95f546f2ce2000000", 
+                null, 
+                Environment.GetEnvironmentVariable("KEEN_WRITE_KEY") ?? "", 
+                Environment.GetEnvironmentVariable("KEEN_READ_KEY") ?? "", 
+                Environment.GetEnvironmentVariable("KEEN_SERVER_URL") ?? KeenConstants.ServerAddress + "/" + KeenConstants.ApiVersion + "/"), 
+                httpClientProvider);
+
+            Assert.Throws<KeenException>(() => brokenClient.QueryDataset(_datasetName, _indexBy, _timeframe));
+        }
+
+        [Test]
+        public void Definition_Throws()
+        {
+            IKeenHttpClientProvider httpClientProvider = null;
+
+            if (UseMocks)
+            {
+                httpClientProvider = GetMockHttpClientProviderForGetAsync("{}", HttpStatusCode.InternalServerError);
+            }
+
+            var client = new KeenClient(SettingsEnv, httpClientProvider);
+
+            Assert.Throws<KeenException>(() => client.GetDatasetDefinition(null));
+
+            Assert.Throws<KeenException>(() => client.GetDatasetDefinition(_datasetName));
+
+            var brokenClient = new KeenClient(new ProjectSettingsProvider("5011efa95f546f2ce2000000",
+                    null,
+                    Environment.GetEnvironmentVariable("KEEN_WRITE_KEY") ?? "",
+                    Environment.GetEnvironmentVariable("KEEN_READ_KEY") ?? "",
+                    Environment.GetEnvironmentVariable("KEEN_SERVER_URL") ?? KeenConstants.ServerAddress + "/" + KeenConstants.ApiVersion + "/"),
+                httpClientProvider);
+
+            Assert.Throws<KeenException>(() => brokenClient.GetDatasetDefinition(_datasetName));
+        }
+
+        [Test]
+        public void ListDefinitions_Throws()
+        {
+            IKeenHttpClientProvider httpClientProvider = null;
+
+            if (UseMocks)
+            {
+                httpClientProvider = GetMockHttpClientProviderForGetAsync("{}", HttpStatusCode.InternalServerError);
+            }
+
+            var client = new KeenClient(SettingsEnv, httpClientProvider);
+
+            Assert.Throws<KeenException>(() => client.ListDatasetDefinitions());
+
+            var brokenClient = new KeenClient(new ProjectSettingsProvider("5011efa95f546f2ce2000000",
+                    null,
+                    Environment.GetEnvironmentVariable("KEEN_WRITE_KEY") ?? "",
+                    Environment.GetEnvironmentVariable("KEEN_READ_KEY") ?? "",
+                    Environment.GetEnvironmentVariable("KEEN_SERVER_URL") ?? KeenConstants.ServerAddress + "/" + KeenConstants.ApiVersion + "/"),
+                httpClientProvider);
+
+            Assert.Throws<KeenException>(() => brokenClient.ListDatasetDefinitions());
+        }
+
+        [Test]
+        public void DeleteDataset_Throws()
+        {
+            IKeenHttpClientProvider httpClientProvider = null;
+
+            if (UseMocks)
+            {
+                httpClientProvider = GetMockHttpClientProviderForDeleteAsync("{}", HttpStatusCode.InternalServerError);
+            }
+
+            var client = new KeenClient(SettingsEnv, httpClientProvider);
+
+            Assert.Throws<KeenException>(() => client.DeleteDataset(null));
+            Assert.Throws<KeenException>(() => client.DeleteDataset(_datasetName));
+
+            var brokenClient = new KeenClient(new ProjectSettingsProvider("5011efa95f546f2ce2000000",
+                    null,
+                    Environment.GetEnvironmentVariable("KEEN_WRITE_KEY") ?? "",
+                    Environment.GetEnvironmentVariable("KEEN_READ_KEY") ?? "",
+                    Environment.GetEnvironmentVariable("KEEN_SERVER_URL") ?? KeenConstants.ServerAddress + "/" + KeenConstants.ApiVersion + "/"),
+                httpClientProvider);
+
+            Assert.Throws<KeenException>(() => brokenClient.DeleteDataset(_datasetName));
+        }
+
+        [Test]
+        public void CreateDataset_Throws()
+        {
+            IKeenHttpClientProvider httpClientProvider = null;
+
+            if (UseMocks)
+            {
+                httpClientProvider = GetMockHttpClientProviderForDeleteAsync("{}", HttpStatusCode.InternalServerError);
+            }
+
+            var client = new KeenClient(SettingsEnv, httpClientProvider);
+
+            Assert.Throws<KeenException>(() => client.CreateDataset(null));
+
+            var brokenClient = new KeenClient(new ProjectSettingsProvider("5011efa95f546f2ce2000000",
+                    null,
+                    Environment.GetEnvironmentVariable("KEEN_WRITE_KEY") ?? "",
+                    Environment.GetEnvironmentVariable("KEEN_READ_KEY") ?? "",
+                    Environment.GetEnvironmentVariable("KEEN_SERVER_URL") ?? KeenConstants.ServerAddress + "/" + KeenConstants.ApiVersion + "/"),
+                httpClientProvider);
+
+            Assert.Throws<KeenException>(() => brokenClient.CreateDataset(CreateDatasetDefinition()));
         }
 
         private string GetLocalPath()
@@ -170,11 +325,12 @@ namespace Keen.Net.Test
             return new Uri(path).LocalPath;
         }
 
-        private IKeenHttpClientProvider GetMockHttpClientProviderForGetAsync(string response)
+        private IKeenHttpClientProvider GetMockHttpClientProviderForGetAsync(string response, HttpStatusCode status = HttpStatusCode.OK)
         {
             var httpResponseMessage = new HttpResponseMessage
             {
-                Content = new StringContent(response)
+                Content = new StringContent(response),
+                StatusCode = status
             };
 
             var mockHttpClient = new Mock<IKeenHttpClient>();
@@ -210,12 +366,12 @@ namespace Keen.Net.Test
             };
         }
 
-        private IKeenHttpClientProvider GetMockHttpClientProviderForDeleteAsync(string response)
+        private IKeenHttpClientProvider GetMockHttpClientProviderForDeleteAsync(string response, HttpStatusCode status = HttpStatusCode.NoContent)
         {
             var httpResponseMessage = new HttpResponseMessage
             {
                 Content = new StringContent(response),
-                StatusCode = HttpStatusCode.NoContent
+                StatusCode = status
             };
 
             var mockHttpClient = new Mock<IKeenHttpClient>();
@@ -260,6 +416,23 @@ namespace Keen.Net.Test
             Assert.IsNotNull(filter);
             Assert.IsTrue(!string.IsNullOrWhiteSpace(filter.PropertyName));
             Assert.IsTrue(!string.IsNullOrWhiteSpace(filter.Operator));
+        }
+
+        private DatasetDefinition CreateDatasetDefinition()
+        {
+            return new DatasetDefinition
+            {
+                DatasetName = "count-purchases-gte-100-by-country-daily",
+                DisplayName = "Count Daily Product Purchases Over $100 by Country",
+                IndexBy = "product.id",
+                Query = new QueryDefinition
+                {
+                    AnalysisType = "count",
+                    EventCollection = "purchases",
+                    Timeframe = "this_500_days",
+                    Interval = "daily"
+                }
+            };
         }
     }
 }
