@@ -1,181 +1,50 @@
-﻿namespace Keen.Net.Test
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Reflection;
+using System.Threading.Tasks;
+using Keen.Core;
+using Keen.Core.Dataset;
+using Keen.Core.Query;
+using Moq;
+using Newtonsoft.Json.Linq;
+using NUnit.Framework;
+
+namespace Keen.Net.Test
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data;
-    using System.IO;
-    using System.Linq;
-    using System.Net.Http;
-    using System.Reflection;
-    using System.Threading.Tasks;
-    using Core;
-    using Core.Dataset;
-    using Core.Query;
-    using Moq;
-    using Newtonsoft.Json.Linq;
-    using NUnit.Framework;
+    using System.Net;
 
     [TestFixture]
     public class DatasetTests : TestBase
     {
         private const string _datasetName = "video-view";
         private const string _indexBy = "12";
-        private const string _datasetUrl = "/project/PROJECT_ID/dataset";
-        private const int _listDatasetLimit = 1;
+        private const string _timeframe = "this_12_days";
 
         [Test]
-        public void GetDatasetResults_Success()
+        public void Results_Success()
         {
-            var timeframe = QueryRelativeTimeframe.ThisNMinutes(12);
+            var apiResponse = File.ReadAllText($"{this.GetLocalPath()}/ApiResponses/GetDatasetResults.json");
 
-            var result = new JObject();
-
-            var client = new KeenClient(SettingsEnv);
-
-            Mock<IDataset> datasetMock = null;
+            IKeenHttpClientProvider httpClientProvider = null;
 
             if (UseMocks)
             {
-                datasetMock = new Mock<IDataset>();
-                datasetMock.Setup(m => m.Results(
-                        It.Is<string>(n => n == _datasetName),
-                        It.Is<string>(i => i == _indexBy),
-                        It.Is<string>(t => t == timeframe.ToString())))
-                    .ReturnsAsync(result);
-
-                client.Datasets = datasetMock.Object;
+                httpClientProvider = GetMockHttpClientProviderForGetAsync(apiResponse);
             }
 
-            var dataset = client.QueryDataset(_datasetName, _indexBy, timeframe.ToString());
+            var client = new KeenClient(SettingsEnv, httpClientProvider);
+
+            var dataset = client.QueryDataset(_datasetName, _indexBy, _timeframe);
+
             Assert.IsNotNull(dataset);
-
-            datasetMock?.VerifyAll();
+            Assert.IsNotNull(dataset["result"]);
         }
 
         [Test]
-        public void GetDatasetDefinition_Success()
-        {
-            var result = new DatasetDefinition();
-
-            var client = new KeenClient(SettingsEnv);
-
-            Mock<IDataset> datasetMock = null;
-
-            if (UseMocks)
-            {
-                datasetMock = new Mock<IDataset>();
-                datasetMock.Setup(m => m.Definition(
-                        It.Is<string>(n => n == _datasetName)))
-                    .ReturnsAsync(result);
-
-                client.Datasets = datasetMock.Object;
-            }
-
-            var datasetDefinition = client.GetDatasetDefinition(_datasetName);
-            Assert.IsNotNull(datasetDefinition);
-
-            datasetMock?.VerifyAll();
-        }
-
-        [Test]
-        public void ListDatasetDefinitions_Success()
-        {
-            var result = new DatasetDefinitionCollection();
-
-            var client = new KeenClient(SettingsEnv);
-
-            Mock<IDataset> datasetMock = null;
-
-            if (UseMocks)
-            {
-                datasetMock = new Mock<IDataset>();
-                datasetMock.Setup(m => m.ListDefinitions(
-                        It.Is<int>(n => n == _listDatasetLimit),
-                        It.Is<string>(n => n == _datasetName)))
-                    .ReturnsAsync(result);
-
-                client.Datasets = datasetMock.Object;
-            }
-
-            var datasetDefinitionCollection = client.ListDatasetDefinitions(_listDatasetLimit, _datasetName);
-            Assert.IsNotNull(datasetDefinitionCollection);
-
-            datasetMock?.VerifyAll();
-        }
-
-        [Test]
-        public void ListDatasetAllDefinitions_Success()
-        {
-            IEnumerable<DatasetDefinition> result = new List<DatasetDefinition>();
-
-            var client = new KeenClient(SettingsEnv);
-
-            Mock<IDataset> datasetMock = null;
-
-            if (UseMocks)
-            {
-                datasetMock = new Mock<IDataset>();
-                datasetMock.Setup(m => m.ListAllDefinitions())
-                    .ReturnsAsync(result);
-
-                client.Datasets = datasetMock.Object;
-            }
-
-            var datasetDefinitions = client.ListAllDatasetDefinitions();
-            Assert.IsNotNull(datasetDefinitions);
-
-            datasetMock?.VerifyAll();
-        }
-
-        [Test]
-        public void CreateDataset_Success()
-        {
-            var result = new DatasetDefinition();
-
-            var client = new KeenClient(SettingsEnv);
-
-            Mock<IDataset> datasetMock = null;
-
-            if (UseMocks)
-            {
-                datasetMock = new Mock<IDataset>();
-                datasetMock.Setup(m => m.CreateDataset(
-                        It.Is<DatasetDefinition>(n => n != null)))
-                    .ReturnsAsync(result);
-
-                client.Datasets = datasetMock.Object;
-            }
-
-            var datasetDefinition = client.CreateDataset(new DatasetDefinition());
-            Assert.IsNotNull(datasetDefinition);
-
-            datasetMock?.VerifyAll();
-        }
-
-        [Test]
-        public void DeleteDataset_Success()
-        {
-            var client = new KeenClient(SettingsEnv);
-
-            Mock<IDataset> datasetMock = null;
-
-            if (UseMocks)
-            {
-                datasetMock = new Mock<IDataset>();
-                datasetMock.Setup(m => m.DeleteDataset(
-                        It.Is<string>(n => n == _datasetName)))
-                    .Returns(Task.Delay(0));
-
-                client.Datasets = datasetMock.Object;
-            }
-
-            client.DeleteDataset(_datasetName);
-
-            datasetMock?.VerifyAll();
-        }
-
-        [Test]
-        public void SerializeDefinition_Success()
+        public void Definition_Success()
         {
             var apiResponse = File.ReadAllText($"{this.GetLocalPath()}/ApiResponses/GetDatasetDefinition.json");
 
@@ -194,7 +63,7 @@
         }
 
         [Test]
-        public void SerializeDefinitionCollection_Success()
+        public void ListDefinitions_Success()
         {
             var apiResponse = File.ReadAllText($"{this.GetLocalPath()}/ApiResponses/ListDatasetDefinitions.json");
 
@@ -220,6 +89,81 @@
             }
         }
 
+        [Test]
+        public void ListAllDefinitions_Success()
+        {
+            var apiResponse = File.ReadAllText($"{this.GetLocalPath()}/ApiResponses/ListDatasetDefinitions.json");
+
+            IKeenHttpClientProvider httpClientProvider = null;
+
+            if (UseMocks)
+            {
+                httpClientProvider = GetMockHttpClientProviderForGetAsync(apiResponse);
+            }
+
+            var client = new KeenClient(SettingsEnv, httpClientProvider);
+
+            var datasetCollection = client.ListAllDatasetDefinitions();
+
+            Assert.IsNotNull(datasetCollection);
+            Assert.IsTrue(datasetCollection.Any());
+
+            foreach (var item in datasetCollection)
+            {
+                AssertDatasetIsPopulated(item);
+            }
+        }
+
+        [Test]
+        public void Delete_Success()
+        {
+            
+
+            IKeenHttpClientProvider httpClientProvider = null;
+
+            if (UseMocks)
+            {
+                httpClientProvider = GetMockHttpClientProviderForDeleteAsync(string.Empty);
+            }
+
+            var client = new KeenClient(SettingsEnv, httpClientProvider);
+
+            client.DeleteDataset("datasetName");
+        }
+
+        [Test]
+        public void CreateDataset_Success()
+        {
+            var apiResponse = File.ReadAllText($"{this.GetLocalPath()}/ApiResponses/GetDatasetDefinition.json");
+
+            IKeenHttpClientProvider httpClientProvider = null;
+
+            if (UseMocks)
+            {
+                httpClientProvider = GetMockHttpClientProviderForPutAsync(apiResponse);
+            }
+
+            var client = new KeenClient(SettingsEnv, httpClientProvider);
+
+            var newDataSet = new DatasetDefinition
+            {
+                DatasetName = "count-purchases-gte-100-by-country-daily",
+                DisplayName = "Count Daily Product Purchases Over $100 by Country",
+                IndexBy = "product.id",
+                Query = new QueryDefinition
+                {
+                    AnalysisType = "count",
+                    EventCollection = "purchases",
+                    Timeframe = "this_500_days",
+                    Interval = "daily"
+                }
+            };
+
+            var dataset = client.CreateDataset(newDataSet);
+
+            AssertDatasetIsPopulated(dataset);
+        }
+
         private string GetLocalPath()
         {
             var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase);
@@ -235,6 +179,47 @@
 
             var mockHttpClient = new Mock<IKeenHttpClient>();
             mockHttpClient.Setup(m => m.GetAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>()))
+                .Returns(Task.FromResult(httpResponseMessage));
+
+            return new TestKeenHttpClientProvider
+            {
+                ProvideKeenHttpClient = (url) => mockHttpClient.Object
+            };
+        }
+
+        private IKeenHttpClientProvider GetMockHttpClientProviderForPutAsync(string response)
+        {
+            var httpResponseMessage = new HttpResponseMessage
+            {
+                Content = new StringContent(response),
+                StatusCode = HttpStatusCode.Created
+            };
+
+            var mockHttpClient = new Mock<IKeenHttpClient>();
+            mockHttpClient.Setup(m => m.PutAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>()))
+                .Returns(Task.FromResult(httpResponseMessage));
+
+            return new TestKeenHttpClientProvider
+            {
+                ProvideKeenHttpClient = (url) => mockHttpClient.Object
+            };
+        }
+
+        private IKeenHttpClientProvider GetMockHttpClientProviderForDeleteAsync(string response)
+        {
+            var httpResponseMessage = new HttpResponseMessage
+            {
+                Content = new StringContent(response),
+                StatusCode = HttpStatusCode.NoContent
+            };
+
+            var mockHttpClient = new Mock<IKeenHttpClient>();
+            mockHttpClient.Setup(m => m.DeleteAsync(
                     It.IsAny<string>(),
                     It.IsAny<string>()))
                 .Returns(Task.FromResult(httpResponseMessage));

@@ -91,6 +91,7 @@
     </Compile>
     <Compile Include="AddOnsTest.cs" />
     <Compile Include="DatasetTests.cs" />
+    <Compile Include="DataSetTests_Integration.cs" />
     <Compile Include="EventCacheTest.cs" />
     <Compile Include="EventCollectionMock.cs" />
     <Compile Include="EventMock.cs" />
@@ -114,6 +115,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="ApiResponses\ListDatasetDefinitions.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ApiResponses\GetDatasetResults.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="app.config" />

@@ -56,5 +56,5 @@
     }
   ],
   "next_page_url": "https://api.keen.io/3.0/projects/PROJECT_ID/datasets?limit=LIMIT&after_name=DATASET_NAME_10",
-  "count": 3 
+  "count": 4 
 }
