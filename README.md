@@ -11,13 +11,15 @@ The Keen IO .NET SDK can be used to do custom analytics and event tracking for .
 .NET Version Support
 ------------
 
-There are three versions of the .NET SDK, which vary based on the target platform.
+There are four versions of the .NET SDK, which vary based on the target platform.
 
-A portable class library targets .NET 4.5, Windows and Windows Phone 8+, and Xamarin for iOS and Android.
+A class library that multi-targets .NET Standard 2.0 and .NET Framework 4.5.
 
-A .NET 4.5 specific library makes use of the portable class library and adds a few features including scoped key generation and project settings providers which read settings from environment variables or a file.
+A portable class library targets .NET 4.5, Windows and Windows Phone 8+, and Xamarin for iOS and Android. (Will be replaced by the .NET Standard 2.0 library soon!)
 
-For older projects and Unity, a separate .NET 3.5 library exists, though it lacks query support.
+A .NET 4.5 specific library makes use of the portable class library and adds a few features including scoped key generation and project settings providers which read settings from environment variables or a file. (Will be replaced by the .NET Standard 2.0 + .NET Framework 4.5 multi-targeted library soon!)
+
+For older projects and Unity, a separate .NET 3.5 library exists, though it lacks query support. (Will be replaced by the .NET Standard 2.0 library soon!)
 
 Installation
 ------------
