@@ -1,5 +1,5 @@
 ﻿
-namespace Keen.Core
+namespace Keen.NetStandard
 {
     public class KeenConstants
     {
