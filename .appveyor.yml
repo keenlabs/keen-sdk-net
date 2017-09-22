@@ -57,7 +57,8 @@ matrix:
 #---------------------------------#
 
 configuration:
-  - Release
+  # This config doesn't build the .NET Standard projects
+  - netfx
 
 build:
   parallel: true
@@ -69,20 +70,20 @@ before_build:
   # Make sure we have the right tools version
   - dotnet --version
 
-  # Restore non-netstandard projects one by one using nuget cli directly...for now
+  # Restore non-netstandard projects one by one using nuget cli directly
   - nuget restore .\Keen\Keen.csproj -PackagesDirectory .\packages\
   - nuget restore .\Keen.Net\Keen.Net.csproj -PackagesDirectory .\packages\
   - nuget restore .\Keen.NET.Test\Keen.NET.Test.csproj -PackagesDirectory .\packages\
   - nuget restore .\Keen.NET_35\Keen.NET_35.csproj -PackagesDirectory .\packages\
   - nuget restore .\Keen.NET_35.Test\Keen.NET_35.Test.csproj -PackagesDirectory .\packages\
 
-  # Restore netstandard projects one by one using dotnet cli...for now
+  # Restore netstandard projects one by one using dotnet cli
   - dotnet restore .\Keen.NetStandard\Keen.NetStandard.csproj
   - dotnet restore .\Keen.NetStandard.Test\Keen.NetStandard.Test.csproj
 
 # scripts to run after build
 after_build:
-  # After the regular build, let's also build the netstandard project...for now.
+  # After the regular build, let's also build the netstandard projects
   - dotnet build -c netstandard
 
 
