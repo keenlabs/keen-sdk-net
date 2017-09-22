@@ -83,8 +83,6 @@ before_build:
 
 # scripts to run after build
 after_build:
-  # After the regular build, let's also build the netstandard projects
-  - dotnet build -c netstandard
 
 
 #---------------------------------#
@@ -102,7 +100,9 @@ test_script:
   # This won't likely report to the AppVeyor UI since we aren't specifying the output file/format. We might
   # need to directly use the console runner or wait for a new version of the NUnit 3 Test Adapter to support
   # the same '--result=' option as above.
-  - dotnet test .\Keen.NetStandard.Test\Keen.NetStandard.Test.csproj
+  #
+  # This should cause a build to happen as well.
+  - dotnet test -c netstandard .\Keen.NetStandard.Test\Keen.NetStandard.Test.csproj
 
 
 #---------------------------------#
