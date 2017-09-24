@@ -1,4 +1,4 @@
-﻿using Keen.NetStandard.EventCache;
+﻿using Keen.Core.EventCache;
 using Moq;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 
-namespace Keen.NetStandard.Test
+namespace Keen.Core.Test
 {
     [TestFixture]
     public class BulkEventTest : TestBase

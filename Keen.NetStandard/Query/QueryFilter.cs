@@ -2,7 +2,7 @@
 using System;
 
 
-namespace Keen.NetStandard.Query
+namespace Keen.Core.Query
 {
     /// <summary>
     /// Represents a filter that can be applied to a query.

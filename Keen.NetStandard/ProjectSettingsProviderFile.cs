@@ -2,7 +2,7 @@
 using System.IO;
 using System.Linq;
 
-namespace Keen.NetStandard
+namespace Keen.Core
 {
     /// <summary>
     /// Project settings provider which reads project settings from a text file.

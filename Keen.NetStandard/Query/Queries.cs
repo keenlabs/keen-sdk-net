@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 
-namespace Keen.NetStandard.Query
+namespace Keen.Core.Query
 {
     /// <summary>
     /// Queries implements the IQueries interface which represents the Keen.IO Query API methods.

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 
 
-namespace Keen.NetStandard.Query
+namespace Keen.Core.Query
 {
     public class FunnelResult
     {

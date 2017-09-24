@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 
-namespace Keen.NetStandard
+namespace Keen.Core
 {
     /// <summary>
     /// Helps with performing HTTP operations destined for a Keen API endpoint. Helper methods in

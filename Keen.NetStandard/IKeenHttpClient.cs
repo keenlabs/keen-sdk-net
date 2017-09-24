@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 
 
-namespace Keen.NetStandard
+namespace Keen.Core
 {
     /// <summary>
     /// Represents a type capable of performing HTTP operations destined for a Keen API endpoint.

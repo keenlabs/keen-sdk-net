@@ -1,4 +1,4 @@
-﻿using Keen.NetStandard.EventCache;
+﻿using Keen.Core.EventCache;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using System.Collections.Generic;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
 
-namespace Keen.NetStandard.Test
+namespace Keen.Core.Test
 {
     [TestFixture]
     public class EventCacheTests : TestBase

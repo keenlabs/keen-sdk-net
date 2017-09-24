@@ -3,7 +3,7 @@ using System;
 using System.Threading.Tasks;
 
 
-namespace Keen.NetStandard.Test
+namespace Keen.Core.Test
 {
     /// <summary>
     /// EventCollectionMock provides an implementation of IEventCollection with a

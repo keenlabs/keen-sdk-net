@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 
 
-namespace Keen.NetStandard
+namespace Keen.Core
 {
     public static class KeenUtil
     {

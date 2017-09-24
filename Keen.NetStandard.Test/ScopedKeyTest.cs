@@ -7,7 +7,7 @@ using System.Dynamic;
 using System.Linq;
 
 
-namespace Keen.NetStandard.Test
+namespace Keen.Core.Test
 {
     [TestFixture]
     public class ScopedKeyTest : TestBase

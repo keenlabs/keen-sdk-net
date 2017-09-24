@@ -1,14 +1,14 @@
-﻿using Keen.NetStandard.EventCache;
+﻿using Keen.Core.EventCache;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Keen.NetStandard
+namespace Keen.Core
 {
     /// <summary>
     /// <para>This is a simple memory-based cache provider. It has no cache-expiration policy.
     /// To use, pass an instance of this class when constructing KeenClient</para>
-    /// <seealso cref="Keen.NetStandard.KeenClient"/>
+    /// <seealso cref="Keen.Core.KeenClient"/>
     /// </summary>
     public class EventCacheMemory : IEventCache
     {

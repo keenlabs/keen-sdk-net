@@ -1,5 +1,5 @@
 ﻿
-namespace Keen.NetStandard
+namespace Keen.Core
 {
     public class ProjectSettingsProvider : IProjectSettings
     {

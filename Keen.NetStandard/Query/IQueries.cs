@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 
-namespace Keen.NetStandard.Query
+namespace Keen.Core.Query
 {
     public interface IQueries
     {

@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 
-namespace Keen.NetStandard.Test
+namespace Keen.Core.Test
 {
     /// <summary>
     /// An <see cref="IHttpMessageHandler"/> that matches request URIs with other

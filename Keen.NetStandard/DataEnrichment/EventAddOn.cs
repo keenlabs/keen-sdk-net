@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 
 
-namespace Keen.NetStandard.DataEnrichment
+namespace Keen.Core.DataEnrichment
 {
     /// <summary>
     /// Represents a Data Enrichment add-on. 

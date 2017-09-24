@@ -1,10 +1,10 @@
-﻿using Keen.NetStandard.EventCache;
+﻿using Keen.Core.EventCache;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 
-namespace Keen.NetStandard
+namespace Keen.Core
 {
     public interface IEvent
     {

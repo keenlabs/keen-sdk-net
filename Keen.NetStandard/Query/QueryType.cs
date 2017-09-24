@@ -1,5 +1,5 @@
 ﻿
-namespace Keen.NetStandard.Query
+namespace Keen.Core.Query
 {
     public sealed class QueryType
     {

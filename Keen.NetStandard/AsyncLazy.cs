@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-namespace Keen.NetStandard
+namespace Keen.Core
 {
     // Simple version of AsyncLazy based on
     // https://blogs.msdn.microsoft.com/pfxteam/2011/01/15/asynclazyt/

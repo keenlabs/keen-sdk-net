@@ -1,6 +1,6 @@
-﻿using Keen.NetStandard.DataEnrichment;
-using Keen.NetStandard.EventCache;
-using Keen.NetStandard.Query;
+﻿using Keen.Core.DataEnrichment;
+using Keen.Core.EventCache;
+using Keen.Core.Query;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 
-namespace Keen.NetStandard
+namespace Keen.Core
 {
     /// <summary>
     /// Keen.IO API access

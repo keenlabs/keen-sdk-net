@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 
 
-namespace Keen.NetStandard
+namespace Keen.Core
 {
     public interface IEventCollection
     {

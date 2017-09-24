@@ -2,7 +2,7 @@
 using System;
 
 
-namespace Keen.NetStandard.EventCache
+namespace Keen.Core.EventCache
 {
     /// <summary>
     /// CachedEvent is a container for user event data which associates the

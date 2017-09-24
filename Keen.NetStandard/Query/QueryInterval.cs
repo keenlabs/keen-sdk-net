@@ -1,5 +1,5 @@
 ﻿
-namespace Keen.NetStandard.Query
+namespace Keen.Core.Query
 {
     /// <summary>
     /// Provides values for interval query parameter

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Keen.NetStandard
+namespace Keen.Core
 {
     /// <summary>
     /// Project settings provider which reads project settings from environment variables.

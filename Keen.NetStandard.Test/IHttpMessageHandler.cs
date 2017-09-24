@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 
-namespace Keen.NetStandard
+namespace Keen.Core
 {
     /// <summary>
     /// Represents the main functionality needed to override both HttpClientHandler and

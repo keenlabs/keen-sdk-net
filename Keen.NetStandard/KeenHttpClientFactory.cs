@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 
-namespace Keen.NetStandard
+namespace Keen.Core
 {
     /// <summary>
     /// A set of factory methods to help in creating see cref="IKeenHttpClient"/> instances. These

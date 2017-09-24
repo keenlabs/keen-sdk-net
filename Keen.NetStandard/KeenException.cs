@@ -1,9 +1,9 @@
-﻿using Keen.NetStandard.EventCache;
+﻿using Keen.Core.EventCache;
 using System;
 using System.Collections.Generic;
 
 
-namespace Keen.NetStandard
+namespace Keen.Core
 {
     public class KeenException : Exception
     {

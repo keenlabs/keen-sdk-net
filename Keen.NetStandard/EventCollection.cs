@@ -3,7 +3,7 @@ using System;
 using System.Threading.Tasks;
 
 
-namespace Keen.NetStandard
+namespace Keen.Core
 {
     /// <summary>
     /// EventCollection implements the IEventCollection interface which represents the Keen.IO

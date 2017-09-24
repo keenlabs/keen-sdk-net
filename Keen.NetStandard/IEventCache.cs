@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 
 
-namespace Keen.NetStandard.EventCache
+namespace Keen.Core.EventCache
 {
     public interface IEventCache
     {

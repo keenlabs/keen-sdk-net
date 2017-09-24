@@ -1,4 +1,4 @@
-﻿using Keen.NetStandard.EventCache;
+﻿using Keen.Core.EventCache;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Text;
 
-namespace Keen.NetStandard
+namespace Keen.Core
 {
     /// <summary>
     /// <para>EventCachePortable implements the IEventCache interface using

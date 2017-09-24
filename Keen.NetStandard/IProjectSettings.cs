@@ -1,5 +1,5 @@
 ﻿
-namespace Keen.NetStandard
+namespace Keen.Core
 {
     /// <summary>
     /// Values required to access a Keen project

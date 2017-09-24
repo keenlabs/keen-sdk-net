@@ -1,4 +1,4 @@
-﻿using Keen.NetStandard.Query;
+﻿using Keen.Core.Query;
 using Moq;
 using NUnit.Framework;
 using System;
@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 
-namespace Keen.NetStandard.Test
+namespace Keen.Core.Test
 {
     [TestFixture]
     public class FunnelTest : TestBase

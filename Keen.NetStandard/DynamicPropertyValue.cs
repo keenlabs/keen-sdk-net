@@ -1,7 +1,7 @@
 ﻿using System;
 
 
-namespace Keen.NetStandard
+namespace Keen.Core
 {
     /// <summary>
     /// An instance of DynamicPropertyValue containing a delegate 

@@ -7,7 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 
 
-namespace Keen.NetStandard
+namespace Keen.Core
 {
     /// <summary>
     /// ScopedKey provides encryption and decryption functions which can be used to create 

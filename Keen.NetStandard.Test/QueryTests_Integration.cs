@@ -1,11 +1,11 @@
-﻿using Keen.NetStandard.Query;
+﻿using Keen.Core.Query;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 
-namespace Keen.NetStandard.Test
+namespace Keen.Core.Test
 {
     /// <summary>
     /// Integration tests for Queries. These will exercise more than unit tests, like the

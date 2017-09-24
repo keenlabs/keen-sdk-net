@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 
 
-namespace Keen.NetStandard
+namespace Keen.Core
 {
     /// <summary>
     /// Represents a type that can provide an HttpClient for a given URL. It could act as a cache

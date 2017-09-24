@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 
 
-namespace Keen.NetStandard.Query
+namespace Keen.Core.Query
 {
     /// <summary>
     /// Provides values for relative timeframe query parameter.

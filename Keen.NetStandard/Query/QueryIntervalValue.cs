@@ -1,7 +1,7 @@
 ﻿using System;
 
 
-namespace Keen.NetStandard.Query
+namespace Keen.Core.Query
 {
     /// <summary>
     /// Represents a set of values from a query performed with an interval parameter.

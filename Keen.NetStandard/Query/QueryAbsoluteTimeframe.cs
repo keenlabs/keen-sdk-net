@@ -3,7 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 
 
-namespace Keen.NetStandard.Query
+namespace Keen.Core.Query
 {
     /// <summary>
     /// A pair of dates representing a time interval.

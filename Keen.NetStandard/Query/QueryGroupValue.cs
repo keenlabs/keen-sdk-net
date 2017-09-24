@@ -1,5 +1,5 @@
 ﻿
-namespace Keen.NetStandard.Query
+namespace Keen.Core.Query
 {
     /// <summary>
     /// Represents the values from a query performed with a groupby. 

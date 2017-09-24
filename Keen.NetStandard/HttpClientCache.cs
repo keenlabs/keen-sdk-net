@@ -4,7 +4,7 @@ using System.Linq;
 using System.Net.Http;
 
 
-namespace Keen.NetStandard
+namespace Keen.Core
 {
     /// <summary>
     /// An implementation of <see cref="IHttpClientProvider"/> that caches HttpClient instances in

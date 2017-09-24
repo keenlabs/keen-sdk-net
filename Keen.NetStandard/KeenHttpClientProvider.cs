@@ -1,7 +1,7 @@
 ﻿using System;
 
 
-namespace Keen.NetStandard
+namespace Keen.Core
 {
     /// <summary>
     /// An implementation of <see cref="IKeenHttpClientProvider"/> that uses the default

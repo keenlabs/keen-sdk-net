@@ -1,4 +1,4 @@
-﻿using Keen.NetStandard.Query;
+﻿using Keen.Core.Query;
 using Moq;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -10,7 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 
-namespace Keen.NetStandard.Test
+namespace Keen.Core.Test
 {
     [TestFixture]
     public class QueryTest : TestBase

@@ -3,7 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 
 
-namespace Keen.NetStandard.Query
+namespace Keen.Core.Query
 {
     /// <summary>
     /// Used for converting IQueryTimeframe instances to/from JSON.

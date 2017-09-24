@@ -1,7 +1,7 @@
 ﻿using System;
 
 
-namespace Keen.NetStandard
+namespace Keen.Core
 {
     /// <summary>
     /// An instance of this type can provide an <see cref="IKeenHttpClient"/> to be used to perform
