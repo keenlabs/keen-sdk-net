@@ -75,7 +75,7 @@ namespace Keen.Core.Test
             }
 
             var response = await client.GetQueries();
-            Assert.False(response.Any(p => p.Key == "minimum"));
+            Assert.True(response.Any(p => p.Key == "minimum"));
             Assert.True(response.Any(p => p.Key == "average"));
             Assert.True(response.Any(p => p.Key == "maximum"));
             Assert.True(response.Any(p => p.Key == "count_url"));
