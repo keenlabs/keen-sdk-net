@@ -101,10 +101,10 @@ test_script:
   # need to directly use the console runner or wait for a new version of the NUnit 3 Test Adapter to support
   # the same '--result=' option as above.
   #
-  # Explicitly build the SDK assembly with DebugType=Full specified. This means a non-portable, Windows-style PDB
+  # Explicitly build with DebugType=Full specified. This means a non-portable, Windows-style PDB
   # will be generated, which OpenCover currently requires. We can stop doing this once OpenCover supports the new
   # portable PDB format.
-  - .\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:dotnet.exe -targetargs:"test .\Keen.NetStandard.Test\Keen.NetStandard.Test.csproj /property:DebugType=Full" -register:user -output:"netstandard_coverage.xml" -filter:"+[*]* -[*.Test]*" -oldStyle
+  - .\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:dotnet.exe -targetargs:"test .\Keen.NetStandard.Test\Keen.NetStandard.Test.csproj /property:DebugType=Full" -output:"netstandard_coverage.xml" -filter:"+[*]* -[*.Test]*" -oldStyle -returntargetcode -register:user
   - .\tools\coveralls.net.0.8.0-unstable0013\tools\csmacnz.Coveralls.exe --opencover -i .\netstandard_coverage.xml
 
 
