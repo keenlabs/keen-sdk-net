@@ -64,7 +64,7 @@ build:
   parallel: true
 
   # MSBuild verbosity level
-  verbosity: detailed
+  verbosity: normal
 
 before_build:
   # Make sure we have the right tools version
