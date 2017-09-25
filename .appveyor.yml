@@ -96,13 +96,16 @@ test_script:
   - .\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:nunit3-console.exe -targetargs:"--noheader .\Keen.NET.Test\bin\netfx\Keen.Net.Test.dll .\Keen.NET_35.Test\bin\netfx\Keen.NET_35.Test.dll --result=results.xml;format=AppVeyor" -filter:"+[*]* -[*.Test]*" -returntargetcode -register:user
   - .\tools\coveralls.net.0.8.0-unstable0013\tools\csmacnz.Coveralls.exe --opencover -i .\results.xml
 
-  # While we're at it, run the netstandard-specific tests. We'll figure out code coverage for these later.
+  # Run the netstandard-specific tests and report code coverage numbers.
   # This won't likely report to the AppVeyor UI since we aren't specifying the output file/format. We might
   # need to directly use the console runner or wait for a new version of the NUnit 3 Test Adapter to support
   # the same '--result=' option as above.
   #
-  # This should cause a build to happen as well.
-  - dotnet test -c netstandard .\Keen.NetStandard.Test\Keen.NetStandard.Test.csproj
+  # Explicitly build the SDK assembly with DebugType=Full specified. This means a non-portable, Windows-style PDB
+  # will be generated, which OpenCover currently requires. We can stop doing this once OpenCover supports the new
+  # portable PDB format.
+  - .\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:dotnet.exe -targetargs:"test .\Keen.NetStandard.Test\Keen.NetStandard.Test.csproj /property:DebugType=Full" -register:user -output:"netstandard_coverage.xml" -filter:"+[*]* -[*.Test]*" -oldStyle
+  - .\tools\coveralls.net.0.8.0-unstable0013\tools\csmacnz.Coveralls.exe --opencover -i .\netstandard_coverage.xml
 
 
 #---------------------------------#
