@@ -109,7 +109,7 @@ test_script:
   - .\tools\coveralls.net.0.8.0-unstable0013\tools\csmacnz.Coveralls.exe --opencover -i .\coverage.xml
 
   # Upload netstanadard test results to appveyor
-  - ps: (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/mstest/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\netstandard_test_results.xml))
+  - ps: (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/mstest/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\Keen.NetStandard.Test\TestResults\netstandard_test_results.xml))
 
 #---------------------------------#
 #         notifications           #
