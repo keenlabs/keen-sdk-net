@@ -103,11 +103,13 @@ test_script:
   # Explicitly build with DebugType=Full specified. This means a non-portable, Windows-style PDB
   # will be generated, which OpenCover currently requires. We can stop doing this once OpenCover supports the new
   # portable PDB format.
-  - .\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:dotnet.exe -targetargs:"test .\Keen.NetStandard.Test\Keen.NetStandard.Test.csproj /property:DebugType=Full" -mergeoutput -output:coverage.xml -filter:"+[*]* -[*.Test]*" -oldStyle -returntargetcode -register:user
+  - .\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:dotnet.exe -targetargs:"test --logger \"trx;LogFileName=netstandard_test_results.xml\" .\Keen.NetStandard.Test\Keen.NetStandard.Test.csproj /property:DebugType=Full" -mergeoutput -output:coverage.xml -filter:"+[*]* -[*.Test]*" -oldStyle -returntargetcode -register:user
 
-  # Upload merged results from both test runs
+  # Upload merged coverage results from both test runs
   - .\tools\coveralls.net.0.8.0-unstable0013\tools\csmacnz.Coveralls.exe --opencover -i .\coverage.xml
 
+  # Upload netstanadard test results to appveyor
+  - ps: (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/mstest/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\netstandard_test_results.xml))
 
 #---------------------------------#
 #         notifications           #
