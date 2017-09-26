@@ -37,7 +37,7 @@ init:
 shallow_clone: true
 clone_depth: 5
 
-nuget:  
+nuget:
   disable_publish_on_pr: true
 
 environment:
@@ -93,17 +93,22 @@ after_build:
 test_script:
   - nuget install OpenCover -Version 4.6.519 -OutputDirectory tools
   - nuget install coveralls.net -Version 0.8.0-unstable0013 -PreRelease -OutputDirectory tools
-  - .\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:nunit3-console.exe -targetargs:"--noheader .\Keen.NET.Test\bin\netfx\Keen.Net.Test.dll .\Keen.NET_35.Test\bin\netfx\Keen.NET_35.Test.dll --result=results.xml;format=AppVeyor" -filter:"+[*]* -[*.Test]*" -returntargetcode -register:user
-  - .\tools\coveralls.net.0.8.0-unstable0013\tools\csmacnz.Coveralls.exe --opencover -i .\results.xml
+  - .\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:nunit3-console.exe -targetargs:"--noheader .\Keen.NET.Test\bin\netfx\Keen.Net.Test.dll .\Keen.NET_35.Test\bin\netfx\Keen.NET_35.Test.dll --result=results.xml;format=AppVeyor" -output:coverage.xml -filter:"+[*]* -[*.Test]*" -returntargetcode -register:user
 
-  # While we're at it, run the netstandard-specific tests. We'll figure out code coverage for these later.
-  # This won't likely report to the AppVeyor UI since we aren't specifying the output file/format. We might
-  # need to directly use the console runner or wait for a new version of the NUnit 3 Test Adapter to support
-  # the same '--result=' option as above.
+  # Run the netstandard tests.
+  # Explicitly build with DebugType=Full specified. This means a non-portable, Windows-style PDB
+  # will be generated, which OpenCover currently requires. We can stop doing this once OpenCover supports the new
+  # portable PDB format.
   #
-  # This should cause a build to happen as well.
-  - dotnet test -c netstandard .\Keen.NetStandard.Test\Keen.NetStandard.Test.csproj
+  # Also use -oldStyle flag which uses an alternate instrumentation hook that is available for .NET Core
+  # Some comments on this can be found here: https://github.com/OpenCover/opencover/issues/601
+  - .\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:dotnet.exe -targetargs:"test --logger \"trx;LogFileName=netstandard_test_results.xml\" .\Keen.NetStandard.Test\Keen.NetStandard.Test.csproj /property:DebugType=Full" -mergeoutput -output:coverage.xml -filter:"+[*]* -[*.Test]*" -oldStyle -returntargetcode -register:user
 
+  # Upload merged coverage results from both test runs
+  - .\tools\coveralls.net.0.8.0-unstable0013\tools\csmacnz.Coveralls.exe --opencover -i .\coverage.xml
+
+  # Upload netstandard test results to appveyor
+  - ps: (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/mstest/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\Keen.NetStandard.Test\TestResults\netstandard_test_results.xml))
 
 #---------------------------------#
 #         notifications           #

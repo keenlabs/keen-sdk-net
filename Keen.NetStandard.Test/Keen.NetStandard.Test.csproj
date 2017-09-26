@@ -12,6 +12,14 @@
     <PackageReference Include="NUnit3TestAdapter" Version="3.8.0" />
   </ItemGroup>
 
+  <!--
+    Include reference to Mono.Cecil as workaroud for https://github.com/nunit/nunit3-vs-adapter/issues/325
+    This can be removed once OpenCover supports portable PDBs or the above issue is fixed.
+  -->
+  <ItemGroup Condition=" '$(DebugType)' == 'Full' ">
+    <PackageReference Include="Mono.Cecil" Version="0.10.0-beta6" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Keen.NetStandard\Keen.NetStandard.csproj" />
   </ItemGroup>
