@@ -37,7 +37,7 @@ init:
 shallow_clone: true
 clone_depth: 5
 
-nuget:  
+nuget:
   disable_publish_on_pr: true
 
 environment:
@@ -93,7 +93,7 @@ after_build:
 test_script:
   - nuget install OpenCover -Version 4.6.519 -OutputDirectory tools
   - nuget install coveralls.net -Version 0.8.0-unstable0013 -PreRelease -OutputDirectory tools
-  - .\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:nunit3-console.exe -targetargs:"--noheader .\Keen.NET.Test\bin\netfx\Keen.Net.Test.dll .\Keen.NET_35.Test\bin\netfx\Keen.NET_35.Test.dll --result=results.xml;format=AppVeyor" -filter:"+[*]* -[*.Test]*" -returntargetcode -register:user
+  - .\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:nunit3-console.exe -targetargs:"--noheader .\Keen.NET.Test\bin\netfx\Keen.Net.Test.dll .\Keen.NET_35.Test\bin\netfx\Keen.NET_35.Test.dll --result=results.xml;format=AppVeyor" -output:coverage.xml -filter:"+[*]* -[*.Test]*" -returntargetcode -register:user
 
   # Run the netstandard-specific tests and report code coverage numbers.
   # This won't likely report to the AppVeyor UI since we aren't specifying the output file/format. We might
@@ -103,10 +103,10 @@ test_script:
   # Explicitly build with DebugType=Full specified. This means a non-portable, Windows-style PDB
   # will be generated, which OpenCover currently requires. We can stop doing this once OpenCover supports the new
   # portable PDB format.
-  - .\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:dotnet.exe -targetargs:"test .\Keen.NetStandard.Test\Keen.NetStandard.Test.csproj /property:DebugType=Full" -mergeoutput -output:"results.xml" -filter:"+[*]* -[*.Test]*" -oldStyle -returntargetcode -register:user
+  - .\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:dotnet.exe -targetargs:"test .\Keen.NetStandard.Test\Keen.NetStandard.Test.csproj /property:DebugType=Full" -mergeoutput -output:coverage.xml -filter:"+[*]* -[*.Test]*" -oldStyle -returntargetcode -register:user
 
   # Upload merged results from both test runs
-  - .\tools\coveralls.net.0.8.0-unstable0013\tools\csmacnz.Coveralls.exe --opencover -i .\results.xml
+  - .\tools\coveralls.net.0.8.0-unstable0013\tools\csmacnz.Coveralls.exe --opencover -i .\coverage.xml
 
 
 #---------------------------------#
