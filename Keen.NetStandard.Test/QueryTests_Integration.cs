@@ -3,6 +3,7 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 
 
 namespace Keen.Core.Test
@@ -117,6 +118,52 @@ namespace Keen.Core.Test
 
             Assert.IsNotNull(count);
             Assert.AreEqual("2", count);
-        } 
+        }
+
+        [Test]
+        public async Task Query_AvailableQueries_Success()
+        {
+            var queriesResource = HttpTests.GetUriForResource(SettingsEnv, KeenConstants.QueriesResource);
+
+            var expectedQueries = new Dictionary<string, string>()
+            {
+                { "select_unique_url", $"{queriesResource.AbsolutePath}/select_unique"},
+                { "minimum", $"{queriesResource.AbsolutePath}/minimum" },
+                { "extraction_url", $"{queriesResource.AbsolutePath}/extraction" },
+                { "percentile", $"{queriesResource.AbsolutePath}/percentile" },
+                { "funnel_url", $"{queriesResource.AbsolutePath}/funnel" },
+                { "average", $"{queriesResource.AbsolutePath}/average" },
+                { "median", $"{queriesResource.AbsolutePath}/median" },
+                { "maximum", $"{queriesResource.AbsolutePath}/maximum" },
+                { "count_url", $"{queriesResource.AbsolutePath}/count" },
+                { "count_unique_url", $"{queriesResource.AbsolutePath}/count_unique" },
+                { "sum", $"{queriesResource.AbsolutePath}/sum"}
+            };
+
+            FuncHandler handler = new FuncHandler()
+            {
+                ProduceResultAsync = (request, ct) =>
+                {
+                    return HttpTests.CreateJsonStringResponseAsync(expectedQueries);
+                }
+            };
+
+            var client = new KeenClient(SettingsEnv, new TestKeenHttpClientProvider()
+            {
+                ProvideKeenHttpClient =
+                    (url) => KeenHttpClientFactory.Create(url,
+                                                          new HttpClientCache(),
+                                                          null,
+                                                          new DelegatingHandlerMock(handler))
+            });
+
+            var actualQueries = await client.GetQueries();
+
+            Assert.AreEqual(expectedQueries.Count, actualQueries.Count());
+            foreach (var expectedQuery in expectedQueries)
+            {
+                Assert.That(actualQueries.Contains(expectedQuery));
+            }
+        }
     }
 }
