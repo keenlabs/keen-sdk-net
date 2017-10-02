@@ -46,7 +46,7 @@ namespace Keen.Core.Query
             // absolute timeframe.
             if (JTokenType.String == jsonToken.Type)
             {
-                return QueryRelativeTimeframe.Create(jsonToken.ToString(Formatting.None));
+                return QueryRelativeTimeframe.Create(jsonToken.ToString(Formatting.None).Replace("\"", ""));
             }
             else
             {

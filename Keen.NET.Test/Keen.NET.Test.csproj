@@ -115,6 +115,7 @@
     <Compile Include="ScopedKeyTest.cs" />
     <Compile Include="DelegatingHandlerMock.cs" />
     <Compile Include="TestKeenHttpClientProvider.cs" />
+    <Compile Include="TimeframeConverterTest.cs" />
     <Compile Include="UrlToMessageHandler.cs" />
   </ItemGroup>
   <ItemGroup>
