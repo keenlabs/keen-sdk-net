@@ -79,9 +79,13 @@ if ($help -or ($version -notmatch "^$semVerPattern$")) {
 Update-AssemblyVersionAttributes $version
 
 # Rebuild the solution to bake the new version into the assemblies. This is using the default
-# VS2017 location for MSBuild, so change it as appropriate.
+# VS2017 location for MSBuild, so change it as needed (Community vs Enterprise vs Preview, etc.).
+# 
 # C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\MSBuild\15.0\Bin
-$msBuildExe = (${env:ProgramFiles(x86)}, 'Microsoft Visual Studio', 'Preview', 'Enterprise', 'MSBuild', '15.0', 'bin', 'msbuild.exe') `
+#
+# Note that since this solution now includes a multi-targeting .NET Standard 2.0 project and a
+# .NET Core test app, you'll need at least VS 2017 15.3.
+$msBuildExe = (${env:ProgramFiles(x86)}, 'Microsoft Visual Studio', '2017', 'Enterprise', 'MSBuild', '15.0', 'bin', 'msbuild.exe') `
     -join [IO.Path]::DirectorySeparatorChar
 'MSBuild EXE: ' + $msBuildExe
 
