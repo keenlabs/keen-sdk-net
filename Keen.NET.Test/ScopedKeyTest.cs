@@ -80,12 +80,12 @@ namespace Keen.Net.Test
         [Test]
         public void Encrypt_NullKey_Throws()
         {
-            Assert.Throws<Keen.Core.KeenException>(() => ScopedKey.Encrypt(null, new { X = "X" }));
+            Assert.Throws<KeenException>(() => ScopedKey.Encrypt(null, new { X = "X" }));
         }
 
         public void Encrypt_BlankKey_Throws()
         {
-            Assert.Throws<Keen.Core.KeenException>(() => ScopedKey.Encrypt("", new { X = "X" }));
+            Assert.Throws<KeenException>(() => ScopedKey.Encrypt("", new { X = "X" }));
         }
 
         [Test]

@@ -16,19 +16,19 @@ namespace Keen.Core.DataEnrichment
         /// Name of the add-on 
         /// </summary>
         [JsonProperty(PropertyName = "name")]
-        public string Name{ get; protected set; }
+        public string Name { get; private set; }
 
         /// <summary>
         /// Parameters required by the add-on
         /// </summary>
         [JsonProperty(PropertyName = "input")]
-        public Dictionary<string, string> Input { get; protected set; }
+        public Dictionary<string, string> Input { get; private set; }
 
         /// <summary>
         /// Target property name where the enriched data should be stored.
         /// </summary>
         [JsonProperty(PropertyName = "output")]
-        public string Output{ get; protected set; }
+        public string Output { get; private set; }
 
         /// <param name="name">Name of the data enhancement add-on.</param>
         /// <param name="input">Name-value pairs of input parameters required by the add-on.</param>
@@ -54,8 +54,8 @@ namespace Keen.Core.DataEnrichment
         /// <returns></returns>
         public static AddOn IpToGeo(string ipField, string outputField)
         {
-            return new AddOn("keen:ip_to_geo", 
-                new Dictionary<string, string> {{"ip", ipField}}, 
+            return new AddOn("keen:ip_to_geo",
+                new Dictionary<string, string> { { "ip", ipField } },
                 outputField);
         }
 
@@ -70,8 +70,8 @@ namespace Keen.Core.DataEnrichment
         /// <returns></returns>
         public static AddOn UserAgentParser(string userAgentString, string outputField)
         {
-            return new AddOn("keen:ua_parser", 
-                new Dictionary<string, string> {{"ua_string", userAgentString}}, 
+            return new AddOn("keen:ua_parser",
+                new Dictionary<string, string> { { "ua_string", userAgentString } },
                 outputField);
         }
 
@@ -86,8 +86,8 @@ namespace Keen.Core.DataEnrichment
         /// <returns></returns>
         public static AddOn UrlParser(string urlField, string outputField)
         {
-            return new AddOn("keen:url_parser", 
-                new Dictionary<string, string> { { "url", urlField } }, 
+            return new AddOn("keen:url_parser",
+                new Dictionary<string, string> { { "url", urlField } },
                 outputField);
         }
 
@@ -104,7 +104,7 @@ namespace Keen.Core.DataEnrichment
         public static AddOn ReferrerParser(string referrerUrlField, string pageUrlField, string outputField)
         {
             return new AddOn("keen:referrer_parser",
-                new Dictionary<string, string> {{"referrer_url", referrerUrlField}, {"page_url", pageUrlField}},
+                new Dictionary<string, string> { { "referrer_url", referrerUrlField }, { "page_url", pageUrlField } },
                 outputField);
         }
     }
