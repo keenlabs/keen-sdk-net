@@ -354,16 +354,85 @@ namespace Keen.Core.Test
             Assert.AreEqual(expectedResults.Count(), actualResults.Count());
             var expectedEnumerator = expectedResults.GetEnumerator();
             var actualEnumerator = actualResults.GetEnumerator();
-            expectedEnumerator.MoveNext();
-            actualEnumerator.MoveNext();
-            do
+            while (expectedEnumerator.MoveNext() && actualEnumerator.MoveNext())
             {
                 var expected = expectedEnumerator.Current;
                 var actual = actualEnumerator.Current;
                 Assert.AreEqual(expected.timeframe.Start, actual.Start);
                 Assert.AreEqual(expected.timeframe.End, actual.End);
                 Assert.AreEqual(expected.value, actual.Value);
-            } while (expectedEnumerator.MoveNext() && actualEnumerator.MoveNext());
+            }
+        }
+
+        [Test]
+        public async Task Query_SimpleCountGroupByInterval_Success()
+        {
+            var queryParameters = new QueryParameters()
+            {
+                TargetProperty = "someProperty",
+                Timeframe = QueryRelativeTimeframe.ThisNHours(2),
+                Interval = QueryInterval.EveryNHours(1),
+                GroupBy = "someGroupProperty"
+            };
+
+            var expectedResults = new[]
+            {
+                new
+                {
+                    timeframe = new QueryAbsoluteTimeframe(DateTime.Now.AddHours(-2), DateTime.Now.AddHours(-1)),
+                    value = new List<Dictionary<string, string>>
+                    {
+                        new Dictionary<string, string>{ { queryParameters.GroupBy, "group1" }, { "result", "10" } },
+                        new Dictionary<string, string>{ { queryParameters.GroupBy, "group2" }, { "result", "20" } },
+                    }
+                },
+                new
+                {
+                    timeframe = new QueryAbsoluteTimeframe(DateTime.Now.AddHours(-1), DateTime.Now),
+                    value = new List<Dictionary<string, string>>
+                    {
+                        new Dictionary<string, string>{ { queryParameters.GroupBy, "group1" }, { "result", "30" } },
+                        new Dictionary<string, string>{ { queryParameters.GroupBy, "group2" }, { "result", "40" } },
+                    }
+                }
+            };
+
+            var expectedResponse = new
+            {
+                result = expectedResults
+            };
+
+            var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
+
+            var actualResults = await client.Queries.Metric(
+                queryParameters.Analysis,
+                queryParameters.EventCollection,
+                queryParameters.TargetProperty,
+                queryParameters.GroupBy,
+                queryParameters.Timeframe,
+                queryParameters.Interval);
+
+            Assert.AreEqual(expectedResults.Count(), actualResults.Count());
+            var actualEnumerator = actualResults.GetEnumerator();
+            foreach (var expected in expectedResults)
+            {
+                actualEnumerator.MoveNext();
+                var actual = actualEnumerator.Current;
+                // Validate the interval is correct
+                Assert.AreEqual(expected.timeframe.Start, actual.Start);
+                Assert.AreEqual(expected.timeframe.End, actual.End);
+
+                // Validate the results for the group within the time interval
+                Assert.AreEqual(expected.value.Count, actual.Value.Count());
+                var actualGroupResultEnumerator = actual.Value.GetEnumerator();
+                foreach (var expectedGroupResult in expected.value)
+                {
+                    actualGroupResultEnumerator.MoveNext();
+                    var actualGroupResult = actualGroupResultEnumerator.Current;
+                    Assert.AreEqual(expectedGroupResult[queryParameters.GroupBy], actualGroupResult.Group);
+                    Assert.AreEqual(expectedGroupResult["result"], actualGroupResult.Value);
+                }
+            }
         }
     }
 }
