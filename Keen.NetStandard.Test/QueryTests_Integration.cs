@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Text;
 
 
 namespace Keen.Core.Test
@@ -166,30 +167,62 @@ namespace Keen.Core.Test
             }
         }
 
-        [Test]
-        public async Task Query_SimpleCount_Success()
+        class QueryParameters
         {
-            string expectedResult = "10";
-            string collection = "myEvents";
-            QueryType analysis = QueryType.Count();
+            internal string EventCollection = "myEvents";
+            internal QueryType Analysis = QueryType.Count();
+            internal string TargetProperty;
+            internal String GroupBy;
+            internal QueryRelativeTimeframe Timeframe;
+            internal QueryInterval Interval;
 
-            var expectedResponse = new Dictionary<string, string>()
+            internal List<KeyValuePair<string, string>> GetQueryParameters()
             {
-                { "result", expectedResult},
-            };
+                var queryParameters = new List<KeyValuePair<string, string>>
+                {
+                    new KeyValuePair<string, string>("event_collection", EventCollection),
+                };
 
-            FuncHandler handler = new FuncHandler()
+                if (null != TargetProperty) { queryParameters.Add(new KeyValuePair<string, string>("target_property", TargetProperty)); }
+                if (null != GroupBy) { queryParameters.Add(new KeyValuePair<string, string>("group_by", GroupBy)); }
+                if (null != Timeframe) { queryParameters.Add(new KeyValuePair<string, string>("timeframe", Timeframe.ToString())); }
+                if (null != Interval) { queryParameters.Add(new KeyValuePair<string, string>("interval", Interval)); }
+
+                return queryParameters;
+            }
+        }
+
+        FuncHandler CreateQueryRequestHandler(QueryParameters queryParameters, object response)
+        {
+            var parameters = queryParameters.GetQueryParameters();
+            StringBuilder queryStringBuilder = new StringBuilder();
+            foreach (var parameter in parameters)
+            {
+                if (queryStringBuilder.Length != 0)
+                {
+                    queryStringBuilder.Append('&');
+                }
+
+                queryStringBuilder.Append($"{parameter.Key}={parameter.Value}");
+            }
+
+            return new FuncHandler()
             {
                 ProduceResultAsync = (request, ct) =>
                 {
                     var expectedUri = new Uri($"{HttpTests.GetUriForResource(SettingsEnv, KeenConstants.QueriesResource)}/" +
-                                              $"{analysis}?event_collection={collection}");
+                                              $"{queryParameters.Analysis}?{queryStringBuilder}");
                     Assert.AreEqual(expectedUri, request.RequestUri);
-                    return HttpTests.CreateJsonStringResponseAsync(expectedResponse);
+                    return HttpTests.CreateJsonStringResponseAsync(response);
                 }
             };
+        }
 
-            var client = new KeenClient(SettingsEnv, new TestKeenHttpClientProvider()
+        KeenClient CreateQueryTestKeenClient(QueryParameters queryParameters, object response)
+        {
+            var handler = CreateQueryRequestHandler(queryParameters, response);
+
+            return new KeenClient(SettingsEnv, new TestKeenHttpClientProvider()
             {
                 ProvideKeenHttpClient =
                     (url) => KeenHttpClientFactory.Create(url,
@@ -197,8 +230,23 @@ namespace Keen.Core.Test
                                                           null,
                                                           new DelegatingHandlerMock(handler))
             });
+        }
 
-            var actualResult = await client.Queries.Metric(analysis, collection, null);
+        [Test]
+        public async Task Query_SimpleCount_Success()
+        {
+            var queryParameters = new QueryParameters();
+
+            string expectedResult = "10";
+
+            var expectedResponse = new Dictionary<string, string>()
+            {
+                { "result", expectedResult},
+            };
+
+            var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
+
+            var actualResult = await client.Queries.Metric(queryParameters.Analysis, queryParameters.EventCollection, null);
 
             Assert.AreEqual(expectedResult, actualResult);
         }
@@ -206,37 +254,25 @@ namespace Keen.Core.Test
         [Test]
         public async Task Query_SimpleAverage_Success()
         {
+            var queryParameters = new QueryParameters()
+            {
+                Analysis = QueryType.Average(),
+                TargetProperty = "someProperty"
+            };
+
             string expectedResult = "10";
-            string collection = "myEvents";
-            QueryType analysis = QueryType.Average();
-            string targetProperty = "someProperty";
 
             var expectedResponse = new Dictionary<string, string>()
             {
                 { "result", expectedResult},
             };
 
-            FuncHandler handler = new FuncHandler()
-            {
-                ProduceResultAsync = (request, ct) =>
-                {
-                    var expectedUri = new Uri($"{HttpTests.GetUriForResource(SettingsEnv, KeenConstants.QueriesResource)}/" +
-                                              $"{analysis}?event_collection={collection}&target_property={targetProperty}");
-                    Assert.AreEqual(expectedUri, request.RequestUri);
-                    return HttpTests.CreateJsonStringResponseAsync(expectedResponse);
-                }
-            };
+            var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
 
-            var client = new KeenClient(SettingsEnv, new TestKeenHttpClientProvider()
-            {
-                ProvideKeenHttpClient =
-                    (url) => KeenHttpClientFactory.Create(url,
-                                                          new HttpClientCache(),
-                                                          null,
-                                                          new DelegatingHandlerMock(handler))
-            });
-
-            var actualResult = await client.Queries.Metric(analysis, collection, targetProperty);
+            var actualResult = await client.Queries.Metric(
+                queryParameters.Analysis,
+                queryParameters.EventCollection,
+                queryParameters.TargetProperty);
 
             Assert.AreEqual(expectedResult, actualResult);
         }
@@ -244,17 +280,19 @@ namespace Keen.Core.Test
         [Test]
         public async Task Query_SimpleCountGroupBy_Success()
         {
+            var queryParameters = new QueryParameters()
+            {
+                TargetProperty = "someProperty",
+                GroupBy = "someGroupProperty"
+            };
+
             var expectedResults = new List<string>() { "10", "20" };
             var expectedGroups = new List<string>() { "group1", "group2" };
-            string collection = "myEvents";
-            QueryType analysis = QueryType.Count();
-            string targetProperty = "someProperty";
-            string groupBy = "someGroupProperty";
             var expectedGroupResults = expectedResults.Zip(
                 expectedGroups,
                 (result, group) => new Dictionary<string, string>()
                 {
-                    { groupBy, group },
+                    { queryParameters.GroupBy, group },
                     { "result", result }
                 });
 
@@ -263,32 +301,18 @@ namespace Keen.Core.Test
                 result = expectedGroupResults
             };
 
-            FuncHandler handler = new FuncHandler()
-            {
-                ProduceResultAsync = (request, ct) =>
-                {
-                    var expectedUri = new Uri($"{HttpTests.GetUriForResource(SettingsEnv, KeenConstants.QueriesResource)}/" +
-                                              $"{analysis}?event_collection={collection}&target_property={targetProperty}&group_by={groupBy}");
-                    Assert.AreEqual(expectedUri, request.RequestUri);
-                    return HttpTests.CreateJsonStringResponseAsync(expectedResponse);
-                }
-            };
+            var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
 
-            var client = new KeenClient(SettingsEnv, new TestKeenHttpClientProvider()
-            {
-                ProvideKeenHttpClient =
-                    (url) => KeenHttpClientFactory.Create(url,
-                                                          new HttpClientCache(),
-                                                          null,
-                                                          new DelegatingHandlerMock(handler))
-            });
+            var actualResult = await client.Queries.Metric(
+                queryParameters.Analysis,
+                queryParameters.EventCollection,
+                queryParameters.TargetProperty,
+                queryParameters.GroupBy);
 
-            var actualGroupResults = await client.Queries.Metric(analysis, collection, targetProperty, groupBy);
-
-            Assert.AreEqual(expectedGroupResults.Count(), actualGroupResults.Count());
-            foreach (var actualGroupResult in actualGroupResults)
+            Assert.AreEqual(expectedGroupResults.Count(), actualResult.Count());
+            foreach (var actualGroupResult in actualResult)
             {
-                var expectedGroupResult = expectedGroupResults.Where((result) => result[groupBy] == actualGroupResult.Group).First();
+                var expectedGroupResult = expectedGroupResults.Where((result) => result[queryParameters.GroupBy] == actualGroupResult.Group).First();
                 Assert.AreEqual(expectedGroupResult["result"], actualGroupResult.Value);
             }
         }
@@ -296,6 +320,13 @@ namespace Keen.Core.Test
         [Test]
         public async Task Query_SimpleCountInterval_Success()
         {
+            var queryParameters = new QueryParameters()
+            {
+                TargetProperty = "someProperty",
+                Timeframe = QueryRelativeTimeframe.ThisNHours(2),
+                Interval = QueryInterval.EveryNHours(1)
+            };
+
             var expectedCounts = new List<string>() { "10", "20" };
             var expectedTimeframes = new List<QueryAbsoluteTimeframe>()
             {
@@ -306,38 +337,19 @@ namespace Keen.Core.Test
                 expectedTimeframes,
                 (count, time) => new { timeframe = time, value = count });
 
-            string collection = "myEvents";
-            QueryType analysis = QueryType.Count();
-            string targetProperty = "someProperty";
-            var timeframe = QueryRelativeTimeframe.ThisNHours(2);
-            QueryInterval interval = QueryInterval.EveryNHours(1);
-
             var expectedResponse = new
             {
                 result = expectedResults
             };
 
-            FuncHandler handler = new FuncHandler()
-            {
-                ProduceResultAsync = (request, ct) =>
-                {
-                    var expectedUri = new Uri($"{HttpTests.GetUriForResource(SettingsEnv, KeenConstants.QueriesResource)}/" +
-                                              $"{analysis}?event_collection={collection}&target_property={targetProperty}&timeframe={timeframe}&interval={interval}");
-                    Assert.AreEqual(expectedUri, request.RequestUri);
-                    return HttpTests.CreateJsonStringResponseAsync(expectedResponse);
-                }
-            };
+            var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
 
-            var client = new KeenClient(SettingsEnv, new TestKeenHttpClientProvider()
-            {
-                ProvideKeenHttpClient =
-                    (url) => KeenHttpClientFactory.Create(url,
-                                                          new HttpClientCache(),
-                                                          null,
-                                                          new DelegatingHandlerMock(handler))
-            });
-
-            var actualResults = await client.Queries.Metric(analysis, collection, targetProperty, timeframe, interval);
+            var actualResults = await client.Queries.Metric(
+                queryParameters.Analysis,
+                queryParameters.EventCollection,
+                queryParameters.TargetProperty,
+                queryParameters.Timeframe,
+                queryParameters.Interval);
 
             Assert.AreEqual(expectedResults.Count(), actualResults.Count());
             var expectedEnumerator = expectedResults.GetEnumerator();
