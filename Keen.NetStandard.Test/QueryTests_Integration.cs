@@ -247,7 +247,7 @@ namespace Keen.Core.Test
             var expectedResults = new List<string>() { "10", "20" };
             var expectedGroups = new List<string>() { "group1", "group2" };
             string collection = "myEvents";
-            QueryType analysis = QueryType.Average();
+            QueryType analysis = QueryType.Count();
             string targetProperty = "someProperty";
             string groupBy = "someGroupProperty";
             var expectedGroupResults = expectedResults.Zip(
@@ -291,6 +291,67 @@ namespace Keen.Core.Test
                 var expectedGroupResult = expectedGroupResults.Where((result) => result[groupBy] == actualGroupResult.Group).First();
                 Assert.AreEqual(expectedGroupResult["result"], actualGroupResult.Value);
             }
+        }
+
+        [Test]
+        public async Task Query_SimpleCountInterval_Success()
+        {
+            var expectedCounts = new List<string>() { "10", "20" };
+            var expectedTimeframes = new List<QueryAbsoluteTimeframe>()
+            {
+                new QueryAbsoluteTimeframe(DateTime.Now.AddHours(-2), DateTime.Now.AddHours(-1)),
+                new QueryAbsoluteTimeframe(DateTime.Now.AddHours(-1), DateTime.Now)
+            };
+            var expectedResults = expectedCounts.Zip(
+                expectedTimeframes,
+                (count, time) => new { timeframe = time, value = count });
+
+            string collection = "myEvents";
+            QueryType analysis = QueryType.Count();
+            string targetProperty = "someProperty";
+            var timeframe = QueryRelativeTimeframe.ThisNHours(2);
+            QueryInterval interval = QueryInterval.EveryNHours(1);
+
+            var expectedResponse = new
+            {
+                result = expectedResults
+            };
+
+            FuncHandler handler = new FuncHandler()
+            {
+                ProduceResultAsync = (request, ct) =>
+                {
+                    var expectedUri = new Uri($"{HttpTests.GetUriForResource(SettingsEnv, KeenConstants.QueriesResource)}/" +
+                                              $"{analysis}?event_collection={collection}&target_property={targetProperty}&timeframe={timeframe}&interval={interval}");
+                    Assert.AreEqual(expectedUri, request.RequestUri);
+                    return HttpTests.CreateJsonStringResponseAsync(expectedResponse);
+                }
+            };
+
+            var client = new KeenClient(SettingsEnv, new TestKeenHttpClientProvider()
+            {
+                ProvideKeenHttpClient =
+                    (url) => KeenHttpClientFactory.Create(url,
+                                                          new HttpClientCache(),
+                                                          null,
+                                                          new DelegatingHandlerMock(handler))
+            });
+
+            var actualResults = await client.Queries.Metric(analysis, collection, targetProperty, timeframe, interval);
+
+            Assert.AreEqual(expectedResults.Count(), actualResults.Count());
+            var expectedEnumerator = expectedResults.GetEnumerator();
+            var actualEnumerator = actualResults.GetEnumerator();
+            expectedEnumerator.MoveNext();
+            actualEnumerator.MoveNext();
+            do
+            {
+                var expected = expectedEnumerator.Current;
+                var actual = actualEnumerator.Current;
+                Assert.AreEqual(expected.timeframe.Start, actual.Start);
+                Assert.AreEqual(expected.timeframe.End, actual.End);
+                Assert.AreEqual(expected.value, actual.Value);
+            } while (expectedEnumerator.MoveNext() && actualEnumerator.MoveNext());
         }
     }
 }
