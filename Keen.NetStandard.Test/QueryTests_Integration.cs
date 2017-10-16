@@ -962,5 +962,70 @@ namespace Keen.Core.Test
                 }
             }
         }
+
+        [Test]
+        public async Task Query_SimpleMultiAnalysisInterval_Success()
+        {
+            var queryParameters = new MultiAnalysisParameters()
+            {
+                Labels = new string[]
+                {
+                    "first analysis",
+                    "second analysis"
+                },
+                Analyses = new QueryParameters[]
+                {
+                    new QueryParameters(),
+                    new QueryParameters()
+                    {
+                        Analysis = QueryType.Average(),
+                        TargetProperty = "targetProperty"
+                    }
+                },
+                Interval = QueryInterval.Daily()
+            };
+
+            string responseJson = "{\"result\":[" +
+                    "{\"timeframe\":{\"start\":\"2017-10-14T00:00:00.000Z\",\"end\":\"2017-10-15T00:00:00.000Z\"}," +
+                    "\"value\":{" +
+                        $"\"{queryParameters.Labels[0]}\":12345,\"{queryParameters.Labels[1]}\":54321}}" +
+                    "}," +
+                    "{\"timeframe\":{\"start\":\"2017-10-15T00:00:00.000Z\",\"end\":\"2017-10-16T00:00:00.000Z\"}," +
+                    "\"value\":{" +
+                        $"\"{queryParameters.Labels[0]}\":123,\"{queryParameters.Labels[1]}\":321}}" +
+                    "}" +
+                "]}";
+
+            var expectedResponse = JObject.Parse(responseJson);
+
+            var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
+
+            var actualResults = await client.Queries.MultiAnalysis(
+                queryParameters.EventCollection,
+                queryParameters.GetMultiAnalysisParameters(),
+                timeframe: null,
+                interval: queryParameters.Interval,
+                filters: null,
+                timezone: null);
+
+            var expectedResults = expectedResponse["result"];
+
+            Assert.AreEqual(expectedResults.Count(), actualResults.Count());
+            var actualResultsEnumerator = actualResults.GetEnumerator();
+            foreach (var expectedResult in expectedResults)
+            {
+                actualResultsEnumerator.MoveNext();
+                var actualResult = actualResultsEnumerator.Current;
+
+                Assert.AreEqual(DateTime.Parse(expectedResult["timeframe"]["start"].Value<string>()), actualResult.Start);
+                Assert.AreEqual(DateTime.Parse(expectedResult["timeframe"]["end"].Value<string>()), actualResult.End);
+
+                foreach (var label in queryParameters.Labels)
+                {
+                    // Validate the result is correct
+                    Assert.AreEqual(expectedResult["value"][label].Value<int>(), int.Parse(actualResult.Value[label]));
+                }
+            }
+        }
     }
 }
