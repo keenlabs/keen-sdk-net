@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Text;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace Keen.Core.Test
 {
@@ -190,6 +191,15 @@ namespace Keen.Core.Test
 
                 return queryParameters;
             }
+
+            internal MultiAnalysisParam GetMultiAnalysisParameter(string label)
+            {
+                return new MultiAnalysisParam(
+                    label,
+                    String.IsNullOrEmpty(TargetProperty) ?
+                        new MultiAnalysisParam.Metric(Analysis) :
+                        new MultiAnalysisParam.Metric(Analysis, TargetProperty));
+            }
         }
 
         class ExtractionParameters : QueryParameters
@@ -219,8 +229,47 @@ namespace Keen.Core.Test
                 var parameters = base.GetQueryParameters();
                 parameters.Add(new KeyValuePair<string, string>(
                     KeenConstants.QueryParmSteps,
-                    Uri.EscapeDataString(JArray.FromObject(Steps).ToString(Newtonsoft.Json.Formatting.None))));
+                    JArray.FromObject(Steps).ToString(Newtonsoft.Json.Formatting.None)));
                 return parameters;
+            }
+        }
+
+        class MultiAnalysisParameters : QueryParameters
+        {
+            internal IEnumerable<QueryParameters> Analyses;
+            internal IList<string> Labels;
+
+            internal MultiAnalysisParameters()
+            {
+                Analysis = null;
+            }
+
+            internal override string GetResourceName() => KeenConstants.QueryMultiAnalysis;
+
+            internal override List<KeyValuePair<string, string>> GetQueryParameters()
+            {
+                var parameters = base.GetQueryParameters();
+
+                var multiAnalysisParameters = GetMultiAnalysisParameters();
+
+                var jObjects = multiAnalysisParameters.Select(x =>
+                    new JProperty(x.Label, JObject.FromObject(new { analysis_type = x.Analysis, target_property = x.TargetProperty })));
+
+                var analysesJson = JsonConvert.SerializeObject(
+                    new JObject(jObjects),
+                    Formatting.None,
+                    new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+
+                parameters.Add(new KeyValuePair<string, string>(
+                    KeenConstants.QueryParmAnalyses,
+                    analysesJson));
+
+                return parameters;
+            }
+
+            internal IEnumerable<MultiAnalysisParam> GetMultiAnalysisParameters()
+            {
+                return Analyses.Zip(Labels, (parameters, label) => parameters.GetMultiAnalysisParameter(label));
             }
         }
 
@@ -235,7 +284,7 @@ namespace Keen.Core.Test
                     queryStringBuilder.Append('&');
                 }
 
-                queryStringBuilder.Append($"{parameter.Key}={parameter.Value}");
+                queryStringBuilder.Append($"{parameter.Key}={Uri.EscapeDataString(parameter.Value)}");
             }
 
             return new FuncHandler()
@@ -812,5 +861,49 @@ namespace Keen.Core.Test
                 Assert.AreEqual(expected.Value<int>(), actual);
             }
         }
+
+        [Test]
+        public async Task Query_SimpleMultiAnalysis_Success()
+        {
+            var queryParameters = new MultiAnalysisParameters()
+            {
+                Labels = new string[]
+                {
+                    "first analysis",
+                    "second analysis"
+                },
+                Analyses = new QueryParameters[]
+                {
+                    new QueryParameters(),
+                    new QueryParameters()
+                    {
+                        Analysis = QueryType.Average()
+                    }
+                }
+            };
+
+            string responseJson = $"{{\"result\":{{ \"{queryParameters.Labels[0]}\" : 12345, \"{queryParameters.Labels[1]}\" : 54321 }} }}";
+
+            var expectedResponse = JObject.Parse(responseJson);
+
+            var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
+
+            var actualResults = await client.Queries.MultiAnalysis(
+                queryParameters.EventCollection,
+                queryParameters.GetMultiAnalysisParameters(),
+                timeframe: null,
+                filters: null,
+                timezone: null);
+
+            var expectedResults = expectedResponse["result"];
+
+            Assert.AreEqual(expectedResults.Count(), actualResults.Count());
+            foreach (var label in queryParameters.Labels)
+            {
+                // Validate the result is correct
+                Assert.AreEqual(expectedResults[label].Value<int>(), int.Parse(actualResults[label]));
+            }
+        }
+
     }
 }
