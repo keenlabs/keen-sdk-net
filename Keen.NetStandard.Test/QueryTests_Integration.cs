@@ -253,7 +253,10 @@ namespace Keen.Core.Test
                 var multiAnalysisParameters = GetMultiAnalysisParameters();
 
                 var jObjects = multiAnalysisParameters.Select(x =>
-                    new JProperty(x.Label, JObject.FromObject(new { analysis_type = x.Analysis, target_property = x.TargetProperty })));
+                    new JProperty(x.Label, JObject.FromObject(
+                        string.IsNullOrEmpty(x.TargetProperty) ?
+                            (object)new { analysis_type = x.Analysis } :
+                            new { analysis_type = x.Analysis, target_property = x.TargetProperty })));
 
                 var analysesJson = JsonConvert.SerializeObject(
                     new JObject(jObjects),
@@ -877,7 +880,8 @@ namespace Keen.Core.Test
                     new QueryParameters(),
                     new QueryParameters()
                     {
-                        Analysis = QueryType.Average()
+                        Analysis = QueryType.Average(),
+                        TargetProperty = "targetProperty"
                     }
                 }
             };
