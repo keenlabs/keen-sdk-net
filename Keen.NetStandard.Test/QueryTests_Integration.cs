@@ -175,21 +175,52 @@ namespace Keen.Core.Test
             internal String GroupBy;
             internal QueryRelativeTimeframe Timeframe;
             internal QueryInterval Interval;
-            internal Func<QueryParameters, string> GetResourceName = (QueryParameters parameters) => parameters.Analysis;
 
-            internal List<KeyValuePair<string, string>> GetQueryParameters()
+            internal virtual string GetResourceName() => Analysis;
+
+            internal virtual List<KeyValuePair<string, string>> GetQueryParameters()
             {
-                var queryParameters = new List<KeyValuePair<string, string>>
-                {
-                    new KeyValuePair<string, string>(KeenConstants.QueryParmEventCollection, EventCollection),
-                };
+                var queryParameters = new List<KeyValuePair<string, string>>();
 
+                if (null != EventCollection) { queryParameters.Add(new KeyValuePair<string, string>(KeenConstants.QueryParmEventCollection, EventCollection)); }
                 if (null != TargetProperty) { queryParameters.Add(new KeyValuePair<string, string>(KeenConstants.QueryParmTargetProperty, TargetProperty)); }
                 if (null != GroupBy) { queryParameters.Add(new KeyValuePair<string, string>(KeenConstants.QueryParmGroupBy, GroupBy)); }
                 if (null != Timeframe) { queryParameters.Add(new KeyValuePair<string, string>(KeenConstants.QueryParmTimeframe, Timeframe.ToString())); }
                 if (null != Interval) { queryParameters.Add(new KeyValuePair<string, string>(KeenConstants.QueryParmInterval, Interval)); }
 
                 return queryParameters;
+            }
+        }
+
+        class ExtractionParameters : QueryParameters
+        {
+            internal ExtractionParameters()
+            {
+                Analysis = null;
+            }
+
+            internal override string GetResourceName() => KeenConstants.QueryExtraction;
+        }
+
+        class FunnelParameters : QueryParameters
+        {
+            internal IEnumerable<FunnelStep> Steps;
+
+            internal FunnelParameters()
+            {
+                EventCollection = null;
+                Analysis = null;
+            }
+
+            internal override string GetResourceName() => KeenConstants.QueryFunnel;
+
+            internal override List<KeyValuePair<string, string>> GetQueryParameters()
+            {
+                var parameters = base.GetQueryParameters();
+                parameters.Add(new KeyValuePair<string, string>(
+                    KeenConstants.QueryParmSteps,
+                    Uri.EscapeDataString(JArray.FromObject(Steps).ToString(Newtonsoft.Json.Formatting.None))));
+                return parameters;
             }
         }
 
@@ -212,7 +243,7 @@ namespace Keen.Core.Test
                 ProduceResultAsync = (request, ct) =>
                 {
                     var expectedUri = new Uri($"{HttpTests.GetUriForResource(SettingsEnv, KeenConstants.QueriesResource)}/" +
-                                              $"{queryParameters.GetResourceName(queryParameters)}?{queryStringBuilder}");
+                                              $"{queryParameters.GetResourceName()}?{queryStringBuilder}");
                     Assert.AreEqual(expectedUri, request.RequestUri);
                     return HttpTests.CreateJsonStringResponseAsync(response);
                 }
@@ -658,9 +689,8 @@ namespace Keen.Core.Test
         [Test]
         public async Task Query_SimpleExtraction_Success()
         {
-            var queryParameters = new QueryParameters()
+            var queryParameters = new ExtractionParameters()
             {
-                GetResourceName = (parameters) => KeenConstants.QueryExtraction,
                 Timeframe = QueryRelativeTimeframe.ThisNHours(2),
             };
 
@@ -722,6 +752,64 @@ namespace Keen.Core.Test
                 Assert.AreEqual(expected["user"]["email"].Value<string>(), actual["user"]["email"].Value<string>());
                 Assert.AreEqual(expected["user"]["id"].Value<string>(), actual["user"]["id"].Value<string>());
                 Assert.AreEqual(expected["user_agent"]["browser"].Value<string>(), actual["user_agent"]["browser"].Value<string>());
+            }
+        }
+
+        [Test]
+        public async Task Query_SimpleFunnel_Success()
+        {
+            var queryParameters = new FunnelParameters()
+            {
+                Steps = new FunnelStep[]
+                {
+                    new FunnelStep() {EventCollection = "signed up", ActorProperty = "visitor.guid", Timeframe = QueryRelativeTimeframe.ThisNDays(7)},
+                    new FunnelStep() {EventCollection = "completed profile", ActorProperty = "user.guid", Timeframe = QueryRelativeTimeframe.ThisNDays(7)},
+                    new FunnelStep() {EventCollection = "referred user", ActorProperty = "user.guid", Timeframe = QueryRelativeTimeframe.ThisNDays(7)},
+                }
+            };
+
+            string responseJson = @"{
+                ""result"": [
+                    3,
+                    1,
+                    0
+                ],
+                ""steps"": [
+                    {
+                        ""actor_property"": ""visitor.guid"",
+                        ""event_collection"": ""signed up"",
+                        ""timeframe"": ""this_7_days""
+                    },
+                    {
+                        ""actor_property"": ""user.guid"",
+                        ""event_collection"": ""completed profile"",
+                        ""timeframe"": ""this_7_days""
+                    },
+                    {
+                        ""actor_property"": ""user.guid"",
+                        ""event_collection"": ""referred user"",
+                        ""timeframe"": ""this_7_days""
+                    }
+                ]
+            }";
+
+            var expectedResponse = JObject.Parse(responseJson);
+
+            var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
+
+            var actualResults = await client.Queries.Funnel(
+                queryParameters.Steps);
+
+            var expectedResults = expectedResponse["result"];
+
+            Assert.AreEqual(expectedResults.Count(), actualResults.Result.Count());
+            var actualEnumerator = actualResults.Result.GetEnumerator();
+            foreach (var expected in expectedResults)
+            {
+                actualEnumerator.MoveNext();
+                var actual = actualEnumerator.Current;
+                // Validate the result is correct
+                Assert.AreEqual(expected.Value<int>(), actual);
             }
         }
     }
