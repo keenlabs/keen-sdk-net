@@ -175,6 +175,7 @@ namespace Keen.Core.Test
             internal String GroupBy;
             internal QueryRelativeTimeframe Timeframe;
             internal QueryInterval Interval;
+            internal Func<QueryParameters, string> GetResourceName = (QueryParameters parameters) => parameters.Analysis;
 
             internal List<KeyValuePair<string, string>> GetQueryParameters()
             {
@@ -211,7 +212,7 @@ namespace Keen.Core.Test
                 ProduceResultAsync = (request, ct) =>
                 {
                     var expectedUri = new Uri($"{HttpTests.GetUriForResource(SettingsEnv, KeenConstants.QueriesResource)}/" +
-                                              $"{queryParameters.Analysis}?{queryStringBuilder}");
+                                              $"{queryParameters.GetResourceName(queryParameters)}?{queryStringBuilder}");
                     Assert.AreEqual(expectedUri, request.RequestUri);
                     return HttpTests.CreateJsonStringResponseAsync(response);
                 }
@@ -651,6 +652,76 @@ namespace Keen.Core.Test
                     Assert.AreEqual(expectedGroupResult[queryParameters.GroupBy].Value<string>(), actualGroupResult.Group);
                     Assert.AreEqual(string.Join(',', expectedGroupResult["result"].Values<string>()), actualGroupResult.Value);
                 }
+            }
+        }
+
+        [Test]
+        public async Task Query_SimpleExtraction_Success()
+        {
+            var queryParameters = new QueryParameters()
+            {
+                GetResourceName = (parameters) => KeenConstants.QueryExtraction,
+                Timeframe = QueryRelativeTimeframe.ThisNHours(2),
+            };
+
+            string resultsJson = @"[
+                {
+                    ""keen"": {
+                        ""created_at"": ""2012-07-30T21:21:46.566000+00:00"",
+                        ""timestamp"": ""2012-07-30T21:21:46.566000+00:00"",
+                        ""id"": """"
+                    },
+                    ""user"": {
+                        ""email"": ""dan@keen.io"",
+                        ""id"": ""4f4db6c7777d66ffff000000""
+                    },
+                    ""user_agent"": {
+                        ""browser"": ""chrome"",
+                        ""browser_version"": ""20.0.1132.57"",
+                        ""platform"": ""macos""
+                    }
+                },
+                {
+                    ""keen"": {
+                        ""created_at"": ""2012-07-30T21:40:05.386000+00:00"",
+                        ""timestamp"": ""2012-07-30T21:40:05.386000+00:00"",
+                        ""id"": """"
+                    },
+                    ""user"": {
+                        ""email"": ""michelle@keen.io"",
+                        ""id"": ""4fa2cccccf546ffff000006""
+                    },
+                    ""user_agent"": {
+                        ""browser"": ""chrome"",
+                        ""browser_version"": ""20.0.1132.57"",
+                        ""platform"": ""macos""
+                    }
+                }
+            ]";
+
+            var expectedResults = JArray.Parse(resultsJson);
+
+            var expectedResponse = new
+            {
+                result = expectedResults
+            };
+
+            var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
+
+            var actualResults = await client.Queries.Extract(
+                queryParameters.EventCollection,
+                queryParameters.Timeframe);
+
+            Assert.AreEqual(expectedResults.Count(), actualResults.Count());
+            var actualEnumerator = actualResults.GetEnumerator();
+            foreach (var expected in expectedResults)
+            {
+                actualEnumerator.MoveNext();
+                JToken actual = actualEnumerator.Current;
+                // Validate the result is correct
+                Assert.AreEqual(expected["user"]["email"].Value<string>(), actual["user"]["email"].Value<string>());
+                Assert.AreEqual(expected["user"]["id"].Value<string>(), actual["user"]["id"].Value<string>());
+                Assert.AreEqual(expected["user_agent"]["browser"].Value<string>(), actual["user_agent"]["browser"].Value<string>());
             }
         }
     }
