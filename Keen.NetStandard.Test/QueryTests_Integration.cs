@@ -909,5 +909,58 @@ namespace Keen.Core.Test
             }
         }
 
+        [Test]
+        public async Task Query_SimpleMultiAnalysisGroupBy_Success()
+        {
+            var queryParameters = new MultiAnalysisParameters()
+            {
+                Labels = new string[]
+                {
+                    "first analysis",
+                    "second analysis"
+                },
+                Analyses = new QueryParameters[]
+                {
+                    new QueryParameters(),
+                    new QueryParameters()
+                    {
+                        Analysis = QueryType.Average(),
+                        TargetProperty = "targetProperty"
+                    }
+                },
+                GroupBy = "groupByProperty"
+            };
+
+            string responseJson = $"{{\"result\":[" +
+                $"{{\"{queryParameters.GroupBy}\":\"group1\",\"{queryParameters.Labels[0]}\":12345,\"{queryParameters.Labels[1]}\":54321}}," +
+                $"{{\"{queryParameters.GroupBy}\":\"group2\",\"{queryParameters.Labels[0]}\":67890,\"{queryParameters.Labels[1]}\":9876}}" +
+                $"]}}";
+
+            var expectedResponse = JObject.Parse(responseJson);
+
+            var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
+
+            var actualResults = await client.Queries.MultiAnalysis(
+                queryParameters.EventCollection,
+                queryParameters.GetMultiAnalysisParameters(),
+                null,
+                null,
+                queryParameters.GroupBy,
+                null);
+
+            var expectedResults = expectedResponse["result"];
+
+            Assert.AreEqual(expectedResults.Count(), actualResults.Count());
+            foreach (var group in new string[] { "group1", "group2" })
+            {
+                var actualGroupResult = actualResults.Where((result) => result.Group == group).First();
+                var expectedGroupResult = expectedResults.Where((result) => result[queryParameters.GroupBy].Value<string>() == group).First();
+                foreach (var label in queryParameters.Labels)
+                {
+                    // Validate the result is correct
+                    Assert.AreEqual(expectedGroupResult[label].Value<int>(), int.Parse(actualGroupResult.Value[label]));
+                }
+            }
+        }
     }
 }

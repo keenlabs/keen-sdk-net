@@ -344,8 +344,15 @@ namespace Keen.Core.Query
         public async Task<IEnumerable<QueryGroupValue<IDictionary<string, string>>>> MultiAnalysis(string collection, IEnumerable<MultiAnalysisParam> analysisParams, IQueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string groupby = "", string timezone = "")
         {
             var jObs = analysisParams.Select(x =>
-                new JProperty(x.Label, JObject.FromObject(new { analysis_type = x.Analysis, target_property = x.TargetProperty })));
-            var parmsJson = JsonConvert.SerializeObject(new JObject(jObs), Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+                new JProperty(x.Label, JObject.FromObject(
+                    string.IsNullOrEmpty(x.TargetProperty) ?
+                        (object)new { analysis_type = x.Analysis } :
+                        new { analysis_type = x.Analysis, target_property = x.TargetProperty })));
+
+            var parmsJson = JsonConvert.SerializeObject(
+                new JObject(jObs),
+                Formatting.None,
+                new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 
             var parms = new Dictionary<string, string>();
             parms.Add(KeenConstants.QueryParmEventCollection, collection);
