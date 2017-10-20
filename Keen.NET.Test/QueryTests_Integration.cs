@@ -1,11 +1,14 @@
-﻿using Keen.Core;
-using Keen.Core.Query;
+﻿using Keen.Core.Query;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-
+using System.Linq;
+using System.Text;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
+using System.Web;
+using Keen.Core;
 
 namespace Keen.Net.Test
 {
@@ -167,30 +170,162 @@ namespace Keen.Net.Test
             }
         }
 
-        [Test]
-        public async Task Query_SimpleCount_Success()
+        class QueryParameters
         {
-            string expectedResult = "10";
-            string collection = "myEvents";
-            QueryType analysis = QueryType.Count();
+            internal string EventCollection = "myEvents";
+            internal QueryType Analysis = QueryType.Count();
+            internal string TargetProperty;
+            internal String GroupBy;
+            internal QueryRelativeTimeframe Timeframe;
+            internal QueryInterval Interval;
 
-            var expectedResponse = new Dictionary<string, string>()
+            internal virtual string GetResourceName() => Analysis;
+
+            internal virtual List<KeyValuePair<string, string>> GetQueryParameters()
             {
-                { "result", expectedResult},
-            };
+                var queryParameters = new List<KeyValuePair<string, string>>();
 
-            FuncHandler handler = new FuncHandler()
+                if (null != EventCollection) { queryParameters.Add(new KeyValuePair<string, string>(KeenConstants.QueryParmEventCollection, EventCollection)); }
+                if (null != TargetProperty) { queryParameters.Add(new KeyValuePair<string, string>(KeenConstants.QueryParmTargetProperty, TargetProperty)); }
+                if (null != GroupBy) { queryParameters.Add(new KeyValuePair<string, string>(KeenConstants.QueryParmGroupBy, GroupBy)); }
+                if (null != Timeframe) { queryParameters.Add(new KeyValuePair<string, string>(KeenConstants.QueryParmTimeframe, Timeframe.ToString())); }
+                if (null != Interval) { queryParameters.Add(new KeyValuePair<string, string>(KeenConstants.QueryParmInterval, Interval)); }
+
+                return queryParameters;
+            }
+
+            internal MultiAnalysisParam GetMultiAnalysisParameter(string label)
+            {
+                return new MultiAnalysisParam(
+                    label,
+                    String.IsNullOrEmpty(TargetProperty) ?
+                        new MultiAnalysisParam.Metric(Analysis) :
+                        new MultiAnalysisParam.Metric(Analysis, TargetProperty));
+            }
+        }
+
+        class ExtractionParameters : QueryParameters
+        {
+            internal ExtractionParameters()
+            {
+                Analysis = null;
+            }
+
+            internal override string GetResourceName() => KeenConstants.QueryExtraction;
+        }
+
+        class FunnelParameters : QueryParameters
+        {
+            internal IEnumerable<FunnelStep> Steps;
+
+            internal FunnelParameters()
+            {
+                EventCollection = null;
+                Analysis = null;
+            }
+
+            internal override string GetResourceName() => KeenConstants.QueryFunnel;
+
+            internal override List<KeyValuePair<string, string>> GetQueryParameters()
+            {
+                var parameters = base.GetQueryParameters();
+                parameters.Add(new KeyValuePair<string, string>(
+                    KeenConstants.QueryParmSteps,
+                    JArray.FromObject(Steps).ToString(Newtonsoft.Json.Formatting.None)));
+                return parameters;
+            }
+        }
+
+        class MultiAnalysisParameters : QueryParameters
+        {
+            internal IEnumerable<QueryParameters> Analyses;
+            internal IList<string> Labels;
+
+            internal MultiAnalysisParameters()
+            {
+                Analysis = null;
+            }
+
+            internal override string GetResourceName() => KeenConstants.QueryMultiAnalysis;
+
+            internal override List<KeyValuePair<string, string>> GetQueryParameters()
+            {
+                var parameters = base.GetQueryParameters();
+
+                var multiAnalysisParameters = GetMultiAnalysisParameters();
+
+                var jObjects = multiAnalysisParameters.Select(x =>
+                    new JProperty(x.Label, JObject.FromObject(
+                        string.IsNullOrEmpty(x.TargetProperty) ?
+                            (object)new { analysis_type = x.Analysis } :
+                            new { analysis_type = x.Analysis, target_property = x.TargetProperty })));
+
+                var analysesJson = JsonConvert.SerializeObject(
+                    new JObject(jObjects),
+                    Formatting.None,
+                    new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+
+                parameters.Add(new KeyValuePair<string, string>(
+                    KeenConstants.QueryParmAnalyses,
+                    analysesJson));
+
+                return parameters;
+            }
+
+            internal IEnumerable<MultiAnalysisParam> GetMultiAnalysisParameters()
+            {
+                return Analyses.Zip(Labels, (parameters, label) => parameters.GetMultiAnalysisParameter(label));
+            }
+        }
+
+        FuncHandler CreateQueryRequestHandler(QueryParameters queryParameters, object response)
+        {
+            var parameters = queryParameters.GetQueryParameters();
+            StringBuilder queryStringBuilder = new StringBuilder();
+            foreach (var parameter in parameters)
+            {
+                if (queryStringBuilder.Length != 0)
+                {
+                    queryStringBuilder.Append('&');
+                }
+
+                queryStringBuilder.Append($"{parameter.Key}={Uri.EscapeDataString(parameter.Value)}");
+            }
+
+            return new FuncHandler()
             {
                 ProduceResultAsync = (request, ct) =>
                 {
-                    var expectedUri = new Uri($"{HttpTests.GetUriForResource(SettingsEnv, KeenConstants.QueriesResource)}/" +
-                                              $"{analysis}?event_collection={collection}");
-                    Assert.AreEqual(expectedUri, request.RequestUri);
-                    return HttpTests.CreateJsonStringResponseAsync(expectedResponse);
+                    var expectedPath = $"{HttpTests.GetUriForResource(SettingsEnv, KeenConstants.QueriesResource)}/" +
+                                       $"{queryParameters.GetResourceName()}";
+
+                    string actualPath = String.Format(
+                        "{0}{1}{2}{3}",
+                        request.RequestUri.Scheme,
+                        Uri.SchemeDelimiter,
+                        request.RequestUri.Authority,
+                        request.RequestUri.AbsolutePath);
+
+                    Assert.AreEqual(expectedPath, actualPath);
+
+                    var expectedQueryStringCollection = HttpUtility.ParseQueryString(queryStringBuilder.ToString());
+                    var actualQueryStringCollection = HttpUtility.ParseQueryString(request.RequestUri.Query);
+                    Assert.AreEqual(expectedQueryStringCollection.Count, actualQueryStringCollection.Count);
+                    foreach (var key in expectedQueryStringCollection.AllKeys)
+                    {
+                        Assert.AreEqual(expectedQueryStringCollection[key], actualQueryStringCollection[key]);
+                    }
+
+                    return HttpTests.CreateJsonStringResponseAsync(response);
                 }
             };
+        }
 
-            var client = new KeenClient(SettingsEnv, new TestKeenHttpClientProvider()
+        KeenClient CreateQueryTestKeenClient(QueryParameters queryParameters, object response)
+        {
+            var handler = CreateQueryRequestHandler(queryParameters, response);
+
+            return new KeenClient(SettingsEnv, new TestKeenHttpClientProvider()
             {
                 ProvideKeenHttpClient =
                     (url) => KeenHttpClientFactory.Create(url,
@@ -198,46 +333,81 @@ namespace Keen.Net.Test
                                                           null,
                                                           new DelegatingHandlerMock(handler))
             });
+        }
 
-            var actualResult = await client.Queries.Metric(analysis, collection, null);
+        [Test]
+        public async Task Query_SimpleCount_Success()
+        {
+            var queryParameters = new QueryParameters();
+
+            string expectedResult = "10";
+
+            var expectedResponse = new Dictionary<string, string>()
+            {
+                { "result", expectedResult},
+            };
+
+            var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
+
+            var actualResult = await client.Queries.Metric(queryParameters.Analysis, queryParameters.EventCollection, null);
 
             Assert.AreEqual(expectedResult, actualResult);
         }
 
         [Test]
+        public async Task Query_SimpleSelectUnique_Success()
+        {
+            var queryParameters = new QueryParameters()
+            {
+                Analysis = QueryType.SelectUnique(),
+                TargetProperty = "targetProperty"
+            };
+
+            string[] results =
+            {
+                "this",
+                "that",
+                "theOtherThing"
+            };
+
+            var expectedResponse = new
+            {
+                result = results,
+            };
+
+            var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
+
+            var actualResult = await client.Queries.Metric(
+                queryParameters.Analysis,
+                queryParameters.EventCollection,
+                queryParameters.TargetProperty);
+
+            string expectedResultString = String.Join(",", results);
+            Assert.AreEqual(expectedResultString, actualResult);
+        }
+
+        [Test]
         public async Task Query_SimpleAverage_Success()
         {
+            var queryParameters = new QueryParameters()
+            {
+                Analysis = QueryType.Average(),
+                TargetProperty = "someProperty"
+            };
+
             string expectedResult = "10";
-            string collection = "myEvents";
-            QueryType analysis = QueryType.Average();
-            string targetProperty = "someProperty";
 
             var expectedResponse = new Dictionary<string, string>()
             {
                 { "result", expectedResult},
             };
 
-            FuncHandler handler = new FuncHandler()
-            {
-                ProduceResultAsync = (request, ct) =>
-                {
-                    var expectedUri = new Uri($"{HttpTests.GetUriForResource(SettingsEnv, KeenConstants.QueriesResource)}/" +
-                                              $"{analysis}?event_collection={collection}&target_property={targetProperty}");
-                    Assert.AreEqual(expectedUri, request.RequestUri);
-                    return HttpTests.CreateJsonStringResponseAsync(expectedResponse);
-                }
-            };
+            var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
 
-            var client = new KeenClient(SettingsEnv, new TestKeenHttpClientProvider()
-            {
-                ProvideKeenHttpClient =
-                    (url) => KeenHttpClientFactory.Create(url,
-                                                          new HttpClientCache(),
-                                                          null,
-                                                          new DelegatingHandlerMock(handler))
-            });
-
-            var actualResult = await client.Queries.Metric(analysis, collection, targetProperty);
+            var actualResult = await client.Queries.Metric(
+                queryParameters.Analysis,
+                queryParameters.EventCollection,
+                queryParameters.TargetProperty);
 
             Assert.AreEqual(expectedResult, actualResult);
         }
@@ -245,17 +415,18 @@ namespace Keen.Net.Test
         [Test]
         public async Task Query_SimpleCountGroupBy_Success()
         {
+            var queryParameters = new QueryParameters()
+            {
+                GroupBy = "someGroupProperty"
+            };
+
             var expectedResults = new List<string>() { "10", "20" };
             var expectedGroups = new List<string>() { "group1", "group2" };
-            string collection = "myEvents";
-            QueryType analysis = QueryType.Average();
-            string targetProperty = "someProperty";
-            string groupBy = "someGroupProperty";
             var expectedGroupResults = expectedResults.Zip(
                 expectedGroups,
                 (result, group) => new Dictionary<string, string>()
                 {
-                    { groupBy, group },
+                    { queryParameters.GroupBy, group },
                     { "result", result }
                 });
 
@@ -264,33 +435,686 @@ namespace Keen.Net.Test
                 result = expectedGroupResults
             };
 
-            FuncHandler handler = new FuncHandler()
+            var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
+
+            var actualResult = await client.Queries.Metric(
+                queryParameters.Analysis,
+                queryParameters.EventCollection,
+                null,
+                queryParameters.GroupBy);
+
+            Assert.AreEqual(expectedGroupResults.Count(), actualResult.Count());
+            foreach (var actualGroupResult in actualResult)
             {
-                ProduceResultAsync = (request, ct) =>
+                var expectedGroupResult = expectedGroupResults.Where((result) => result[queryParameters.GroupBy] == actualGroupResult.Group).First();
+                Assert.AreEqual(expectedGroupResult["result"], actualGroupResult.Value);
+            }
+        }
+
+        [Test]
+        public async Task Query_SimpleSelectUniqueGroupBy_Success()
+        {
+            var queryParameters = new QueryParameters()
+            {
+                Analysis = QueryType.SelectUnique(),
+                TargetProperty = "someProperty",
+                GroupBy = "someGroupProperty"
+            };
+
+            var expectedResults = new List<string[]>() { new string[] { "10", "20" }, new string[] { "30", "40" } };
+            var expectedGroups = new List<string>() { "group1", "group2" };
+            var expectedGroupResults = expectedResults.Zip(
+                expectedGroups,
+                (result, group) => new
                 {
-                    var expectedUri = new Uri($"{HttpTests.GetUriForResource(SettingsEnv, KeenConstants.QueriesResource)}/" +
-                                              $"{analysis}?event_collection={collection}&target_property={targetProperty}&group_by={groupBy}");
-                    Assert.AreEqual(expectedUri, request.RequestUri);
-                    return HttpTests.CreateJsonStringResponseAsync(expectedResponse);
+                    someGroupProperty = group,
+                    result = result
+                });
+
+            var expectedResponse = new
+            {
+                result = expectedGroupResults
+            };
+
+            var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
+
+            var actualResult = await client.Queries.Metric(
+                queryParameters.Analysis,
+                queryParameters.EventCollection,
+                queryParameters.TargetProperty,
+                queryParameters.GroupBy);
+
+            Assert.AreEqual(expectedGroupResults.Count(), actualResult.Count());
+            foreach (var actualGroupResult in actualResult)
+            {
+                var expectedGroupResult = expectedGroupResults.Where((result) => result.someGroupProperty == actualGroupResult.Group).First();
+                Assert.AreEqual(string.Join(",", expectedGroupResult.result), actualGroupResult.Value);
+            }
+        }
+
+        [Test]
+        public async Task Query_SimpleCountInterval_Success()
+        {
+            var queryParameters = new QueryParameters()
+            {
+                TargetProperty = "someProperty",
+                Timeframe = QueryRelativeTimeframe.ThisNHours(2),
+                Interval = QueryInterval.EveryNHours(1)
+            };
+
+            var expectedCounts = new List<string>() { "10", "20" };
+            var expectedTimeframes = new List<QueryAbsoluteTimeframe>()
+            {
+                new QueryAbsoluteTimeframe(DateTime.Now.AddHours(-2), DateTime.Now.AddHours(-1)),
+                new QueryAbsoluteTimeframe(DateTime.Now.AddHours(-1), DateTime.Now)
+            };
+            var expectedResults = expectedCounts.Zip(
+                expectedTimeframes,
+                (count, time) => new { timeframe = time, value = count });
+
+            var expectedResponse = new
+            {
+                result = expectedResults
+            };
+
+            var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
+
+            var actualResults = await client.Queries.Metric(
+                queryParameters.Analysis,
+                queryParameters.EventCollection,
+                queryParameters.TargetProperty,
+                queryParameters.Timeframe,
+                queryParameters.Interval);
+
+            Assert.AreEqual(expectedResults.Count(), actualResults.Count());
+            var expectedEnumerator = expectedResults.GetEnumerator();
+            var actualEnumerator = actualResults.GetEnumerator();
+            while (expectedEnumerator.MoveNext() && actualEnumerator.MoveNext())
+            {
+                var expected = expectedEnumerator.Current;
+                var actual = actualEnumerator.Current;
+                Assert.AreEqual(expected.timeframe.Start, actual.Start);
+                Assert.AreEqual(expected.timeframe.End, actual.End);
+                Assert.AreEqual(expected.value, actual.Value);
+            }
+        }
+
+        [Test]
+        public async Task Query_SimpleSelectUniqueInterval_Success()
+        {
+            var queryParameters = new QueryParameters()
+            {
+                Analysis = QueryType.SelectUnique(),
+                TargetProperty = "someProperty",
+                Timeframe = QueryRelativeTimeframe.ThisNHours(2),
+                Interval = QueryInterval.EveryNHours(1)
+            };
+
+            var expectedCounts = new List<string[]>() { new string[] { "10", "20" }, new string[] { "30", "40" } };
+            var expectedTimeframes = new List<QueryAbsoluteTimeframe>()
+            {
+                new QueryAbsoluteTimeframe(DateTime.Now.AddHours(-2), DateTime.Now.AddHours(-1)),
+                new QueryAbsoluteTimeframe(DateTime.Now.AddHours(-1), DateTime.Now)
+            };
+            var expectedResults = expectedCounts.Zip(
+                expectedTimeframes,
+                (count, time) => new { timeframe = time, value = count });
+
+            var expectedResponse = new
+            {
+                result = expectedResults
+            };
+
+            var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
+
+            var actualResults = await client.Queries.Metric(
+                queryParameters.Analysis,
+                queryParameters.EventCollection,
+                queryParameters.TargetProperty,
+                queryParameters.Timeframe,
+                queryParameters.Interval);
+
+            Assert.AreEqual(expectedResults.Count(), actualResults.Count());
+            var expectedEnumerator = expectedResults.GetEnumerator();
+            var actualEnumerator = actualResults.GetEnumerator();
+            while (expectedEnumerator.MoveNext() && actualEnumerator.MoveNext())
+            {
+                var expected = expectedEnumerator.Current;
+                var actual = actualEnumerator.Current;
+                Assert.AreEqual(expected.timeframe.Start, actual.Start);
+                Assert.AreEqual(expected.timeframe.End, actual.End);
+                Assert.AreEqual(string.Join(",", expected.value), actual.Value);
+            }
+        }
+
+        [Test]
+        public async Task Query_SimpleCountGroupByInterval_Success()
+        {
+            var queryParameters = new QueryParameters()
+            {
+                TargetProperty = "someProperty",
+                Timeframe = QueryRelativeTimeframe.ThisNHours(2),
+                Interval = QueryInterval.EveryNHours(1),
+                GroupBy = "someGroupProperty"
+            };
+
+            var expectedResults = new[]
+            {
+                new
+                {
+                    timeframe = new QueryAbsoluteTimeframe(DateTime.Now.AddHours(-2), DateTime.Now.AddHours(-1)),
+                    value = new List<Dictionary<string, string>>
+                    {
+                        new Dictionary<string, string>{ { queryParameters.GroupBy, "group1" }, { "result", "10" } },
+                        new Dictionary<string, string>{ { queryParameters.GroupBy, "group2" }, { "result", "20" } },
+                    }
+                },
+                new
+                {
+                    timeframe = new QueryAbsoluteTimeframe(DateTime.Now.AddHours(-1), DateTime.Now),
+                    value = new List<Dictionary<string, string>>
+                    {
+                        new Dictionary<string, string>{ { queryParameters.GroupBy, "group1" }, { "result", "30" } },
+                        new Dictionary<string, string>{ { queryParameters.GroupBy, "group2" }, { "result", "40" } },
+                    }
                 }
             };
 
-            var client = new KeenClient(SettingsEnv, new TestKeenHttpClientProvider()
+            var expectedResponse = new
             {
-                ProvideKeenHttpClient =
-                    (url) => KeenHttpClientFactory.Create(url,
-                                                          new HttpClientCache(),
-                                                          null,
-                                                          new DelegatingHandlerMock(handler))
-            });
+                result = expectedResults
+            };
 
-            var actualGroupResults = await client.Queries.Metric(analysis, collection, targetProperty, groupBy);
+            var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
 
-            Assert.AreEqual(expectedGroupResults.Count(), actualGroupResults.Count());
-            foreach (var actualGroupResult in actualGroupResults)
+            var actualResults = await client.Queries.Metric(
+                queryParameters.Analysis,
+                queryParameters.EventCollection,
+                queryParameters.TargetProperty,
+                queryParameters.GroupBy,
+                queryParameters.Timeframe,
+                queryParameters.Interval);
+
+            Assert.AreEqual(expectedResults.Count(), actualResults.Count());
+            var actualEnumerator = actualResults.GetEnumerator();
+            foreach (var expected in expectedResults)
             {
-                var expectedGroupResult = expectedGroupResults.Where((result) => result[groupBy] == actualGroupResult.Group).First();
-                Assert.AreEqual(expectedGroupResult["result"], actualGroupResult.Value);
+                actualEnumerator.MoveNext();
+                var actual = actualEnumerator.Current;
+                // Validate the interval is correct
+                Assert.AreEqual(expected.timeframe.Start, actual.Start);
+                Assert.AreEqual(expected.timeframe.End, actual.End);
+
+                // Validate the results for the group within the time interval
+                Assert.AreEqual(expected.value.Count, actual.Value.Count());
+                var actualGroupResultEnumerator = actual.Value.GetEnumerator();
+                foreach (var expectedGroupResult in expected.value)
+                {
+                    actualGroupResultEnumerator.MoveNext();
+                    var actualGroupResult = actualGroupResultEnumerator.Current;
+                    Assert.AreEqual(expectedGroupResult[queryParameters.GroupBy], actualGroupResult.Group);
+                    Assert.AreEqual(expectedGroupResult["result"], actualGroupResult.Value);
+                }
+            }
+        }
+
+        [Test]
+        public async Task Query_SimpleSelectUniqueGroupByInterval_Success()
+        {
+            var queryParameters = new QueryParameters()
+            {
+                Analysis = QueryType.SelectUnique(),
+                TargetProperty = "someProperty",
+                Timeframe = QueryRelativeTimeframe.ThisNHours(2),
+                Interval = QueryInterval.EveryNHours(1),
+                GroupBy = "someGroupProperty"
+            };
+
+            string resultsJson = @"[
+                {
+                    ""timeframe"": {
+                        ""start"": ""2017-10-14T00:00:00.000Z"",
+                        ""end"": ""2017-10-15T00:00:00.000Z""
+                    },
+                    ""value"": [
+                        {
+                            ""someGroupProperty"": ""group1"",
+                            ""result"": [
+                                ""10"",
+                                ""20""
+                            ]
+                        },
+                        {
+                            ""someGroupProperty"": ""group2"",
+                            ""result"": [
+                                ""30"",
+                                ""40""
+                            ]
+                        }
+                    ]
+                },
+                {
+                    ""timeframe"": {
+                        ""start"": ""2017-10-15T00:00:00.000Z"",
+                        ""end"": ""2017-10-16T00:00:00.000Z""
+                    },
+                    ""value"": [
+                        {
+                            ""someGroupProperty"": ""group1"",
+                            ""result"": [
+                                ""50"",
+                                ""60""
+                            ]
+                        },
+                        {
+                            ""someGroupProperty"": ""group2"",
+                            ""result"": [
+                                ""70"",
+                                ""80""
+                            ]
+                        }
+                    ]
+                }
+            ]";
+
+            var expectedResults = JArray.Parse(resultsJson);
+
+            var expectedResponse = new
+            {
+                result = expectedResults
+            };
+
+            var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
+
+            var actualResults = await client.Queries.Metric(
+                queryParameters.Analysis,
+                queryParameters.EventCollection,
+                queryParameters.TargetProperty,
+                queryParameters.GroupBy,
+                queryParameters.Timeframe,
+                queryParameters.Interval);
+
+            Assert.AreEqual(expectedResults.Count(), actualResults.Count());
+            var actualEnumerator = actualResults.GetEnumerator();
+            foreach (var expected in expectedResults)
+            {
+                actualEnumerator.MoveNext();
+                var actual = actualEnumerator.Current;
+                // Validate the interval is correct
+                Assert.AreEqual(DateTime.Parse(expected["timeframe"]["start"].Value<string>()), actual.Start);
+                Assert.AreEqual(DateTime.Parse(expected["timeframe"]["end"].Value<string>()), actual.End);
+
+                // Validate the results for the group within the time interval
+                Assert.AreEqual(expected["value"].Count(), actual.Value.Count());
+                var actualGroupResultEnumerator = actual.Value.GetEnumerator();
+                foreach (var expectedGroupResult in expected["value"])
+                {
+                    actualGroupResultEnumerator.MoveNext();
+                    var actualGroupResult = actualGroupResultEnumerator.Current;
+                    Assert.AreEqual(expectedGroupResult[queryParameters.GroupBy].Value<string>(), actualGroupResult.Group);
+                    Assert.AreEqual(string.Join(",", expectedGroupResult["result"].Values<string>()), actualGroupResult.Value);
+                }
+            }
+        }
+
+        [Test]
+        public async Task Query_SimpleExtraction_Success()
+        {
+            var queryParameters = new ExtractionParameters()
+            {
+                Timeframe = QueryRelativeTimeframe.ThisNHours(2),
+            };
+
+            string resultsJson = @"[
+                {
+                    ""keen"": {
+                        ""created_at"": ""2012-07-30T21:21:46.566000+00:00"",
+                        ""timestamp"": ""2012-07-30T21:21:46.566000+00:00"",
+                        ""id"": """"
+                    },
+                    ""user"": {
+                        ""email"": ""dan@keen.io"",
+                        ""id"": ""4f4db6c7777d66ffff000000""
+                    },
+                    ""user_agent"": {
+                        ""browser"": ""chrome"",
+                        ""browser_version"": ""20.0.1132.57"",
+                        ""platform"": ""macos""
+                    }
+                },
+                {
+                    ""keen"": {
+                        ""created_at"": ""2012-07-30T21:40:05.386000+00:00"",
+                        ""timestamp"": ""2012-07-30T21:40:05.386000+00:00"",
+                        ""id"": """"
+                    },
+                    ""user"": {
+                        ""email"": ""michelle@keen.io"",
+                        ""id"": ""4fa2cccccf546ffff000006""
+                    },
+                    ""user_agent"": {
+                        ""browser"": ""chrome"",
+                        ""browser_version"": ""20.0.1132.57"",
+                        ""platform"": ""macos""
+                    }
+                }
+            ]";
+
+            var expectedResults = JArray.Parse(resultsJson);
+
+            var expectedResponse = new
+            {
+                result = expectedResults
+            };
+
+            var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
+
+            var actualResults = await client.Queries.Extract(
+                queryParameters.EventCollection,
+                queryParameters.Timeframe);
+
+            Assert.AreEqual(expectedResults.Count(), actualResults.Count());
+            var actualEnumerator = actualResults.GetEnumerator();
+            foreach (var expected in expectedResults)
+            {
+                actualEnumerator.MoveNext();
+                JToken actual = actualEnumerator.Current;
+                // Validate the result is correct
+                Assert.AreEqual(expected["user"]["email"].Value<string>(), actual["user"]["email"].Value<string>());
+                Assert.AreEqual(expected["user"]["id"].Value<string>(), actual["user"]["id"].Value<string>());
+                Assert.AreEqual(expected["user_agent"]["browser"].Value<string>(), actual["user_agent"]["browser"].Value<string>());
+            }
+        }
+
+        [Test]
+        public async Task Query_SimpleFunnel_Success()
+        {
+            var queryParameters = new FunnelParameters()
+            {
+                Steps = new FunnelStep[]
+                {
+                    new FunnelStep() {EventCollection = "signed up", ActorProperty = "visitor.guid", Timeframe = QueryRelativeTimeframe.ThisNDays(7)},
+                    new FunnelStep() {EventCollection = "completed profile", ActorProperty = "user.guid", Timeframe = QueryRelativeTimeframe.ThisNDays(7)},
+                    new FunnelStep() {EventCollection = "referred user", ActorProperty = "user.guid", Timeframe = QueryRelativeTimeframe.ThisNDays(7)},
+                }
+            };
+
+            string responseJson = @"{
+                ""result"": [
+                    3,
+                    1,
+                    0
+                ],
+                ""steps"": [
+                    {
+                        ""actor_property"": ""visitor.guid"",
+                        ""event_collection"": ""signed up"",
+                        ""timeframe"": ""this_7_days""
+                    },
+                    {
+                        ""actor_property"": ""user.guid"",
+                        ""event_collection"": ""completed profile"",
+                        ""timeframe"": ""this_7_days""
+                    },
+                    {
+                        ""actor_property"": ""user.guid"",
+                        ""event_collection"": ""referred user"",
+                        ""timeframe"": ""this_7_days""
+                    }
+                ]
+            }";
+
+            var expectedResponse = JObject.Parse(responseJson);
+
+            var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
+
+            var actualResults = await client.Queries.Funnel(
+                queryParameters.Steps);
+
+            var expectedResults = expectedResponse["result"];
+
+            Assert.AreEqual(expectedResults.Count(), actualResults.Result.Count());
+            var actualEnumerator = actualResults.Result.GetEnumerator();
+            foreach (var expected in expectedResults)
+            {
+                actualEnumerator.MoveNext();
+                var actual = actualEnumerator.Current;
+                // Validate the result is correct
+                Assert.AreEqual(expected.Value<int>(), actual);
+            }
+        }
+
+        [Test]
+        public async Task Query_SimpleMultiAnalysis_Success()
+        {
+            var queryParameters = new MultiAnalysisParameters()
+            {
+                Labels = new string[]
+                {
+                    "first analysis",
+                    "second analysis"
+                },
+                Analyses = new QueryParameters[]
+                {
+                    new QueryParameters(),
+                    new QueryParameters()
+                    {
+                        Analysis = QueryType.Average(),
+                        TargetProperty = "targetProperty"
+                    }
+                }
+            };
+
+            string responseJson = $"{{\"result\":{{ \"{queryParameters.Labels[0]}\" : 12345, \"{queryParameters.Labels[1]}\" : 54321 }} }}";
+
+            var expectedResponse = JObject.Parse(responseJson);
+
+            var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
+
+            var actualResults = await client.Queries.MultiAnalysis(
+                queryParameters.EventCollection,
+                queryParameters.GetMultiAnalysisParameters(),
+                timeframe: null,
+                filters: null,
+                timezone: null);
+
+            var expectedResults = expectedResponse["result"];
+
+            Assert.AreEqual(expectedResults.Count(), actualResults.Count());
+            foreach (var label in queryParameters.Labels)
+            {
+                // Validate the result is correct
+                Assert.AreEqual(expectedResults[label].Value<int>(), int.Parse(actualResults[label]));
+            }
+        }
+
+        [Test]
+        public async Task Query_SimpleMultiAnalysisGroupBy_Success()
+        {
+            var queryParameters = new MultiAnalysisParameters()
+            {
+                Labels = new string[]
+                {
+                    "first analysis",
+                    "second analysis"
+                },
+                Analyses = new QueryParameters[]
+                {
+                    new QueryParameters(),
+                    new QueryParameters()
+                    {
+                        Analysis = QueryType.Average(),
+                        TargetProperty = "targetProperty"
+                    }
+                },
+                GroupBy = "groupByProperty"
+            };
+
+            string responseJson = $"{{\"result\":[" +
+                $"{{\"{queryParameters.GroupBy}\":\"group1\",\"{queryParameters.Labels[0]}\":12345,\"{queryParameters.Labels[1]}\":54321}}," +
+                $"{{\"{queryParameters.GroupBy}\":\"group2\",\"{queryParameters.Labels[0]}\":67890,\"{queryParameters.Labels[1]}\":9876}}" +
+                $"]}}";
+
+            var expectedResponse = JObject.Parse(responseJson);
+
+            var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
+
+            var actualResults = await client.Queries.MultiAnalysis(
+                queryParameters.EventCollection,
+                queryParameters.GetMultiAnalysisParameters(),
+                null,
+                null,
+                queryParameters.GroupBy,
+                null);
+
+            var expectedResults = expectedResponse["result"];
+
+            Assert.AreEqual(expectedResults.Count(), actualResults.Count());
+            foreach (var group in new string[] { "group1", "group2" })
+            {
+                var actualGroupResult = actualResults.Where((result) => result.Group == group).First();
+                var expectedGroupResult = expectedResults.Where((result) => result[queryParameters.GroupBy].Value<string>() == group).First();
+                foreach (var label in queryParameters.Labels)
+                {
+                    // Validate the result is correct
+                    Assert.AreEqual(expectedGroupResult[label].Value<int>(), int.Parse(actualGroupResult.Value[label]));
+                }
+            }
+        }
+
+        [Test]
+        public async Task Query_SimpleMultiAnalysisInterval_Success()
+        {
+            var queryParameters = new MultiAnalysisParameters()
+            {
+                Labels = new string[]
+                {
+                    "first analysis",
+                    "second analysis"
+                },
+                Analyses = new QueryParameters[]
+                {
+                    new QueryParameters(),
+                    new QueryParameters()
+                    {
+                        Analysis = QueryType.Average(),
+                        TargetProperty = "targetProperty"
+                    }
+                },
+                Interval = QueryInterval.Daily()
+            };
+
+            string responseJson = "{\"result\":[" +
+                    "{\"timeframe\":{\"start\":\"2017-10-14T00:00:00.000Z\",\"end\":\"2017-10-15T00:00:00.000Z\"}," +
+                    "\"value\":{" +
+                        $"\"{queryParameters.Labels[0]}\":12345,\"{queryParameters.Labels[1]}\":54321}}" +
+                    "}," +
+                    "{\"timeframe\":{\"start\":\"2017-10-15T00:00:00.000Z\",\"end\":\"2017-10-16T00:00:00.000Z\"}," +
+                    "\"value\":{" +
+                        $"\"{queryParameters.Labels[0]}\":123,\"{queryParameters.Labels[1]}\":321}}" +
+                    "}" +
+                "]}";
+
+            var expectedResponse = JObject.Parse(responseJson);
+
+            var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
+
+            var actualResults = await client.Queries.MultiAnalysis(
+                queryParameters.EventCollection,
+                queryParameters.GetMultiAnalysisParameters(),
+                timeframe: null,
+                interval: queryParameters.Interval,
+                filters: null,
+                timezone: null);
+
+            var expectedResults = expectedResponse["result"];
+
+            Assert.AreEqual(expectedResults.Count(), actualResults.Count());
+            var actualResultsEnumerator = actualResults.GetEnumerator();
+            foreach (var expectedResult in expectedResults)
+            {
+                actualResultsEnumerator.MoveNext();
+                var actualResult = actualResultsEnumerator.Current;
+
+                Assert.AreEqual(DateTime.Parse(expectedResult["timeframe"]["start"].Value<string>()), actualResult.Start);
+                Assert.AreEqual(DateTime.Parse(expectedResult["timeframe"]["end"].Value<string>()), actualResult.End);
+
+                foreach (var label in queryParameters.Labels)
+                {
+                    // Validate the result is correct
+                    Assert.AreEqual(expectedResult["value"][label].Value<int>(), int.Parse(actualResult.Value[label]));
+                }
+            }
+        }
+
+        [Test]
+        public async Task Query_SimpleMultiAnalysisIntervalGroupBy_Success()
+        {
+            var queryParameters = new MultiAnalysisParameters()
+            {
+                Labels = new string[]
+                {
+                    "first analysis",
+                    "second analysis"
+                },
+                Analyses = new QueryParameters[]
+                {
+                    new QueryParameters(),
+                    new QueryParameters()
+                    {
+                        Analysis = QueryType.Average(),
+                        TargetProperty = "targetProperty"
+                    }
+                },
+                GroupBy = "groupByProperty",
+                Interval = QueryInterval.Daily()
+            };
+
+            string responseJson = "{\"result\":[" +
+                "{\"timeframe\":{\"start\":\"2017-10-14T00:00:00.000Z\",\"end\":\"2017-10-15T00:00:00.000Z\"}," +
+                "\"value\":[" +
+                    $"{{\"{queryParameters.GroupBy}\":\"group1\",\"{queryParameters.Labels[0]}\":12345,\"{queryParameters.Labels[1]}\":54321}}," +
+                    $"{{\"{queryParameters.GroupBy}\":\"group2\",\"{queryParameters.Labels[0]}\":67890,\"{queryParameters.Labels[1]}\":9876}}" +
+                "]}," +
+                "{\"timeframe\":{\"start\":\"2017-10-15T00:00:00.000Z\",\"end\":\"2017-10-16T00:00:00.000Z\"}," +
+                "\"value\":[" +
+                    $"{{\"{queryParameters.GroupBy}\":\"group1\",\"{queryParameters.Labels[0]}\":123,\"{queryParameters.Labels[1]}\":321}}," +
+                    $"{{\"{queryParameters.GroupBy}\":\"group2\",\"{queryParameters.Labels[0]}\":456,\"{queryParameters.Labels[1]}\":654}}" +
+                "]}" +
+            "]}";
+
+            var expectedResponse = JObject.Parse(responseJson);
+
+            var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
+
+            var actualResults = await client.Queries.MultiAnalysis(
+                queryParameters.EventCollection,
+                queryParameters.GetMultiAnalysisParameters(),
+                groupby: queryParameters.GroupBy,
+                interval: queryParameters.Interval);
+
+            var expectedResults = expectedResponse["result"];
+
+            Assert.AreEqual(expectedResults.Count(), actualResults.Count());
+            var actualResultsEnumerator = actualResults.GetEnumerator();
+            foreach (var expectedResult in expectedResults)
+            {
+                actualResultsEnumerator.MoveNext();
+                var actualResult = actualResultsEnumerator.Current;
+
+                Assert.AreEqual(DateTime.Parse(expectedResult["timeframe"]["start"].Value<string>()), actualResult.Start);
+                Assert.AreEqual(DateTime.Parse(expectedResult["timeframe"]["end"].Value<string>()), actualResult.End);
+
+                foreach (var group in new string[] { "group1", "group2" })
+                {
+                    var expectedGroupResult = expectedResult["value"].Where((groupResult) => groupResult[queryParameters.GroupBy].Value<string>() == group).First();
+                    var actualGroupResult = actualResult.Value.Where((groupResult) => groupResult.Group == group).First();
+
+                    foreach (var label in queryParameters.Labels)
+                    {
+                        Assert.AreEqual(expectedGroupResult[label].Value<int>(), int.Parse(actualGroupResult.Value[label]));
+                    }
+                }
             }
         }
     }
