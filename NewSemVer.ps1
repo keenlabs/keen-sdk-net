@@ -43,20 +43,23 @@ Effect version updates in SharedVersionInfo.cs.
 #>
 function Update-AssemblyVersionAttributes ([string] $version) {
     $majMinPatchPattern = '[0-9]+(\.([0-9]+|\*)){1,3}'
+    $netStandardVersionPattern = "<Version>$majMinPatchPattern</Version>"
     $assemblyVersionPattern = "AssemblyVersion\(`"$majMinPatchPattern`"\)"
     $assemblyFileVersionPattern = "AssemblyFileVersion\(`"$majMinPatchPattern`"\)"
     $assemblyInformationalVersionPattern = "AssemblyInformationalVersion\(`"$semVerPattern`"\)"
 
     $majMinPatchVersion = Get-MajMinPatchVersion($version)
-    $newAssemblyVersion = "AssemblyVersion(`"$majMinPatchVersion`")";
-    $newAssemblyfileVersion = "AssemblyFileVersion(`"$majMinPatchVersion`")";
-    $newAssemblyInformationalVersion = "AssemblyInformationalVersion(`"$version`")";
+    $newNetStandardVersion = "<Version>$majMinPatchVersion</Version>"
+    $newAssemblyVersion = "AssemblyVersion(`"$majMinPatchVersion`")"
+    $newAssemblyfileVersion = "AssemblyFileVersion(`"$majMinPatchVersion`")"
+    $newAssemblyInformationalVersion = "AssemblyInformationalVersion(`"$version`")"
     
-    Get-ChildItem -r -filter SharedVersionInfo.cs | ForEach-Object {
+    Get-ChildItem -r -filter .\* -Include SharedVersionInfo.cs, Keen.NetStandard.csproj | ForEach-Object {
         $filename = $_.Directory.ToString() + [IO.Path]::DirectorySeparatorChar + $_.Name
         "Setting version to $version in $filename"
-    
+
         (Get-Content $filename) | ForEach-Object {
+            % {$_ -replace $netStandardVersionPattern, $newNetStandardVersion } |
             % {$_ -replace $assemblyVersionPattern, $newAssemblyVersion } |
             % {$_ -replace $assemblyFileVersionPattern, $newAssemblyfileVersion } |
             % {$_ -replace $assemblyInformationalVersionPattern, $newAssemblyInformationalVersion }
@@ -76,8 +79,12 @@ if ($help -or ($version -notmatch "^$semVerPattern$")) {
 Update-AssemblyVersionAttributes $version
 
 # Rebuild the solution to bake the new version into the assemblies. This is using the default
-# VS2017 location for MSBuild, so change it as appropriate.
+# VS2017 location for MSBuild, so change it as needed (Community vs Enterprise vs Preview, etc.).
+# 
 # C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\MSBuild\15.0\Bin
+#
+# Note that since this solution now includes a multi-targeting .NET Standard 2.0 project and a
+# .NET Core test app, you'll need at least VS 2017 15.3.
 $msBuildExe = (${env:ProgramFiles(x86)}, 'Microsoft Visual Studio', '2017', 'Enterprise', 'MSBuild', '15.0', 'bin', 'msbuild.exe') `
     -join [IO.Path]::DirectorySeparatorChar
 'MSBuild EXE: ' + $msBuildExe
@@ -97,3 +104,10 @@ $env:Path += ";$scriptPath"
 
 # Create the .nupkg and pass the version to override the .nuspec token(s).
 & 'nuget.exe' pack KeenClient.nuspec -properties "version=$version"
+
+
+# Create another .nupkg for the .NET Standard stuff based on the .csproj, which will be the only .nupkg going forward
+& pushd .\Keen.NetStandard
+& dotnet clean
+& dotnet pack -c Release
+& popd

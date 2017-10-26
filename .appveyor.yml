@@ -26,7 +26,6 @@ skip_tags: true
 #---------------------------------#
 
 image:
-- Visual Studio 2015
 - Visual Studio 2017
 
 # scripts that are called at the very beginning, before repo cloning
@@ -38,7 +37,7 @@ init:
 shallow_clone: true
 clone_depth: 5
 
-nuget:  
+nuget:
   disable_publish_on_pr: true
 
 environment:
@@ -48,7 +47,6 @@ environment:
 # scripts that run after cloning repository
 install:
   # by default, all script lines are interpreted as batch
-  #- echo This is batch
 
 matrix:
   fast_finish: true
@@ -58,16 +56,33 @@ matrix:
 #       build configuration       #
 #---------------------------------#
 
-configuration: Release
+configuration:
+  # This config doesn't build the .NET Standard projects
+  - netfx
 
 build:
   parallel: true
 
   # MSBuild verbosity level
-  verbosity: detailed
+  verbosity: normal
 
 before_build:
-  - nuget restore
+  # Make sure we have the right tools version
+  - dotnet --version
+
+  # Restore non-netstandard projects one by one using nuget cli directly
+  - nuget restore .\Keen\Keen.csproj -PackagesDirectory .\packages\
+  - nuget restore .\Keen.Net\Keen.Net.csproj -PackagesDirectory .\packages\
+  - nuget restore .\Keen.NET.Test\Keen.NET.Test.csproj -PackagesDirectory .\packages\
+  - nuget restore .\Keen.NET_35\Keen.NET_35.csproj -PackagesDirectory .\packages\
+  - nuget restore .\Keen.NET_35.Test\Keen.NET_35.Test.csproj -PackagesDirectory .\packages\
+
+  # Restore netstandard projects one by one using dotnet cli
+  - dotnet restore .\Keen.NetStandard\Keen.NetStandard.csproj
+  - dotnet restore .\Keen.NetStandard.Test\Keen.NetStandard.Test.csproj
+
+# scripts to run after build
+after_build:
 
 
 #---------------------------------#
@@ -75,12 +90,25 @@ before_build:
 #---------------------------------#
 
 # Install tools needed for Code Coverage, run instrumented tests, and report coverage numbers
-after_test:
+test_script:
   - nuget install OpenCover -Version 4.6.519 -OutputDirectory tools
   - nuget install coveralls.net -Version 0.8.0-unstable0013 -PreRelease -OutputDirectory tools
-  - .\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:nunit3-console.exe -targetargs:"--noheader .\Keen.NET.Test\bin\Release\Keen.Net.Test.dll .\Keen.NET_35.Test\bin\Release\Keen.NET_35.Test.dll" -filter:"+[*]* -[*.Test]*" -register:user
-  - if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2017" ( .\tools\coveralls.net.0.8.0-unstable0013\tools\csmacnz.Coveralls.exe --opencover -i .\results.xml )
+  - .\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:nunit3-console.exe -targetargs:"--noheader .\Keen.NET.Test\bin\netfx\Keen.Net.Test.dll .\Keen.NET_35.Test\bin\netfx\Keen.NET_35.Test.dll --result=results.xml;format=AppVeyor" -output:coverage.xml -filter:"+[*]* -[*.Test]*" -returntargetcode -register:user
 
+  # Run the netstandard tests.
+  # Explicitly build with DebugType=Full specified. This means a non-portable, Windows-style PDB
+  # will be generated, which OpenCover currently requires. We can stop doing this once OpenCover supports the new
+  # portable PDB format.
+  #
+  # Also use -oldStyle flag which uses an alternate instrumentation hook that is available for .NET Core
+  # Some comments on this can be found here: https://github.com/OpenCover/opencover/issues/601
+  - .\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:dotnet.exe -targetargs:"test --logger \"trx;LogFileName=netstandard_test_results.xml\" .\Keen.NetStandard.Test\Keen.NetStandard.Test.csproj /property:DebugType=Full" -mergeoutput -output:coverage.xml -filter:"+[*]* -[*.Test]*" -oldStyle -returntargetcode -register:user
+
+  # Upload merged coverage results from both test runs
+  - .\tools\coveralls.net.0.8.0-unstable0013\tools\csmacnz.Coveralls.exe --opencover -i .\coverage.xml
+
+  # Upload netstandard test results to appveyor
+  - ps: (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/mstest/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\Keen.NetStandard.Test\TestResults\netstandard_test_results.xml))
 
 #---------------------------------#
 #         notifications           #

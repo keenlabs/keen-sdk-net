@@ -1,0 +1,23 @@
+language: csharp
+
+# .NET Core version
+dotnet: 2.0.0
+
+# Don't bother with mono since we're doing a .NET Core-based build
+mono: none
+
+# OS matrix
+os:
+  - linux
+  - osx
+
+# Ubuntu version for the linux build
+dist: trusty
+
+# The image to use for the osx build
+osx_image: xcode8.3
+
+# Build and run the Keen.NetStandard project and run its tests
+script: |
+  cd Keen.NetStandard.Test
+  dotnet test

@@ -83,5 +83,20 @@ namespace Keen.Core
 
         private const string datasetsResource = "datasets";
         public static string DatasetsResource { get { return datasetsResource; } protected set { ;} }
+
+        private const string keenProjectId = "KEEN_PROJECT_ID";
+        public static string KeenProjectId { get { return keenProjectId; } protected set {; } }
+
+        private const string keenMasterKey = "KEEN_MASTER_KEY";
+        public static string KeenMasterKey { get { return keenMasterKey; } protected set {; } }
+
+        private const string keenWriteKey = "KEEN_WRITE_KEY";
+        public static string KeenWriteKey { get { return keenWriteKey; } protected set {; } }
+
+        private const string keenReadKey = "KEEN_READ_KEY";
+        public static string KeenReadKey { get { return keenReadKey; } protected set {; } }
+
+        private const string keenServerUrl = "KEEN_SERVER_URL";
+        public static string KeenServerUrl { get { return keenServerUrl; } protected set {; } }
     }
 }
