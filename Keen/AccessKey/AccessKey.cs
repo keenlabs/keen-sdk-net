@@ -35,8 +35,13 @@ namespace Keen.Core.AccessKey
     public class Datasets
     {
         public IEnumerable<string> Operations { get; set; }
-        public IDictionary<string, IDictionary<string, IDictionary<string, string>>> Allowed { get; set; }
+        public IDictionary<string, AllowedDatasetIndexes> Allowed { get; set; }
         public IEnumerable<string> Blocked { get; set; }
+    }
+
+    public class AllowedDatasetIndexes
+    {
+        public Tuple<string, string> IndexBy { get;  set;}
     }
 
     public class CachedQueries
