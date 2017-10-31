@@ -51,7 +51,7 @@ namespace Keen.Net.Test
         [Test]
         public void CreateAccessKey_Success()
         {
-            var settings = new ProjectSettingsProvider(projectId: "5380e17cd97b856c69000011", masterKey: "20505E2B1415AB7BB911FFA0E21DB0B8");
+            var settings = new ProjectSettingsProvider(projectId: "X", masterKey: "Y"); // Replace X and Y with respective values
             var client = new KeenClient(settings);
 
             HashSet<string> permissions = new HashSet<string>() { "queries" };
