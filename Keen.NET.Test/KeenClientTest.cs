@@ -46,6 +46,35 @@ namespace Keen.Net.Test
     }
 
     [TestFixture]
+    public class AccessKeysTest : TestBase
+    {
+        [Test]
+        public void CreateAccessKey_Success()
+        {
+            var settings = new ProjectSettingsProvider(projectId: "5380e17cd97b856c69000011", masterKey: "20505E2B1415AB7BB911FFA0E21DB0B8");
+            var client = new KeenClient(settings);
+
+            HashSet<string> permissions = new HashSet<string>() { "queries" };
+            
+            List<Core.Query.QueryFilter> qFilters = new List<Core.Query.QueryFilter>() { new Core.Query.QueryFilter("customer.id", Core.Query.QueryFilter.FilterOperator.Equals(), "asdf12345z") };
+
+            Core.AccessKey.CachedQueries cachedQuaries = new Core.AccessKey.CachedQueries();
+            cachedQuaries.Allowed = new HashSet<string>() { "my_cached_query" };
+
+            Core.AccessKey.Options options = new Core.AccessKey.Options()
+                {
+                    Queries = new Core.AccessKey.Quaries { Filters = qFilters },
+                    CachedQueries = cachedQuaries
+            };
+
+            Core.AccessKey.AccessKey accKey = new Core.AccessKey.AccessKey("TestAccessKey", true, permissions, options);
+
+            client.CreateAccessKey(accKey);
+        }
+
+    }
+
+    [TestFixture]
     public class BulkEventTest : TestBase
     {
         [Test]

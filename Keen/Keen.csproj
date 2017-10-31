@@ -53,6 +53,8 @@
       <Link>Properties\SharedVersionInfo.cs</Link>
     </Compile>
     <Compile Include="AccessKey\AccessKey.cs" />
+    <Compile Include="AccessKey\AccessKeys.cs" />
+    <Compile Include="AccessKey\IAccessKeys.cs" />
     <Compile Include="DataEnrichment\EventAddOn.cs" />
     <Compile Include="HttpClientCache.cs" />
     <Compile Include="IHttpClientProvider.cs" />

@@ -1,6 +1,7 @@
 ﻿using Keen.Core.DataEnrichment;
 using Keen.Core.EventCache;
 using Keen.Core.Query;
+using Keen.Core.AccessKey;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -47,6 +48,8 @@ namespace Keen.Core
         /// The default implementation can be overridden by setting a new implementation here.
         /// </summary>
         public IQueries Queries { get; set; }
+
+        public IAccessKeys AccessKeys { get; set; }
 
         /// <summary>
         /// Add a static global property. This property will be added to
@@ -116,6 +119,7 @@ namespace Keen.Core
             EventCollection = new EventCollection(_prjSettings, keenHttpClientProvider);
             Event = new Event(_prjSettings, keenHttpClientProvider);
             Queries = new Queries(_prjSettings, keenHttpClientProvider);
+            AccessKeys = new AccessKeys(_prjSettings, keenHttpClientProvider);
         }
 
         /// <summary>
@@ -969,6 +973,34 @@ namespace Keen.Core
             {
                 throw ex.TryUnwrap();
             }
+        }
+
+        /// <summary>
+        /// </summary>
+        public void CreateAccessKey(AccessKey.AccessKey accessKey)
+        {
+            try
+            {
+                CreateAccessKeyAsync(accessKey).Wait();
+            }
+            catch (AggregateException ex)
+            {
+                Debug.WriteLine(ex.TryUnwrap());
+                throw ex.TryUnwrap();
+            }
+        }
+
+        ///<summary>
+        ///</summary>
+        public async Task<JObject> CreateAccessKeyAsync(AccessKey.AccessKey accessKey)
+        {
+            if (null == accessKey)
+                throw new KeenException("Access Key required");
+
+            var createdKey = await AccessKeys.CreateAccessKey(accessKey)
+                .ConfigureAwait(false);
+
+            return createdKey;
         }
     }
 }
