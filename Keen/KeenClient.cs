@@ -992,7 +992,7 @@ namespace Keen.Core
 
         ///<summary>
         ///</summary>
-        public async Task<JObject> CreateAccessKeyAsync(AccessKey.AccessKey accessKey)
+        private async Task<JObject> CreateAccessKeyAsync(AccessKey.AccessKey accessKey)
         {
             if (null == accessKey)
                 throw new KeenException("Access Key required");
