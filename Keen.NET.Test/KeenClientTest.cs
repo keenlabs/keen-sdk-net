@@ -1,4 +1,5 @@
 ﻿using Keen.Core;
+using Keen.Core.AccessKey;
 using Keen.Core.EventCache;
 using Moq;
 using Newtonsoft.Json.Linq;
@@ -51,25 +52,28 @@ namespace Keen.Net.Test
         [Test]
         public void CreateAccessKey_Success()
         {
-            var settings = new ProjectSettingsProvider(projectId: "X", masterKey: "Y"); // Replace X and Y with respective values
+            var settings = new ProjectSettingsProvider(projectId: "X", masterKey: SettingsEnv.MasterKey); // Replace X with respective value
             var client = new KeenClient(settings);
 
-            HashSet<string> permissions = new HashSet<string>() { "queries" };
-            
-            List<Core.Query.QueryFilter> qFilters = new List<Core.Query.QueryFilter>() { new Core.Query.QueryFilter("customer.id", Core.Query.QueryFilter.FilterOperator.Equals(), "asdf12345z") };
+            if (!UseMocks)
+            {
+                HashSet<string> permissions = new HashSet<string>() { "queries" };
 
-            Core.AccessKey.CachedQueries cachedQuaries = new Core.AccessKey.CachedQueries();
-            cachedQuaries.Allowed = new HashSet<string>() { "my_cached_query" };
+                List<Core.Query.QueryFilter> qFilters = new List<Core.Query.QueryFilter>() { new Core.Query.QueryFilter("customer.id", Core.Query.QueryFilter.FilterOperator.Equals(), "asdf12345z") };
 
-            Core.AccessKey.Options options = new Core.AccessKey.Options()
+                CachedQueries cachedQuaries = new CachedQueries();
+                cachedQuaries.Allowed = new HashSet<string>() { "my_cached_query" };
+
+                Options options = new Options()
                 {
-                    Queries = new Core.AccessKey.Quaries { Filters = qFilters },
+                    Queries = new Quaries { Filters = qFilters },
                     CachedQueries = cachedQuaries
-            };
+                };
 
-            Core.AccessKey.AccessKey accKey = new Core.AccessKey.AccessKey("TestAccessKey", true, permissions, options);
+               AccessKey accKey = new AccessKey("TestAccessKey", true, permissions, options);
 
-            client.CreateAccessKey(accKey);
+                client.CreateAccessKey(accKey);
+            }
         }
 
     }
