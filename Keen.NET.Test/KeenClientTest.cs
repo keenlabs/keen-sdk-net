@@ -59,9 +59,12 @@ namespace Keen.Net.Test
                 client.AccessKeys = new AccessKeysMock(settings,
                     createAccessKey: new Func<AccessKey, IProjectSettings, JObject>((e,p) =>
                     {
+                        Assert.True(p == settings, "Incorrect Settings");
+                        Assert.NotNull(e.Name, "Expected a name for the newly created Key");
+                        Assert.NotNull(e.Permitted, "Expected a list of high level actions this key can perform");
+                        Assert.NotNull(e.Options, "Expected an object containing more details about the key’s permitted and restricted functionality");
                         return new JObject();
                     }));
-
 
             HashSet<string> permissions = new HashSet<string>() { "queries" };
             List<Core.Query.QueryFilter> qFilters = new List<Core.Query.QueryFilter>() { new Core.Query.QueryFilter("customer.id", Core.Query.QueryFilter.FilterOperator.Equals(), "asdf12345z") };
