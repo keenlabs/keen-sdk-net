@@ -68,7 +68,7 @@ namespace Keen.Net.Test
 
             HashSet<string> permissions = new HashSet<string>() { "queries" };
             List<Core.Query.QueryFilter> qFilters = new List<Core.Query.QueryFilter>() { new Core.Query.QueryFilter("customer.id", Core.Query.QueryFilter.FilterOperator.Equals(), "asdf12345z") };
-            CachedQueries cachedQuaries = new Core.AccessKey.CachedQueries();
+            CachedQueries cachedQuaries = new CachedQueries();
             cachedQuaries.Allowed = new HashSet<string>() { "my_cached_query" };
             Options options = new Options()
             {
