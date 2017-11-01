@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace Keen.Core.AccessKey
 {
+    /// <summary>
+    /// AccessKeys implements the IAccessKeys interface which represents the Keen.IO Access Key API methods.
+    /// </summary>
     public class AccessKeys : IAccessKeys
     {
         private readonly IKeenHttpClient _keenHttpClient;

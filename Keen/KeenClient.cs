@@ -49,6 +49,10 @@ namespace Keen.Core
         /// </summary>
         public IQueries Queries { get; set; }
 
+        /// <summary>
+        /// AccessKeys provides direct access to the Keen.IO Access Keys API methods.
+        /// The default implementation can be overridden by setting a new implementation here.
+        /// </summary>
         public IAccessKeys AccessKeys { get; set; }
 
         /// <summary>

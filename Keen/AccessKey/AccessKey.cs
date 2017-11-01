@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 
 namespace Keen.Core.AccessKey
 {
+    /// <summary>
+    /// Modal for AccessKey object
+    /// </summary>
     public class AccessKey
     {
         public string Name { get; set; }

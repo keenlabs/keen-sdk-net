@@ -55,25 +55,24 @@ namespace Keen.Net.Test
             var settings = new ProjectSettingsProvider(projectId: "X", masterKey: SettingsEnv.MasterKey); // Replace X with respective value
             var client = new KeenClient(settings);
 
-            if (!UseMocks)
+            if (UseMocks)
+                client.AccessKeys = new AccessKeysMock(settings,
+                    createAccessKey: new Func<AccessKey, IProjectSettings, JObject>((e,p) =>
+                    {
+                        return new JObject();
+                    }));
+
+
+            HashSet<string> permissions = new HashSet<string>() { "queries" };
+            List<Core.Query.QueryFilter> qFilters = new List<Core.Query.QueryFilter>() { new Core.Query.QueryFilter("customer.id", Core.Query.QueryFilter.FilterOperator.Equals(), "asdf12345z") };
+            CachedQueries cachedQuaries = new Core.AccessKey.CachedQueries();
+            cachedQuaries.Allowed = new HashSet<string>() { "my_cached_query" };
+            Options options = new Options()
             {
-                HashSet<string> permissions = new HashSet<string>() { "queries" };
-
-                List<Core.Query.QueryFilter> qFilters = new List<Core.Query.QueryFilter>() { new Core.Query.QueryFilter("customer.id", Core.Query.QueryFilter.FilterOperator.Equals(), "asdf12345z") };
-
-                CachedQueries cachedQuaries = new CachedQueries();
-                cachedQuaries.Allowed = new HashSet<string>() { "my_cached_query" };
-
-                Options options = new Options()
-                {
-                    Queries = new Quaries { Filters = qFilters },
-                    CachedQueries = cachedQuaries
-                };
-
-               AccessKey accKey = new AccessKey("TestAccessKey", true, permissions, options);
-
-                client.CreateAccessKey(accKey);
-            }
+                Queries = new Quaries { Filters = qFilters },
+                CachedQueries = cachedQuaries
+            };
+            Assert.DoesNotThrow(() => client.CreateAccessKey(new AccessKey("TestAccessKey",true, permissions, options)));
         }
 
     }

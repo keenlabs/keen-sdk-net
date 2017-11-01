@@ -98,6 +98,7 @@
     <Compile Include="..\SharedVersionInfo.cs">
       <Link>Properties\SharedVersionInfo.cs</Link>
     </Compile>
+    <Compile Include="AccessKeyMock.cs" />
     <Compile Include="AddOnsTest.cs" />
     <Compile Include="EventCacheTest.cs" />
     <Compile Include="EventCollectionMock.cs" />
