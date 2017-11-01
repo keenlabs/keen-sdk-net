@@ -63,7 +63,10 @@ namespace Keen.Net.Test
                         Assert.NotNull(e.Name, "Expected a name for the newly created Key");
                         Assert.NotNull(e.Permitted, "Expected a list of high level actions this key can perform");
                         Assert.NotNull(e.Options, "Expected an object containing more details about the key’s permitted and restricted functionality");
-                        return new JObject();
+                        if ((p == settings) && (e.Name == "TestAccessKey") && (e.IsActive) && e.Permitted.First() == "queries" && e.Options.CachedQueries.Allowed.First() == "my_cached_query")
+                            return new JObject(); 
+                        else
+                            throw new Exception("Unexpected value");
                     }));
 
             HashSet<string> permissions = new HashSet<string>() { "queries" };
@@ -75,7 +78,7 @@ namespace Keen.Net.Test
                 Queries = new Quaries { Filters = qFilters },
                 CachedQueries = cachedQuaries
             };
-            Assert.DoesNotThrow(() => client.CreateAccessKey(new AccessKey("TestAccessKey",true, permissions, options)));
+            Assert.DoesNotThrow(() => client.CreateAccessKey(new AccessKey("TestAccessKey", true, permissions, options)));
         }
 
     }
