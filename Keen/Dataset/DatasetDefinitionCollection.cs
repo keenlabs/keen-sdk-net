@@ -1,19 +1,22 @@
 ﻿using System.Collections.Generic;
 
+
 namespace Keen.Core.Dataset
 {
     public class DatasetDefinitionCollection
     {
         /// <summary>
-        /// List of all the DatasetDefinitions returns in this page
+        /// A list of the DatasetDefinitions returned in this page.
         /// </summary>
         public IEnumerable<DatasetDefinition> Datasets { get; set; }
+
         /// <summary>
-        /// The url of the next page of DatasetDefinitions
+        /// The url of the next page of Dataset definitions.
         /// </summary>
         public string NextPageUrl { get; set; }
+
         /// <summary>
-        /// The total amount of Cached Datasets in the project
+        /// The total count of Cached Datasets for this project.
         /// </summary>
         public int Count { get; set; }
     }

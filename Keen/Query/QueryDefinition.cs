@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
-using System;
-using System.Linq;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 
 namespace Keen.Core.Query
 {
@@ -15,32 +16,42 @@ namespace Keen.Core.Query
         /// Unique id of the project to analyze.
         /// </summary>
         public string ProjectId { get; set; }
+
         /// <summary>
         /// The type of analysis for this query (e.g. count, count_unique, sum etc.)
         /// </summary>
         public string AnalysisType { get; set; }
+
         /// <summary>
         /// Specifies the name of the event collection to analyze.
         /// </summary>
         public string EventCollection { get; set; }
+
         /// <summary>
-        /// Refines the scope of events to be included in the analysis based on event property values.
+        /// Refines the scope of events to be included in the analysis based on event property
+        /// values.
         /// </summary>
         public IEnumerable<QueryFilter> Filters { get; set; }
+
         /// <summary>
         /// Limits analysis to a specific period of time when the events occurred.
         /// </summary>
         public string Timeframe { get; set; }
+
         /// <summary>
         /// Assigns a timezone offset to relative timeframes.
         /// </summary>
         public string Timezone { get; set; }
+
         /// <summary>
-        /// Specifies the size of time interval by which to group results. Using this parameter changes the response format.
+        /// Specifies the size of time interval by which to group results. Using this parameter
+        /// changes the response format.
         /// </summary>
         public string Interval { get; set; }
+
         /// <summary>
-        /// Specifies the name of a property by which to group results. Using this parameter changes the response format.
+        /// Specifies the names of properties by which to group results. Using this parameter
+        /// changes the response format.
         /// </summary>
         public IEnumerable<string> GroupBy { get; set; }
     }
@@ -72,7 +83,8 @@ namespace Keen.Core.Query
     }
 
     /// <summary>
-    /// This is used because the PUT endpoint for a dataset take a string for group_by, but return an array of strings.
+    /// This converter accounts for the fact that the PUT endpoint for Datasets takes a string for
+    /// group_by, but returns an array of strings.
     /// </summary>
     internal class QueryDefinitionConverter : JsonConverter
     {
@@ -94,7 +106,10 @@ namespace Keen.Core.Query
             _isNested = false;
         }
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override object ReadJson(JsonReader reader,
+                                        Type objectType,
+                                        object existingValue,
+                                        JsonSerializer serializer)
         {
             var token = JToken.Load(reader);
             if (token.Type != JTokenType.Object)

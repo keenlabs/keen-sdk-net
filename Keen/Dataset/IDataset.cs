@@ -1,10 +1,10 @@
-﻿using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
 
 namespace Keen.Core.Dataset
 {
-    using System.Collections.Generic;
-
     public interface IDataset
     {
         Task<JObject> Results(string datasetName, string indexBy, string timeframe);

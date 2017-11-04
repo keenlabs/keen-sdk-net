@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using Keen.Core;
+using Keen.Core.Dataset;
+using Keen.Core.Query;
 using Moq;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
-using Keen.Core;
-using Keen.Core.Dataset;
-using Keen.Core.Query;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
 
 namespace Keen.Net.Test
 {
@@ -16,13 +17,16 @@ namespace Keen.Net.Test
         private const string _indexBy = "12";
         private const int _listDatasetLimit = 1;
 
+        public DataSetTests_Integration()
+        {
+            UseMocks = false;
+        }
+
         [Test]
         public void GetDatasetResults_Success()
         {
             var timeframe = QueryRelativeTimeframe.ThisNMinutes(12);
-
             var result = new JObject();
-
             var client = new KeenClient(SettingsEnv);
 
             Mock<IDataset> datasetMock = null;
@@ -49,9 +53,7 @@ namespace Keen.Net.Test
         public void GetDatasetDefinition_Success()
         {
             var result = new DatasetDefinition();
-
             var client = new KeenClient(SettingsEnv);
-
             Mock<IDataset> datasetMock = null;
 
             if (UseMocks)
@@ -74,9 +76,7 @@ namespace Keen.Net.Test
         public void ListDatasetDefinitions_Success()
         {
             var result = new DatasetDefinitionCollection();
-
             var client = new KeenClient(SettingsEnv);
-
             Mock<IDataset> datasetMock = null;
 
             if (UseMocks)
@@ -100,9 +100,7 @@ namespace Keen.Net.Test
         public void ListDatasetAllDefinitions_Success()
         {
             IEnumerable<DatasetDefinition> result = new List<DatasetDefinition>();
-
             var client = new KeenClient(SettingsEnv);
-
             Mock<IDataset> datasetMock = null;
 
             if (UseMocks)
@@ -124,9 +122,7 @@ namespace Keen.Net.Test
         public void CreateDataset_Success()
         {
             var result = new DatasetDefinition();
-
             var client = new KeenClient(SettingsEnv);
-
             Mock<IDataset> datasetMock = null;
 
             if (UseMocks)
@@ -149,7 +145,6 @@ namespace Keen.Net.Test
         public void DeleteDataset_Success()
         {
             var client = new KeenClient(SettingsEnv);
-
             Mock<IDataset> datasetMock = null;
 
             if (UseMocks)

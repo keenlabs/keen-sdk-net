@@ -1,8 +1,8 @@
-﻿using System;
-using Keen.Core.Query;
-using System.Linq;
+﻿using Keen.Core.Query;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Linq;
 
 
 namespace Keen.Core.Dataset
@@ -13,26 +13,32 @@ namespace Keen.Core.Dataset
         /// Name of the dataset, which is used as an identifier. Must be unique per project.
         /// </summary>
         public string DatasetName { get; set; }
+
         /// <summary>
-        /// The human-readable string name for your Cached Dataset
+        /// The human-readable string name for your Cached Dataset.
         /// </summary>
         public string DisplayName { get; set; }
+
         /// <summary>
         /// Holds information describing the query which is cached by this Cached Dataset.
         /// </summary>
         public QueryDefinition Query { get; set; }
+
         /// <summary>
         /// When the most recent computation was queued.
         /// </summary>
         public DateTime? LastScheduledDate { get; set; }
+
         /// <summary>
         /// The most recent interval that has been computed for the Cached Dataset.
         /// </summary>
         public DateTime? LatestSubtimeframeAvailable { get; set; }
+
         /// <summary>
         /// The difference between now and the most recent datapoint computed.
         /// </summary>
         public long MillisecondsBehind { get; set; }
+
         /// <summary>
         /// The event property name of string values results are retrieved by.
         /// </summary>
@@ -68,11 +74,12 @@ namespace Keen.Core.Dataset
     }
 
     /// <summary>
-    /// This is used because the PUT endpoints take a string for index_by, but return an array of strings.
+    /// This converter accounts for the fact that the PUT endpoint takes a string for index_by,
+    /// but returns an array of strings.
     /// </summary>
     internal class DatasetDefinitionConverter : JsonConverter
     {
-        /* This prevents JToken.ToObject form recursively calling ReadJson until the stack runs out */
+        // Prevent JToken.ToObject from recursively calling ReadJson until the stack runs out.
         private bool _isNested;
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
@@ -82,7 +89,10 @@ namespace Keen.Core.Dataset
             _isNested = false;
         }
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override object ReadJson(JsonReader reader,
+                                        Type objectType,
+                                        object existingValue,
+                                        JsonSerializer serializer)
         {
             var token = JToken.Load(reader);
             if (token.Type != JTokenType.Object)
@@ -90,7 +100,8 @@ namespace Keen.Core.Dataset
 
             var indexByList = token["index_by"]?.ToArray();
 
-            //Setting index_by to null so that Serializing without this converter doesnt run into issues facing an incorrect data type.
+            // Setting index_by to null so that serializing without this converter doesn't
+            // run into issues with facing an incorrect data type.
             token["index_by"] = null;
 
             _isNested = true;
@@ -98,6 +109,7 @@ namespace Keen.Core.Dataset
             _isNested = false;
 
             datasetDefinition.IndexBy = indexByList?.FirstOrDefault()?.ToString();
+
             return datasetDefinition;
         }
 

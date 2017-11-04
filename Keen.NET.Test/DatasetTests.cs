@@ -1,16 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Keen.Core;
+using Keen.Core.Dataset;
+using Keen.Core.Query;
+using Moq;
+using NUnit.Framework;
+using System;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
-using Keen.Core;
-using Keen.Core.Dataset;
-using Keen.Core.Query;
-using Moq;
-using Newtonsoft.Json.Linq;
-using NUnit.Framework;
+
 
 namespace Keen.Net.Test
 {
@@ -27,7 +26,6 @@ namespace Keen.Net.Test
         public void Results_Success()
         {
             var apiResponse = File.ReadAllText($"{this.GetLocalPath()}/ApiResponses/GetDatasetResults.json");
-
             IKeenHttpClientProvider httpClientProvider = null;
 
             if (UseMocks)
@@ -36,7 +34,6 @@ namespace Keen.Net.Test
             }
 
             var client = new KeenClient(SettingsEnv, httpClientProvider);
-
             var dataset = client.QueryDataset(_datasetName, _indexBy, _timeframe);
 
             Assert.IsNotNull(dataset);
@@ -47,7 +44,6 @@ namespace Keen.Net.Test
         public void Definition_Success()
         {
             var apiResponse = File.ReadAllText($"{this.GetLocalPath()}/ApiResponses/GetDatasetDefinition.json");
-
             IKeenHttpClientProvider httpClientProvider = null;
 
             if (UseMocks)
@@ -56,7 +52,6 @@ namespace Keen.Net.Test
             }
 
             var client = new KeenClient(SettingsEnv, httpClientProvider);
-
             var dataset = client.GetDatasetDefinition(_datasetName);
 
             AssertDatasetIsPopulated(dataset);
@@ -66,7 +61,6 @@ namespace Keen.Net.Test
         public void ListDefinitions_Success()
         {
             var apiResponse = File.ReadAllText($"{this.GetLocalPath()}/ApiResponses/ListDatasetDefinitions.json");
-
             IKeenHttpClientProvider httpClientProvider = null;
 
             if (UseMocks)
@@ -75,7 +69,6 @@ namespace Keen.Net.Test
             }
 
             var client = new KeenClient(SettingsEnv, httpClientProvider);
-
             var datasetCollection = client.ListDatasetDefinitions();
 
             Assert.IsNotNull(datasetCollection);
@@ -93,7 +86,6 @@ namespace Keen.Net.Test
         public void ListAllDefinitions_Success()
         {
             var apiResponse = File.ReadAllText($"{this.GetLocalPath()}/ApiResponses/ListDatasetDefinitions.json");
-
             IKeenHttpClientProvider httpClientProvider = null;
 
             if (UseMocks)
@@ -102,7 +94,6 @@ namespace Keen.Net.Test
             }
 
             var client = new KeenClient(SettingsEnv, httpClientProvider);
-
             var datasetCollection = client.ListAllDatasetDefinitions();
 
             Assert.IsNotNull(datasetCollection);
@@ -117,8 +108,6 @@ namespace Keen.Net.Test
         [Test]
         public void Delete_Success()
         {
-            
-
             IKeenHttpClientProvider httpClientProvider = null;
 
             if (UseMocks)
@@ -144,9 +133,7 @@ namespace Keen.Net.Test
             }
 
             var client = new KeenClient(SettingsEnv, httpClientProvider);
-
             var newDataSet = CreateDatasetDefinition();
-
             var dataset = client.CreateDataset(newDataSet);
 
             AssertDatasetIsPopulated(dataset);
@@ -233,7 +220,6 @@ namespace Keen.Net.Test
             var client = new KeenClient(SettingsEnv, httpClientProvider);
 
             Assert.Throws<KeenException>(() => client.GetDatasetDefinition(null));
-
             Assert.Throws<KeenException>(() => client.GetDatasetDefinition(_datasetName));
 
             var brokenClient = new KeenClient(new ProjectSettingsProvider("5011efa95f546f2ce2000000",

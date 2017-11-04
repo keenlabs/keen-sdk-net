@@ -172,7 +172,7 @@ namespace Keen.Core
         ///     relative Uri.</param>
         /// <param name="authKey">The key to use for authenticating this request.</param>
         /// <param name="content">The PUT body to send.</param>
-        /// <returns>>The response message.</returns>
+        /// <returns>The response message.</returns>
         public Task<HttpResponseMessage> PutAsync(string resource, string authKey, string content)
         {
             var url = new Uri(resource, UriKind.Relative);
@@ -188,8 +188,10 @@ namespace Keen.Core
         ///     relative Uri.</param>
         /// <param name="authKey">The key to use for authenticating this request.</param>
         /// <param name="content">The PUT body to send.</param>
-        /// <returns>>The response message.</returns>
-        public async Task<HttpResponseMessage> PutAsync(Uri resource, string authKey, string content)
+        /// <returns>The response message.</returns>
+        public async Task<HttpResponseMessage> PutAsync(Uri resource,
+                                                        string authKey,
+                                                        string content)
         {
             KeenHttpClient.RequireAuthKey(authKey);
 
@@ -198,9 +200,11 @@ namespace Keen.Core
                 throw new ArgumentNullException(nameof(content), "Unexpected empty content.");
             }
 
-            using (var contentStream = new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes(content))))
+            using (var contentStream =
+                new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes(content))))
             {
-                contentStream.Headers.ContentType = new MediaTypeHeaderValue(KeenHttpClient.JSON_CONTENT_TYPE);
+                contentStream.Headers.ContentType =
+                    new MediaTypeHeaderValue(KeenHttpClient.JSON_CONTENT_TYPE);
 
                 HttpRequestMessage put = CreateRequest(HttpMethod.Put, resource, authKey);
                 put.Content = contentStream;
