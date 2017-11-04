@@ -1,4 +1,4 @@
-﻿using Keen.Core.Dataset;
+using Keen.Core.Dataset;
 using Keen.Core.Query;
 using Moq;
 using NUnit.Framework;
@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Reflection;
 using System.Threading.Tasks;
 
 
@@ -25,7 +24,7 @@ namespace Keen.Core.Test
         [Test]
         public void Results_Success()
         {
-            var apiResponse = File.ReadAllText($"{this.GetLocalPath()}/ApiResponses/GetDatasetResults.json");
+            var apiResponse = File.ReadAllText($"{GetApiResponsesPath()}/GetDatasetResults.json");
             IKeenHttpClientProvider httpClientProvider = null;
 
             if (UseMocks)
@@ -43,7 +42,7 @@ namespace Keen.Core.Test
         [Test]
         public void Definition_Success()
         {
-            var apiResponse = File.ReadAllText($"{this.GetLocalPath()}/ApiResponses/GetDatasetDefinition.json");
+            var apiResponse = File.ReadAllText($"{GetApiResponsesPath()}/GetDatasetDefinition.json");
             IKeenHttpClientProvider httpClientProvider = null;
 
             if (UseMocks)
@@ -60,7 +59,7 @@ namespace Keen.Core.Test
         [Test]
         public void ListDefinitions_Success()
         {
-            var apiResponse = File.ReadAllText($"{this.GetLocalPath()}/ApiResponses/ListDatasetDefinitions.json");
+            var apiResponse = File.ReadAllText($"{GetApiResponsesPath()}/ListDatasetDefinitions.json");
             IKeenHttpClientProvider httpClientProvider = null;
 
             if (UseMocks)
@@ -85,7 +84,7 @@ namespace Keen.Core.Test
         [Test]
         public void ListAllDefinitions_Success()
         {
-            var apiResponse = File.ReadAllText($"{this.GetLocalPath()}/ApiResponses/ListDatasetDefinitions.json");
+            var apiResponse = File.ReadAllText($"{GetApiResponsesPath()}/ListDatasetDefinitions.json");
             IKeenHttpClientProvider httpClientProvider = null;
 
             if (UseMocks)
@@ -123,7 +122,7 @@ namespace Keen.Core.Test
         [Test]
         public void CreateDataset_Success()
         {
-            var apiResponse = File.ReadAllText($"{this.GetLocalPath()}/ApiResponses/GetDatasetDefinition.json");
+            var apiResponse = File.ReadAllText($"{GetApiResponsesPath()}/GetDatasetDefinition.json");
 
             IKeenHttpClientProvider httpClientProvider = null;
 
@@ -197,11 +196,11 @@ namespace Keen.Core.Test
 
             Assert.Throws<KeenException>(() => client.QueryDataset(_datasetName, _indexBy, _timeframe));
 
-            var brokenClient = new KeenClient(new ProjectSettingsProvider("5011efa95f546f2ce2000000", 
-                null, 
-                Environment.GetEnvironmentVariable("KEEN_WRITE_KEY") ?? "", 
-                Environment.GetEnvironmentVariable("KEEN_READ_KEY") ?? "", 
-                Environment.GetEnvironmentVariable("KEEN_SERVER_URL") ?? KeenConstants.ServerAddress + "/" + KeenConstants.ApiVersion + "/"), 
+            var brokenClient = new KeenClient(new ProjectSettingsProvider("5011efa95f546f2ce2000000",
+                null,
+                Environment.GetEnvironmentVariable("KEEN_WRITE_KEY") ?? "",
+                Environment.GetEnvironmentVariable("KEEN_READ_KEY") ?? "",
+                Environment.GetEnvironmentVariable("KEEN_SERVER_URL") ?? KeenConstants.ServerAddress + "/" + KeenConstants.ApiVersion + "/"),
                 httpClientProvider);
 
             Assert.Throws<KeenException>(() => brokenClient.QueryDataset(_datasetName, _indexBy, _timeframe));
@@ -305,10 +304,12 @@ namespace Keen.Core.Test
             Assert.Throws<KeenException>(() => brokenClient.CreateDataset(CreateDatasetDefinition()));
         }
 
-        private string GetLocalPath()
+        private string GetApiResponsesPath()
         {
-            var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase);
-            return new Uri(path).LocalPath;
+            var localPath = AppDomain.CurrentDomain.BaseDirectory;
+            var apiResponsesPath = $"{localPath}/ApiResponses";
+
+            return apiResponsesPath;
         }
 
         private IKeenHttpClientProvider GetMockHttpClientProviderForGetAsync(string response, HttpStatusCode status = HttpStatusCode.OK)

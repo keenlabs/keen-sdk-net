@@ -1,4 +1,4 @@
-﻿using Keen.Core;
+using Keen.Core;
 using Keen.Core.Dataset;
 using Keen.Core.Query;
 using Moq;
@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Reflection;
 using System.Threading.Tasks;
 
 
@@ -26,7 +25,7 @@ namespace Keen.Net.Test
         [Test]
         public void Results_Success()
         {
-            var apiResponse = File.ReadAllText($"{this.GetLocalPath()}/ApiResponses/GetDatasetResults.json");
+            var apiResponse = File.ReadAllText($"{GetApiResponsesPath()}/GetDatasetResults.json");
             IKeenHttpClientProvider httpClientProvider = null;
 
             if (UseMocks)
@@ -44,7 +43,7 @@ namespace Keen.Net.Test
         [Test]
         public void Definition_Success()
         {
-            var apiResponse = File.ReadAllText($"{this.GetLocalPath()}/ApiResponses/GetDatasetDefinition.json");
+            var apiResponse = File.ReadAllText($"{GetApiResponsesPath()}/GetDatasetDefinition.json");
             IKeenHttpClientProvider httpClientProvider = null;
 
             if (UseMocks)
@@ -61,7 +60,7 @@ namespace Keen.Net.Test
         [Test]
         public void ListDefinitions_Success()
         {
-            var apiResponse = File.ReadAllText($"{this.GetLocalPath()}/ApiResponses/ListDatasetDefinitions.json");
+            var apiResponse = File.ReadAllText($"{GetApiResponsesPath()}/ListDatasetDefinitions.json");
             IKeenHttpClientProvider httpClientProvider = null;
 
             if (UseMocks)
@@ -86,7 +85,7 @@ namespace Keen.Net.Test
         [Test]
         public void ListAllDefinitions_Success()
         {
-            var apiResponse = File.ReadAllText($"{this.GetLocalPath()}/ApiResponses/ListDatasetDefinitions.json");
+            var apiResponse = File.ReadAllText($"{GetApiResponsesPath()}/ListDatasetDefinitions.json");
             IKeenHttpClientProvider httpClientProvider = null;
 
             if (UseMocks)
@@ -124,7 +123,7 @@ namespace Keen.Net.Test
         [Test]
         public void CreateDataset_Success()
         {
-            var apiResponse = File.ReadAllText($"{this.GetLocalPath()}/ApiResponses/GetDatasetDefinition.json");
+            var apiResponse = File.ReadAllText($"{GetApiResponsesPath()}/GetDatasetDefinition.json");
 
             IKeenHttpClientProvider httpClientProvider = null;
 
@@ -306,10 +305,12 @@ namespace Keen.Net.Test
             Assert.Throws<KeenException>(() => brokenClient.CreateDataset(CreateDatasetDefinition()));
         }
 
-        private string GetLocalPath()
+        private string GetApiResponsesPath()
         {
-            var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase);
-            return new Uri(path).LocalPath;
+            var localPath = AppDomain.CurrentDomain.BaseDirectory;
+            var apiResponsesPath = $"{localPath}/ApiResponses";
+
+            return apiResponsesPath;
         }
 
         private IKeenHttpClientProvider GetMockHttpClientProviderForGetAsync(string response, HttpStatusCode status = HttpStatusCode.OK)

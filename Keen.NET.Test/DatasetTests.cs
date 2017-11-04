@@ -1,4 +1,4 @@
-﻿using Keen.Core;
+using Keen.Core;
 using Keen.Core.Dataset;
 using Keen.Core.Query;
 using Moq;
