@@ -18,6 +18,16 @@ namespace Keen.Core.Dataset
     internal class Datasets : IDataset
     {
         private const int MAX_DATASET_DEFINITION_LIST_LIMIT = 100;
+        private static readonly JsonSerializerSettings SERIALIZER_SETTINGS =
+            new JsonSerializerSettings
+            {
+                ContractResolver = new DefaultContractResolver
+                {
+                    NamingStrategy = new SnakeCaseNamingStrategy()
+                },
+                DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate,
+                Formatting = Formatting.None
+            };
 
         private readonly IKeenHttpClient _keenHttpClient;
         private readonly string _cachedDatasetRelativeUrl;
@@ -133,7 +143,7 @@ namespace Keen.Core.Dataset
             }
 
             return JsonConvert.DeserializeObject<DatasetDefinition>(responseString,
-                                                                    GetSerializerSettings());
+                                                                    SERIALIZER_SETTINGS);
         }
 
         public async Task<DatasetDefinitionCollection> ListDefinitions(int limit = 10,
@@ -169,9 +179,8 @@ namespace Keen.Core.Dataset
                 throw new KeenException($"Request failed with status: {responseMsg.StatusCode}");
             }
 
-            return JsonConvert.DeserializeObject<DatasetDefinitionCollection>(
-                responseString,
-                GetSerializerSettings());
+            return JsonConvert.DeserializeObject<DatasetDefinitionCollection>(responseString,
+                                                                              SERIALIZER_SETTINGS);
         }
 
         public async Task<IEnumerable<DatasetDefinition>> ListAllDefinitions()
@@ -263,7 +272,7 @@ namespace Keen.Core.Dataset
             // This throws if dataset is not valid.
             dataset.Validate();
 
-            var content = JsonConvert.SerializeObject(dataset, GetSerializerSettings());
+            var content = JsonConvert.SerializeObject(dataset, SERIALIZER_SETTINGS);
 
             var responseMsg = await _keenHttpClient
                 .PutAsync(GetDatasetUrl(dataset.DatasetName), _masterKey, content)
@@ -284,27 +293,7 @@ namespace Keen.Core.Dataset
             }
 
             return JsonConvert.DeserializeObject<DatasetDefinition>(responseString,
-                                                                    GetSerializerSettings());
-        }
-
-        /* It's important that there is only one instance of JsonSerializerSettings for each
-           Serialization/Desierialization to keep the DatasetDefinitionConverter and
-           QueryDefinitionConverter instances threadsafe */
-        private JsonSerializerSettings GetSerializerSettings()
-        {
-            return new JsonSerializerSettings
-            {
-                ContractResolver = new DefaultContractResolver
-                {
-                    NamingStrategy = new SnakeCaseNamingStrategy()
-                },
-                DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate,
-                Converters =
-                {
-                    new DatasetDefinitionConverter(),
-                    new QueryDefinitionConverter()
-                }
-            };
+                                                                    SERIALIZER_SETTINGS);
         }
 
         private string GetDatasetUrl(string datasetName = null)

@@ -4,8 +4,10 @@ using Keen.Core.Query;
 using Moq;
 using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -13,14 +15,13 @@ using System.Threading.Tasks;
 
 namespace Keen.Net.Test
 {
-    using System.Net;
-
     [TestFixture]
     public class DatasetTests : TestBase
     {
         private const string _datasetName = "video-view";
         private const string _indexBy = "12";
         private const string _timeframe = "this_12_days";
+
 
         [Test]
         public void Results_Success()
@@ -154,7 +155,7 @@ namespace Keen.Net.Test
 
             Assert.Throws<KeenException>(() => dataset.Validate());
 
-            dataset.IndexBy = "product.id";
+            dataset.IndexBy = new List<string> { "product.id" };
 
             Assert.Throws<KeenException>(() => dataset.Validate());
 
@@ -376,15 +377,24 @@ namespace Keen.Net.Test
         {
             Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.DatasetName));
             Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.DisplayName));
-            Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.IndexBy));
-            Assert.IsNotNull(dataset.LastScheduledDate);
-            Assert.IsNotNull(dataset.LatestSubtimeframeAvailable);
+            Assert.IsNotEmpty(dataset.IndexBy);
+
+            if (UseMocks)
+            {
+                Assert.IsNotNull(dataset.LastScheduledDate);
+                Assert.IsNotNull(dataset.LatestSubtimeframeAvailable);
+            }
+
             Assert.IsNotNull(dataset.Query);
             Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.Query.ProjectId));
             Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.Query.AnalysisType));
             Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.Query.EventCollection));
             Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.Query.Timeframe));
             Assert.IsTrue(!string.IsNullOrWhiteSpace(dataset.Query.Interval));
+
+            // TODO : We'll need to do some setup to actually get this to run automatically
+            // with !UseMocks...and take into account that it can "take up to an hour for a newly
+            // created dataset to compute results for the first time."
             Assert.IsNotNull(dataset.Query.GroupBy);
             Assert.IsTrue(dataset.Query.GroupBy.Count() == 1);
 
@@ -410,7 +420,7 @@ namespace Keen.Net.Test
             {
                 DatasetName = "count-purchases-gte-100-by-country-daily",
                 DisplayName = "Count Daily Product Purchases Over $100 by Country",
-                IndexBy = "product.id",
+                IndexBy = new List<string> { "product.id" },
                 Query = new QueryDefinition
                 {
                     AnalysisType = "count",

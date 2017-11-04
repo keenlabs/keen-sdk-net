@@ -17,10 +17,6 @@ namespace Keen.Net.Test
         private const string _indexBy = "12";
         private const int _listDatasetLimit = 1;
 
-        public DataSetTests_Integration()
-        {
-            UseMocks = false;
-        }
 
         [Test]
         public void GetDatasetResults_Success()

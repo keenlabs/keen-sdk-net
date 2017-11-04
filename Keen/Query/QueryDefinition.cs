@@ -1,8 +1,4 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 
 
 namespace Keen.Core.Query
@@ -79,55 +75,6 @@ namespace Keen.Core.Query
             {
                 throw new KeenException("QueryDefinition must specify an interval");
             }
-        }
-    }
-
-    /// <summary>
-    /// This converter accounts for the fact that the PUT endpoint for Datasets takes a string for
-    /// group_by, but returns an array of strings.
-    /// </summary>
-    internal class QueryDefinitionConverter : JsonConverter
-    {
-        /* This prevents JToken.ToObject form recursively calling ReadJson until the stack runs out */
-        private bool _isNested;
-
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-        {
-            _isNested = true;
-            var query = JToken.FromObject(value, serializer);
-            var groupByList = query["group_by"]?.ToArray();
-
-            if (groupByList != null)
-            {
-                query["group_by"] = groupByList.FirstOrDefault()?.ToString();
-            }
-            
-            serializer.Serialize(writer, query);
-            _isNested = false;
-        }
-
-        public override object ReadJson(JsonReader reader,
-                                        Type objectType,
-                                        object existingValue,
-                                        JsonSerializer serializer)
-        {
-            var token = JToken.Load(reader);
-            if (token.Type != JTokenType.Object)
-                return null;
-
-            _isNested = true;
-            var query = token.ToObject<QueryDefinition>(serializer);
-            _isNested = false;
-
-            return query;
-        }
-
-        public override bool CanConvert(Type objectType)
-        {
-            if (_isNested)
-                return false;
-
-            return objectType == typeof(QueryDefinition);
         }
     }
 }

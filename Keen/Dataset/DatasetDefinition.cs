@@ -1,7 +1,6 @@
 ﻿using Keen.Core.Query;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 
@@ -42,7 +41,7 @@ namespace Keen.Core.Dataset
         /// <summary>
         /// The event property name of string values results are retrieved by.
         /// </summary>
-        public string IndexBy { get; set; }
+        public IEnumerable<string> IndexBy { get; set; }
     }
 
     internal static class DatasetDefinitionExtensions
@@ -59,66 +58,19 @@ namespace Keen.Core.Dataset
                 throw new KeenException("DatasetDefinition must have a display name.");
             }
 
-            if (string.IsNullOrWhiteSpace(dataset.IndexBy))
+            if (null == dataset.IndexBy ||
+                string.IsNullOrWhiteSpace(dataset.IndexBy.FirstOrDefault()))
             {
-                throw new KeenException("DatasetDefinition must specify a property to index by.");
+                throw new KeenException("DatasetDefinition must specify a property by which to " +
+                                        "index.");
             }
 
-            if (dataset.Query == null)
+            if (null == dataset.Query)
             {
                 throw new KeenException("DatasetDefinition must contain a query to be cached.");
             }
 
             dataset.Query.ValidateForCachedDataset();
-        }
-    }
-
-    /// <summary>
-    /// This converter accounts for the fact that the PUT endpoint takes a string for index_by,
-    /// but returns an array of strings.
-    /// </summary>
-    internal class DatasetDefinitionConverter : JsonConverter
-    {
-        // Prevent JToken.ToObject from recursively calling ReadJson until the stack runs out.
-        private bool _isNested;
-
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-        {
-            _isNested = true;
-            serializer.Serialize(writer, value);
-            _isNested = false;
-        }
-
-        public override object ReadJson(JsonReader reader,
-                                        Type objectType,
-                                        object existingValue,
-                                        JsonSerializer serializer)
-        {
-            var token = JToken.Load(reader);
-            if (token.Type != JTokenType.Object)
-                return null;
-
-            var indexByList = token["index_by"]?.ToArray();
-
-            // Setting index_by to null so that serializing without this converter doesn't
-            // run into issues with facing an incorrect data type.
-            token["index_by"] = null;
-
-            _isNested = true;
-            var datasetDefinition = token.ToObject<DatasetDefinition>(serializer);
-            _isNested = false;
-
-            datasetDefinition.IndexBy = indexByList?.FirstOrDefault()?.ToString();
-
-            return datasetDefinition;
-        }
-
-        public override bool CanConvert(Type objectType)
-        {
-            if (_isNested)
-                return false;
-
-            return objectType == typeof(DatasetDefinition);
         }
     }
 }
