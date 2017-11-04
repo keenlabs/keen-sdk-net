@@ -81,6 +81,9 @@ namespace Keen.Core
         private const int bulkBatchSize = 1000;
         public static int BulkBatchSize { get { return bulkBatchSize; } protected set { ;} }
 
+        private const string datasetsResource = "datasets";
+        public static string DatasetsResource { get { return datasetsResource; } protected set { ;} }
+
         private const string keenProjectId = "KEEN_PROJECT_ID";
         public static string KeenProjectId { get { return keenProjectId; } protected set {; } }
 

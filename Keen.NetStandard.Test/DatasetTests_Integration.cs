@@ -1,5 +1,4 @@
-﻿using Keen.Core;
-using Keen.Core.Dataset;
+﻿using Keen.Core.Dataset;
 using Keen.Core.Query;
 using Moq;
 using NUnit.Framework;
@@ -13,7 +12,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 
 
-namespace Keen.Net.Test
+namespace Keen.Core.Test
 {
     [TestFixture]
     public class DatasetTests_Integration : TestBase
