@@ -43,7 +43,7 @@ namespace Keen.Core
         /// <param name="resource">The relative resource to GET. Must be properly formatted as a
         ///     relative Uri.</param>
         /// <param name="authKey">The key to use for authenticating this request.</param>
-        /// <returns>>The response message.</returns>
+        /// <returns>The response message.</returns>
         public Task<HttpResponseMessage> GetAsync(string resource, string authKey)
         {
             var url = new Uri(resource, UriKind.Relative);
@@ -57,7 +57,7 @@ namespace Keen.Core
         /// </summary>
         /// <param name="resource">The relative resource to GET.</param>
         /// <param name="authKey">The key to use for authenticating this request.</param>
-        /// <returns>>The response message.</returns>
+        /// <returns>The response message.</returns>
         public Task<HttpResponseMessage> GetAsync(Uri resource, string authKey)
         {
             KeenHttpClient.RequireAuthKey(authKey);
@@ -78,7 +78,7 @@ namespace Keen.Core
         ///     relative Uri.</param>
         /// <param name="authKey">The key to use for authenticating this request.</param>
         /// <param name="content">The POST body to send.</param>
-        /// <returns>>The response message.</returns>
+        /// <returns>The response message.</returns>
         public Task<HttpResponseMessage> PostAsync(string resource, string authKey, string content)
         {
             var url = new Uri(resource, UriKind.Relative);
@@ -93,44 +93,12 @@ namespace Keen.Core
         /// <param name="resource">The relative resource to POST.</param>
         /// <param name="authKey">The key to use for authenticating this request.</param>
         /// <param name="content">The POST body to send.</param>
-        /// <returns>>The response message.</returns>
-        public async Task<HttpResponseMessage> PostAsync(Uri resource,
-                                                         string authKey,
-                                                         string content)
+        /// <returns>The response message.</returns>
+        public Task<HttpResponseMessage> PostAsync(Uri resource,
+                                                   string authKey,
+                                                   string content)
         {
-            KeenHttpClient.RequireAuthKey(authKey);
-
-            if (string.IsNullOrWhiteSpace(content))
-            {
-                // Technically, we can encode an empty string or whitespace, but why? For now
-                // we use GET for querying. If we ever need to POST with no content, we should
-                // reorganize the logic below to never create/set the content stream.
-                throw new ArgumentNullException(nameof(content), "Unexpected empty content.");
-            }
-
-            // If we switch PCL profiles, instead use MediaTypeFormatters (or ObjectContent<T>)?,
-            // like here?: https://msdn.microsoft.com/en-us/library/system.net.http.httpclientextensions.putasjsonasync(v=vs.118).aspx
-            using (var contentStream =
-                new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes(content))))
-            {
-                // TODO : Amake sure this is the same as Add("content-type", "application/json")
-                contentStream.Headers.ContentType =
-                    new MediaTypeHeaderValue(KeenHttpClient.JSON_CONTENT_TYPE);
-
-                HttpRequestMessage post = CreateRequest(HttpMethod.Post, resource, authKey);
-                post.Content = contentStream;
-
-                return await _httpClient.SendAsync(post).ConfigureAwait(false);
-
-                // TODO : Should we do the KeenUtil.CheckApiErrorCode() here?
-                // TODO : Should we check the if (!responseMsg.IsSuccessStatusCode) here too?
-                // TODO : If we centralize error checking in this class we could have variations
-                //     of these helpers that return string or JToken or JArray or JObject. It might
-                //     also be nice for those options to optionally hand back the raw
-                //     HttpResponseMessage in an out param if desired?
-                // TODO : Use CallerMemberNameAttribute to print error messages?
-                //     http://stackoverflow.com/questions/3095696/how-do-i-get-the-calling-method-name-and-type-using-reflection?noredirect=1&lq=1
-            }
+            return DispatchWithContentAsync(HttpMethod.Post, resource, authKey, content);
         }
 
         /// <summary>
@@ -189,27 +157,50 @@ namespace Keen.Core
         /// <param name="authKey">The key to use for authenticating this request.</param>
         /// <param name="content">The PUT body to send.</param>
         /// <returns>The response message.</returns>
-        public async Task<HttpResponseMessage> PutAsync(Uri resource,
-                                                        string authKey,
-                                                        string content)
+        public Task<HttpResponseMessage> PutAsync(Uri resource,
+                                                  string authKey,
+                                                  string content)
+        {
+            return DispatchWithContentAsync(HttpMethod.Put, resource, authKey, content);
+        }
+
+        private async Task<HttpResponseMessage> DispatchWithContentAsync(HttpMethod httpMethod,
+                                                                         Uri resource,
+                                                                         string authKey,
+                                                                         string content)
         {
             KeenHttpClient.RequireAuthKey(authKey);
 
             if (string.IsNullOrWhiteSpace(content))
             {
+                // Technically, we can encode an empty string or whitespace, but why? For now
+                // we use GET for querying. If we ever need to POST with no content, we should
+                // reorganize the logic below to never create/set the content stream.
                 throw new ArgumentNullException(nameof(content), "Unexpected empty content.");
             }
 
+            // If we switch PCL profiles, instead use MediaTypeFormatters (or ObjectContent<T>)?,
+            // like here?: https://msdn.microsoft.com/en-us/library/system.net.http.httpclientextensions.putasjsonasync(v=vs.118).aspx
             using (var contentStream =
                 new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes(content))))
             {
+                // TODO : Make sure this is the same as Add("content-type", "application/json")
                 contentStream.Headers.ContentType =
                     new MediaTypeHeaderValue(KeenHttpClient.JSON_CONTENT_TYPE);
 
-                HttpRequestMessage put = CreateRequest(HttpMethod.Put, resource, authKey);
-                put.Content = contentStream;
+                HttpRequestMessage request = CreateRequest(httpMethod, resource, authKey);
+                request.Content = contentStream;
 
-                return await _httpClient.SendAsync(put).ConfigureAwait(false);
+                return await _httpClient.SendAsync(request).ConfigureAwait(false);
+
+                // TODO : Should we do the KeenUtil.CheckApiErrorCode() here?
+                // TODO : Should we check the if (!responseMsg.IsSuccessStatusCode) here too?
+                // TODO : If we centralize error checking in this class we could have variations
+                //     of these helpers that return string or JToken or JArray or JObject. It might
+                //     also be nice for those options to optionally hand back the raw
+                //     HttpResponseMessage in an out param if desired?
+                // TODO : Use CallerMemberNameAttribute to print error messages?
+                //     http://stackoverflow.com/questions/3095696/how-do-i-get-the-calling-method-name-and-type-using-reflection?noredirect=1&lq=1
             }
         }
 
