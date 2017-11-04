@@ -975,7 +975,7 @@ namespace Keen.Core
         }
 
         /// <summary>
-        /// Get query results from a Cached Dataset
+        /// Get query results from a Cached Dataset.
         /// </summary>
         /// <param name="datasetName">Name of cached dataset to query.</param>
         /// <param name="indexBy">The string property value you want to retrieve results by.</param>
@@ -987,7 +987,7 @@ namespace Keen.Core
         }
 
         /// <summary>
-        /// Get query results from a Cached Dataset
+        /// Get query results from a Cached Dataset.
         /// </summary>
         /// <param name="datasetName">Name of cached dataset to query.</param>
         /// <param name="indexBy">The string property value you want to retrieve results by.</param>

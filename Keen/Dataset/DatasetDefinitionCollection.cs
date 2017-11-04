@@ -3,6 +3,9 @@
 
 namespace Keen.Core.Dataset
 {
+    /// <summary>
+    /// A model for a collection of DatasetDefinitions with paging information.
+    /// </summary>
     public class DatasetDefinitionCollection
     {
         /// <summary>

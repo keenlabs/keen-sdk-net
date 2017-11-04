@@ -51,6 +51,4 @@ namespace Keen.Core.Query
         /// </summary>
         public IEnumerable<string> GroupBy { get; set; }
     }
-
-    
 }
