@@ -983,7 +983,7 @@ namespace Keen.Core
         /// <returns>An instance of Newtonsoft.Json.Linq.JObject containing query results and metadata defining the cached dataset.</returns>
         public async Task<JObject> QueryDatasetAsync(string datasetName, string indexBy, string timeframe)
         {
-            return await Datasets.Results(datasetName, indexBy, timeframe);
+            return await Datasets.GetResultsAsync(datasetName, indexBy, timeframe);
         }
 
         /// <summary>
@@ -1012,7 +1012,7 @@ namespace Keen.Core
         /// <returns>An instance of Keen.Core.Dataset.DatasetDefinition containing metadata about your cached dataset.</returns>
         public async Task<DatasetDefinition> GetDatasetDefinitionAsync(string datasetName)
         {
-            return await Datasets.Definition(datasetName);
+            return await Datasets.GetDefinitionAsync(datasetName);
         }
 
         /// <summary>
@@ -1044,7 +1044,7 @@ namespace Keen.Core
         /// <returns>An instance of Keen.Core.Dataset.DatasetDefinitionCollection containing the total count, next page url and list of DatasetDefinitions.</returns>
         public Task<DatasetDefinitionCollection> ListDatasetDefinitionsAsync(int limit = 10, string afterName = null)
         {
-            return Datasets.ListDefinitions(limit, afterName);
+            return Datasets.ListDefinitionsAsync(limit, afterName);
         }
 
         /// <summary>
@@ -1075,7 +1075,7 @@ namespace Keen.Core
         /// <returns>A list of Keen.Core.Dataset.DatasetDefinition</returns>
         public Task<IEnumerable<DatasetDefinition>> ListAllDatasetDefinitionsAsync()
         {
-            return Datasets.ListAllDefinitions();
+            return Datasets.ListAllDefinitionsAsync();
         }
 
         /// <summary>
@@ -1101,7 +1101,7 @@ namespace Keen.Core
         /// <returns>An instance of Keen.Core.Dataset.DatasetDefinition populated more information.</returns>
         public Task<DatasetDefinition> CreateDatasetAsync(DatasetDefinition dataset)
         {
-            return Datasets.CreateDataset(dataset);
+            return Datasets.CreateDatasetAsync(dataset);
         }
 
         /// <summary>
@@ -1127,7 +1127,7 @@ namespace Keen.Core
         /// <param name="datasetName">The name of the dataset to be deleted.</param>
         public Task DeleteDatasetAsync(string datasetName)
         {
-            return Datasets.DeleteDataset(datasetName);
+            return Datasets.DeleteDatasetAsync(datasetName);
         }
 
         /// <summary>

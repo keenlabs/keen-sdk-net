@@ -65,7 +65,9 @@ namespace Keen.Core.Dataset
             _masterKey = prjSettings.MasterKey;
         }
 
-        public async Task<JObject> Results(string datasetName, string indexBy, string timeframe)
+        public async Task<JObject> GetResultsAsync(string datasetName,
+                                                   string indexBy,
+                                                   string timeframe)
         {
             if (string.IsNullOrWhiteSpace(datasetName))
             {
@@ -112,7 +114,7 @@ namespace Keen.Core.Dataset
             return response;
         }
 
-        public async Task<DatasetDefinition> Definition(string datasetName)
+        public async Task<DatasetDefinition> GetDefinitionAsync(string datasetName)
         {
             if (string.IsNullOrWhiteSpace(datasetName))
             {
@@ -146,8 +148,9 @@ namespace Keen.Core.Dataset
                                                                     SERIALIZER_SETTINGS);
         }
 
-        public async Task<DatasetDefinitionCollection> ListDefinitions(int limit = 10,
-                                                                       string afterName = null)
+        public async Task<DatasetDefinitionCollection> ListDefinitionsAsync(
+            int limit = 10,
+            string afterName = null)
         {
             if (string.IsNullOrWhiteSpace(_masterKey))
             {
@@ -183,10 +186,10 @@ namespace Keen.Core.Dataset
                                                                               SERIALIZER_SETTINGS);
         }
 
-        public async Task<IEnumerable<DatasetDefinition>> ListAllDefinitions()
+        public async Task<IEnumerable<DatasetDefinition>> ListAllDefinitionsAsync()
         {
             var allDefinitions = new List<DatasetDefinition>();
-            var firstSet = await ListDefinitions(MAX_DATASET_DEFINITION_LIST_LIMIT)
+            var firstSet = await ListDefinitionsAsync(MAX_DATASET_DEFINITION_LIST_LIMIT)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             if (null == firstSet?.Datasets)
@@ -208,8 +211,8 @@ namespace Keen.Core.Dataset
 
             do
             {
-                var nextSet = await ListDefinitions(MAX_DATASET_DEFINITION_LIST_LIMIT,
-                                                    allDefinitions.Last().DatasetName)
+                var nextSet = await ListDefinitionsAsync(MAX_DATASET_DEFINITION_LIST_LIMIT,
+                                                         allDefinitions.Last().DatasetName)
                     .ConfigureAwait(continueOnCapturedContext: false);
 
                 if (null == nextSet?.Datasets || !nextSet.Datasets.Any())
@@ -223,7 +226,7 @@ namespace Keen.Core.Dataset
             return allDefinitions;
         }
 
-        public async Task DeleteDataset(string datasetName)
+        public async Task DeleteDatasetAsync(string datasetName)
         {
             if (string.IsNullOrWhiteSpace(datasetName))
             {
@@ -256,7 +259,7 @@ namespace Keen.Core.Dataset
             throw new KeenException($"Request failed with status: {responseMsg.StatusCode}");
         }
 
-        public async Task<DatasetDefinition> CreateDataset(DatasetDefinition dataset)
+        public async Task<DatasetDefinition> CreateDatasetAsync(DatasetDefinition dataset)
         {
             if (string.IsNullOrWhiteSpace(_masterKey))
             {

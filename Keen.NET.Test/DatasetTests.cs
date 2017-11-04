@@ -30,7 +30,7 @@ namespace Keen.Net.Test
             if (UseMocks)
             {
                 datasetMock = new Mock<IDataset>();
-                datasetMock.Setup(m => m.Results(
+                datasetMock.Setup(m => m.GetResultsAsync(
                         It.Is<string>(n => n == _datasetName),
                         It.Is<string>(i => i == _indexBy),
                         It.Is<string>(t => t == timeframe.ToString())))
@@ -55,7 +55,7 @@ namespace Keen.Net.Test
             if (UseMocks)
             {
                 datasetMock = new Mock<IDataset>();
-                datasetMock.Setup(m => m.Definition(
+                datasetMock.Setup(m => m.GetDefinitionAsync(
                         It.Is<string>(n => n == _datasetName)))
                     .ReturnsAsync(result);
 
@@ -78,7 +78,7 @@ namespace Keen.Net.Test
             if (UseMocks)
             {
                 datasetMock = new Mock<IDataset>();
-                datasetMock.Setup(m => m.ListDefinitions(
+                datasetMock.Setup(m => m.ListDefinitionsAsync(
                         It.Is<int>(n => n == _listDatasetLimit),
                         It.Is<string>(n => n == _datasetName)))
                     .ReturnsAsync(result);
@@ -102,7 +102,7 @@ namespace Keen.Net.Test
             if (UseMocks)
             {
                 datasetMock = new Mock<IDataset>();
-                datasetMock.Setup(m => m.ListAllDefinitions())
+                datasetMock.Setup(m => m.ListAllDefinitionsAsync())
                     .ReturnsAsync(result);
 
                 client.Datasets = datasetMock.Object;
@@ -124,7 +124,7 @@ namespace Keen.Net.Test
             if (UseMocks)
             {
                 datasetMock = new Mock<IDataset>();
-                datasetMock.Setup(m => m.CreateDataset(
+                datasetMock.Setup(m => m.CreateDatasetAsync(
                         It.Is<DatasetDefinition>(n => n != null)))
                     .ReturnsAsync(result);
 
@@ -146,7 +146,7 @@ namespace Keen.Net.Test
             if (UseMocks)
             {
                 datasetMock = new Mock<IDataset>();
-                datasetMock.Setup(m => m.DeleteDataset(
+                datasetMock.Setup(m => m.DeleteDatasetAsync(
                         It.Is<string>(n => n == _datasetName)))
                     .Returns(Task.Delay(0));
 
