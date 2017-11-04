@@ -99,8 +99,8 @@
       <Link>Properties\SharedVersionInfo.cs</Link>
     </Compile>
     <Compile Include="AddOnsTest.cs" />
+    <Compile Include="DatasetTests_Integration.cs" />
     <Compile Include="DatasetTests.cs" />
-    <Compile Include="DataSetTests_Integration.cs" />
     <Compile Include="EventCacheTest.cs" />
     <Compile Include="EventCollectionMock.cs" />
     <Compile Include="EventMock.cs" />
