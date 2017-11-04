@@ -52,7 +52,6 @@
     <Compile Include="..\SharedVersionInfo.cs">
       <Link>Properties\SharedVersionInfo.cs</Link>
     </Compile>
-    <Compile Include="ContractResolvers\SnakeCaseContractResolver.cs" />
     <Compile Include="Dataset\DatasetDefinition.cs" />
     <Compile Include="Dataset\DatasetDefinitionCollection.cs" />
     <Compile Include="Dataset\Datasets.cs" />

@@ -1,7 +1,7 @@
-﻿using Keen.Core.ContractResolvers;
-using Keen.Core.Query;
+﻿using Keen.Core.Query;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -294,7 +294,10 @@ namespace Keen.Core.Dataset
         {
             return new JsonSerializerSettings
             {
-                ContractResolver = new SnakeCaseContractResolver(),
+                ContractResolver = new DefaultContractResolver
+                {
+                    NamingStrategy = new SnakeCaseNamingStrategy()
+                },
                 DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate,
                 Converters =
                 {
