@@ -1,3 +1,6 @@
+# Mostly based on the templates here:
+# https://github.com/alexkaratarakis/gitattributes
+
 ###############################################################################
 # Set default behavior to automatically normalize line endings.
 ###############################################################################
@@ -6,11 +9,35 @@
 ###############################################################################
 # Set default behavior for command prompt diff.
 #
-# This is need for earlier builds of msysgit that does not have it on by
-# default for csharp files.
-# Note: This is only used by command line
+# This is only used by command line
 ###############################################################################
-#*.cs     diff=csharp
+*.cs            text diff=csharp
+*.bat           text eol=crlf
+*.ini           text
+*.json          text
+*.sh            text eol=lf
+*.ps1           text
+
+## CONFIGS
+*.bowerrc       text
+*.cnf           text
+*.conf          text
+*.config        text
+.browserslistrc text
+.editorconfig   text
+.gitattributes  text
+.gitconfig      text
+.gitignore      text
+.htaccess       text
+*.npmignore     text
+*.yaml          text
+*.yml           text
+browserslist    text
+Makefile        text
+makefile        text
+*.xml           text
+*.nunit         text
+*.nuspec        text
 
 ###############################################################################
 # Set the merge driver for project and solution files
@@ -20,8 +47,27 @@
 # the diff markers are never inserted). Diff markers may cause the following 
 # file extensions to fail to load in VS. An alternative would be to treat
 # these files as binary and thus will always conflict and require user
-# intervention with every merge. To do so, just uncomment the entries below
+# intervention with every merge. To do so, just comment the entries below and
+# uncomment the group further below
 ###############################################################################
+*.sln        text eol=crlf
+*.csproj     text eol=crlf
+*.vbproj     text eol=crlf
+*.vcxproj    text eol=crlf
+*.vcproj     text eol=crlf
+*.dbproj     text eol=crlf
+*.fsproj     text eol=crlf
+*.lsproj     text eol=crlf
+*.wixproj    text eol=crlf
+*.modelproj  text eol=crlf
+*.sqlproj    text eol=crlf
+*.wmaproj    text eol=crlf
+
+*.xproj      text eol=crlf
+*.props      text eol=crlf
+*.filters    text eol=crlf
+*.vcxitems   text eol=crlf
+
 #*.sln       merge=binary
 #*.csproj    merge=binary
 #*.vbproj    merge=binary
@@ -35,29 +81,74 @@
 #*.sqlproj   merge=binary
 #*.wwaproj   merge=binary
 
+#*.xproj     merge=binary
+#*.props     merge=binary
+#*.filters   merge=binary
+#*.vcxitems  merge=binary
+
 ###############################################################################
 # behavior for image files
 #
 # image files are treated as binary by default.
 ###############################################################################
-#*.jpg   binary
-#*.png   binary
-#*.gif   binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.tif  binary
+*.tiff binary
+*.ico  binary
+# SVG treated as an asset (binary) by default. If you want to treat it as text,
+# comment-out the following line and uncomment the line after.
+*.svg  binary
+#*.svg text
+*.eps  binary
 
 ###############################################################################
 # diff behavior for common document formats
 # 
 # Convert binary document formats to text before diffing them. This feature
-# is only available from the command line. Turn it on by uncommenting the 
-# entries below.
+# is only available from the command line.
 ###############################################################################
-#*.doc   diff=astextplain
-#*.DOC   diff=astextplain
-#*.docx  diff=astextplain
-#*.DOCX  diff=astextplain
-#*.dot   diff=astextplain
-#*.DOT   diff=astextplain
-#*.pdf   diff=astextplain
-#*.PDF   diff=astextplain
-#*.rtf   diff=astextplain
-#*.RTF   diff=astextplain
+*.doc        diff=astextplain
+*.DOC        diff=astextplain
+*.docx       diff=astextplain
+*.DOCX       diff=astextplain
+*.dot        diff=astextplain
+*.DOT        diff=astextplain
+*.pdf        diff=astextplain
+*.PDF        diff=astextplain
+*.rtf        diff=astextplain
+*.RTF        diff=astextplain
+*.adoc       text
+*.textile    text
+*.mustache   text
+*.csv        text
+*.tab        text
+*.tsv        text
+*.sql        text
+
+## DOCUMENTATION
+*.markdown   text
+*.md         text
+*.mdwn       text
+*.mdown      text
+*.mkd        text
+*.mkdn       text
+*.mdtxt      text
+*.mdtext     text
+*.txt        text
+AUTHORS      text
+CHANGELOG    text
+CHANGES      text
+CONTRIBUTING text
+COPYING      text
+copyright    text
+*COPYRIGHT*  text
+INSTALL      text
+license      text
+LICENSE      text
+NEWS         text
+readme       text
+*README*     text
+TODO         text
