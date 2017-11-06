@@ -8,6 +8,7 @@ using System.Text;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Web;
+using System.Collections.Specialized;
 
 namespace Keen.Core.Test
 {
@@ -162,11 +163,7 @@ namespace Keen.Core.Test
 
             var actualQueries = await client.GetQueries();
 
-            Assert.AreEqual(expectedQueries.Count, actualQueries.Count());
-            foreach (var expectedQuery in expectedQueries)
-            {
-                Assert.That(actualQueries.Contains(expectedQuery));
-            }
+            Assert.That(actualQueries, Is.EquivalentTo(expectedQueries));
         }
 
         class QueryParameters
@@ -180,15 +177,15 @@ namespace Keen.Core.Test
 
             internal virtual string GetResourceName() => Analysis;
 
-            internal virtual List<KeyValuePair<string, string>> GetQueryParameters()
+            internal virtual Dictionary<string, string> GetQueryParameters()
             {
-                var queryParameters = new List<KeyValuePair<string, string>>();
+                var queryParameters = new Dictionary<string, string>();
 
-                if (null != EventCollection) { queryParameters.Add(new KeyValuePair<string, string>(KeenConstants.QueryParmEventCollection, EventCollection)); }
-                if (null != TargetProperty) { queryParameters.Add(new KeyValuePair<string, string>(KeenConstants.QueryParmTargetProperty, TargetProperty)); }
-                if (null != GroupBy) { queryParameters.Add(new KeyValuePair<string, string>(KeenConstants.QueryParmGroupBy, GroupBy)); }
-                if (null != Timeframe) { queryParameters.Add(new KeyValuePair<string, string>(KeenConstants.QueryParmTimeframe, Timeframe.ToString())); }
-                if (null != Interval) { queryParameters.Add(new KeyValuePair<string, string>(KeenConstants.QueryParmInterval, Interval)); }
+                if (null != EventCollection) { queryParameters[KeenConstants.QueryParmEventCollection] = EventCollection; }
+                if (null != TargetProperty) { queryParameters[KeenConstants.QueryParmTargetProperty] = TargetProperty; }
+                if (null != GroupBy) { queryParameters[KeenConstants.QueryParmGroupBy] = GroupBy; }
+                if (null != Timeframe) { queryParameters[KeenConstants.QueryParmTimeframe] = Timeframe.ToString(); }
+                if (null != Interval) { queryParameters[KeenConstants.QueryParmInterval] = Interval; }
 
                 return queryParameters;
             }
@@ -225,12 +222,10 @@ namespace Keen.Core.Test
 
             internal override string GetResourceName() => KeenConstants.QueryFunnel;
 
-            internal override List<KeyValuePair<string, string>> GetQueryParameters()
+            internal override Dictionary<string, string> GetQueryParameters()
             {
                 var parameters = base.GetQueryParameters();
-                parameters.Add(new KeyValuePair<string, string>(
-                    KeenConstants.QueryParmSteps,
-                    JArray.FromObject(Steps).ToString(Newtonsoft.Json.Formatting.None)));
+                parameters[KeenConstants.QueryParmSteps] = JArray.FromObject(Steps).ToString(Newtonsoft.Json.Formatting.None);
                 return parameters;
             }
         }
@@ -247,7 +242,7 @@ namespace Keen.Core.Test
 
             internal override string GetResourceName() => KeenConstants.QueryMultiAnalysis;
 
-            internal override List<KeyValuePair<string, string>> GetQueryParameters()
+            internal override Dictionary<string, string> GetQueryParameters()
             {
                 var parameters = base.GetQueryParameters();
 
@@ -264,9 +259,7 @@ namespace Keen.Core.Test
                     Formatting.None,
                     new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 
-                parameters.Add(new KeyValuePair<string, string>(
-                    KeenConstants.QueryParmAnalyses,
-                    analysesJson));
+                parameters[KeenConstants.QueryParmAnalyses] = analysesJson;
 
                 return parameters;
             }
@@ -279,41 +272,33 @@ namespace Keen.Core.Test
 
         FuncHandler CreateQueryRequestHandler(QueryParameters queryParameters, object response)
         {
-            var parameters = queryParameters.GetQueryParameters();
-            StringBuilder queryStringBuilder = new StringBuilder();
-            foreach (var parameter in parameters)
+            // Create a NameValueCollection with all expected query string parameters
+            var expectedQueryStringCollection = new NameValueCollection();
+            foreach (var parameter in queryParameters.GetQueryParameters())
             {
-                if (queryStringBuilder.Length != 0)
+                if (null != parameter.Value)
                 {
-                    queryStringBuilder.Append('&');
+                    expectedQueryStringCollection[parameter.Key] = parameter.Value;
                 }
-
-                queryStringBuilder.Append($"{parameter.Key}={Uri.EscapeDataString(parameter.Value)}");
             }
 
             return new FuncHandler()
             {
                 ProduceResultAsync = (request, ct) =>
                 {
-                    var expectedPath = $"{HttpTests.GetUriForResource(SettingsEnv, KeenConstants.QueriesResource)}/" +
-                                       $"{queryParameters.GetResourceName()}";
+                    var expectedPath =
+                        $"{HttpTests.GetUriForResource(SettingsEnv, KeenConstants.QueriesResource)}/" +
+                        $"{queryParameters.GetResourceName()}";
 
-                    string actualPath = String.Format(
-                        "{0}{1}{2}{3}",
-                        request.RequestUri.Scheme,
-                        Uri.SchemeDelimiter,
-                        request.RequestUri.Authority,
-                        request.RequestUri.AbsolutePath);
+                    string actualPath = 
+                        $"{request.RequestUri.Scheme}{Uri.SchemeDelimiter}" +
+                        $"{request.RequestUri.Authority}{request.RequestUri.AbsolutePath}";
 
                     Assert.AreEqual(expectedPath, actualPath);
 
-                    var expectedQueryStringCollection = HttpUtility.ParseQueryString(queryStringBuilder.ToString());
                     var actualQueryStringCollection = HttpUtility.ParseQueryString(request.RequestUri.Query);
-                    Assert.AreEqual(expectedQueryStringCollection.Count, actualQueryStringCollection.Count);
-                    foreach (var key in expectedQueryStringCollection.AllKeys)
-                    {
-                        Assert.AreEqual(expectedQueryStringCollection[key], actualQueryStringCollection[key]);
-                    }
+
+                    Assert.That(actualQueryStringCollection, Is.EquivalentTo(expectedQueryStringCollection));
 
                     return HttpTests.CreateJsonStringResponseAsync(response);
                 }
@@ -348,7 +333,10 @@ namespace Keen.Core.Test
 
             var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
 
-            var actualResult = await client.Queries.Metric(queryParameters.Analysis, queryParameters.EventCollection, null);
+            var actualResult = await client.Queries.Metric(
+                queryParameters.Analysis,
+                queryParameters.EventCollection,
+                null);
 
             Assert.AreEqual(expectedResult, actualResult);
         }
@@ -442,12 +430,14 @@ namespace Keen.Core.Test
                 null,
                 queryParameters.GroupBy);
 
-            Assert.AreEqual(expectedGroupResults.Count(), actualResult.Count());
-            foreach (var actualGroupResult in actualResult)
+            var expectedSdkResult = expectedGroupResults.Select((result) =>
             {
-                var expectedGroupResult = expectedGroupResults.Where((result) => result[queryParameters.GroupBy] == actualGroupResult.Group).First();
-                Assert.AreEqual(expectedGroupResult["result"], actualGroupResult.Value);
-            }
+                return new QueryGroupValue<string>(
+                    result["result"],
+                    result[queryParameters.GroupBy]);
+            });
+
+            Assert.That(actualResult, Is.EquivalentTo(expectedSdkResult));
         }
 
         [Test]
@@ -469,7 +459,6 @@ namespace Keen.Core.Test
                     someGroupProperty = group,
                     result = result
                 });
-
             var expectedResponse = new
             {
                 result = expectedGroupResults
@@ -483,12 +472,14 @@ namespace Keen.Core.Test
                 queryParameters.TargetProperty,
                 queryParameters.GroupBy);
 
-            Assert.AreEqual(expectedGroupResults.Count(), actualResult.Count());
-            foreach (var actualGroupResult in actualResult)
+            var expectedSdkResult = expectedGroupResults.Select((result) =>
             {
-                var expectedGroupResult = expectedGroupResults.Where((result) => result.someGroupProperty == actualGroupResult.Group).First();
-                Assert.AreEqual(string.Join(',', expectedGroupResult.result), actualGroupResult.Value);
-            }
+                return new QueryGroupValue<string>(
+                    string.Join(',', result.result),
+                    result.someGroupProperty);
+            });
+
+            Assert.That(actualResult, Is.EquivalentTo(expectedSdkResult));
         }
 
         [Test]
@@ -510,7 +501,6 @@ namespace Keen.Core.Test
             var expectedResults = expectedCounts.Zip(
                 expectedTimeframes,
                 (count, time) => new { timeframe = time, value = count });
-
             var expectedResponse = new
             {
                 result = expectedResults
@@ -518,24 +508,22 @@ namespace Keen.Core.Test
 
             var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
 
-            var actualResults = await client.Queries.Metric(
+            var actualResult = await client.Queries.Metric(
                 queryParameters.Analysis,
                 queryParameters.EventCollection,
                 queryParameters.TargetProperty,
                 queryParameters.Timeframe,
                 queryParameters.Interval);
 
-            Assert.AreEqual(expectedResults.Count(), actualResults.Count());
-            var expectedEnumerator = expectedResults.GetEnumerator();
-            var actualEnumerator = actualResults.GetEnumerator();
-            while (expectedEnumerator.MoveNext() && actualEnumerator.MoveNext())
+            var expectedSdkResult = expectedResults.Select((result) =>
             {
-                var expected = expectedEnumerator.Current;
-                var actual = actualEnumerator.Current;
-                Assert.AreEqual(expected.timeframe.Start, actual.Start);
-                Assert.AreEqual(expected.timeframe.End, actual.End);
-                Assert.AreEqual(expected.value, actual.Value);
-            }
+                return new QueryIntervalValue<string>(
+                    string.Join(',', result.value),
+                    result.timeframe.Start,
+                    result.timeframe.End);
+            });
+
+            Assert.That(actualResult, Is.EquivalentTo(expectedSdkResult));
         }
 
         [Test]
@@ -558,7 +546,6 @@ namespace Keen.Core.Test
             var expectedResults = expectedCounts.Zip(
                 expectedTimeframes,
                 (count, time) => new { timeframe = time, value = count });
-
             var expectedResponse = new
             {
                 result = expectedResults
@@ -566,24 +553,22 @@ namespace Keen.Core.Test
 
             var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
 
-            var actualResults = await client.Queries.Metric(
+            var actualResult = await client.Queries.Metric(
                 queryParameters.Analysis,
                 queryParameters.EventCollection,
                 queryParameters.TargetProperty,
                 queryParameters.Timeframe,
                 queryParameters.Interval);
 
-            Assert.AreEqual(expectedResults.Count(), actualResults.Count());
-            var expectedEnumerator = expectedResults.GetEnumerator();
-            var actualEnumerator = actualResults.GetEnumerator();
-            while (expectedEnumerator.MoveNext() && actualEnumerator.MoveNext())
+            var expectedSdkResult = expectedResults.Select((result) =>
             {
-                var expected = expectedEnumerator.Current;
-                var actual = actualEnumerator.Current;
-                Assert.AreEqual(expected.timeframe.Start, actual.Start);
-                Assert.AreEqual(expected.timeframe.End, actual.End);
-                Assert.AreEqual(string.Join(',', expected.value), actual.Value);
-            }
+                return new QueryIntervalValue<string>(
+                    string.Join(',', result.value),
+                    result.timeframe.Start,
+                    result.timeframe.End);
+            });
+
+            Assert.That(actualResult, Is.EquivalentTo(expectedSdkResult));
         }
 
         [Test]
@@ -626,35 +611,28 @@ namespace Keen.Core.Test
 
             var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
 
-            var actualResults = await client.Queries.Metric(
+            var actualResult = (await client.Queries.Metric(
                 queryParameters.Analysis,
                 queryParameters.EventCollection,
                 queryParameters.TargetProperty,
                 queryParameters.GroupBy,
                 queryParameters.Timeframe,
-                queryParameters.Interval);
+                queryParameters.Interval));
 
-            Assert.AreEqual(expectedResults.Count(), actualResults.Count());
-            var actualEnumerator = actualResults.GetEnumerator();
-            foreach (var expected in expectedResults)
+            var expectedSdkResult = expectedResults.Select((intervals) =>
             {
-                actualEnumerator.MoveNext();
-                var actual = actualEnumerator.Current;
-                // Validate the interval is correct
-                Assert.AreEqual(expected.timeframe.Start, actual.Start);
-                Assert.AreEqual(expected.timeframe.End, actual.End);
+                return new QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>(
+                    intervals.value.Select((group) => new QueryGroupValue<string>(
+                        group["result"],
+                        group[queryParameters.GroupBy])),
+                    intervals.timeframe.Start,
+                    intervals.timeframe.End
+                    );
+            });
 
-                // Validate the results for the group within the time interval
-                Assert.AreEqual(expected.value.Count, actual.Value.Count());
-                var actualGroupResultEnumerator = actual.Value.GetEnumerator();
-                foreach (var expectedGroupResult in expected.value)
-                {
-                    actualGroupResultEnumerator.MoveNext();
-                    var actualGroupResult = actualGroupResultEnumerator.Current;
-                    Assert.AreEqual(expectedGroupResult[queryParameters.GroupBy], actualGroupResult.Group);
-                    Assert.AreEqual(expectedGroupResult["result"], actualGroupResult.Value);
-                }
-            }
+            // Use JArray objects as a way to normalize types here, since the 
+            // concrete types won't match for the QueryInternalValue IEnumerable implementation.
+            Assert.That(JArray.FromObject(actualResult), Is.EquivalentTo(JArray.FromObject(expectedSdkResult)));
         }
 
         [Test]
@@ -725,7 +703,7 @@ namespace Keen.Core.Test
 
             var client = CreateQueryTestKeenClient(queryParameters, expectedResponse);
 
-            var actualResults = await client.Queries.Metric(
+            var actualResult = await client.Queries.Metric(
                 queryParameters.Analysis,
                 queryParameters.EventCollection,
                 queryParameters.TargetProperty,
@@ -733,27 +711,22 @@ namespace Keen.Core.Test
                 queryParameters.Timeframe,
                 queryParameters.Interval);
 
-            Assert.AreEqual(expectedResults.Count(), actualResults.Count());
-            var actualEnumerator = actualResults.GetEnumerator();
-            foreach (var expected in expectedResults)
+            var expectedSdkResult = expectedResults.Select((intervalToken) =>
             {
-                actualEnumerator.MoveNext();
-                var actual = actualEnumerator.Current;
-                // Validate the interval is correct
-                Assert.AreEqual(DateTime.Parse(expected["timeframe"]["start"].Value<string>()), actual.Start);
-                Assert.AreEqual(DateTime.Parse(expected["timeframe"]["end"].Value<string>()), actual.End);
+                return new QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>(
+                    intervalToken["value"].Select((groupToken) =>
+                    {
+                        return new QueryGroupValue<string>(
+                                string.Join(',', groupToken["result"]),
+                                groupToken[queryParameters.GroupBy].Value<string>());
+                    }),
+                    intervalToken["timeframe"]["start"].Value<DateTime>(),
+                    intervalToken["timeframe"]["end"].Value<DateTime>());
+            });
 
-                // Validate the results for the group within the time interval
-                Assert.AreEqual(expected["value"].Count(), actual.Value.Count());
-                var actualGroupResultEnumerator = actual.Value.GetEnumerator();
-                foreach (var expectedGroupResult in expected["value"])
-                {
-                    actualGroupResultEnumerator.MoveNext();
-                    var actualGroupResult = actualGroupResultEnumerator.Current;
-                    Assert.AreEqual(expectedGroupResult[queryParameters.GroupBy].Value<string>(), actualGroupResult.Group);
-                    Assert.AreEqual(string.Join(',', expectedGroupResult["result"].Values<string>()), actualGroupResult.Value);
-                }
-            }
+            // Use JArray objects as a way to normalize types here, since the 
+            // concrete types won't match for the QueryInternalValue IEnumerable implementation.
+            Assert.That(JArray.FromObject(actualResult), Is.EquivalentTo(JArray.FromObject(expectedSdkResult)));
         }
 
         [Test]
@@ -812,17 +785,7 @@ namespace Keen.Core.Test
                 queryParameters.EventCollection,
                 queryParameters.Timeframe);
 
-            Assert.AreEqual(expectedResults.Count(), actualResults.Count());
-            var actualEnumerator = actualResults.GetEnumerator();
-            foreach (var expected in expectedResults)
-            {
-                actualEnumerator.MoveNext();
-                JToken actual = actualEnumerator.Current;
-                // Validate the result is correct
-                Assert.AreEqual(expected["user"]["email"].Value<string>(), actual["user"]["email"].Value<string>());
-                Assert.AreEqual(expected["user"]["id"].Value<string>(), actual["user"]["id"].Value<string>());
-                Assert.AreEqual(expected["user_agent"]["browser"].Value<string>(), actual["user_agent"]["browser"].Value<string>());
-            }
+            Assert.That(actualResults, Is.EquivalentTo(expectedResults));
         }
 
         [Test]
@@ -870,17 +833,13 @@ namespace Keen.Core.Test
             var actualResults = await client.Queries.Funnel(
                 queryParameters.Steps);
 
-            var expectedResults = expectedResponse["result"];
+            var expectedResults = expectedResponse["result"].Values<int>();
 
-            Assert.AreEqual(expectedResults.Count(), actualResults.Result.Count());
-            var actualEnumerator = actualResults.Result.GetEnumerator();
-            foreach (var expected in expectedResults)
-            {
-                actualEnumerator.MoveNext();
-                var actual = actualEnumerator.Current;
-                // Validate the result is correct
-                Assert.AreEqual(expected.Value<int>(), actual);
-            }
+            Assert.That(actualResults.Result, Is.EquivalentTo(expectedResults));
+
+            var expectedSteps = queryParameters.Steps.Select((step) => new FunnelResultStep() { EventCollection = step.EventCollection, ActorProperty = step.ActorProperty, Timeframe = step.Timeframe });
+
+            Assert.That(actualResults.Steps, Is.EquivalentTo(expectedSteps));
         }
 
         [Test]
@@ -918,13 +877,9 @@ namespace Keen.Core.Test
                 timezone: null);
 
             var expectedResults = expectedResponse["result"];
+            var transformedResults = JObject.FromObject(actualResults.ToDictionary((pair) => pair.Key, (pair) => int.Parse(pair.Value)));
 
-            Assert.AreEqual(expectedResults.Count(), actualResults.Count());
-            foreach (var label in queryParameters.Labels)
-            {
-                // Validate the result is correct
-                Assert.AreEqual(expectedResults[label].Value<int>(), int.Parse(actualResults[label]));
-            }
+            Assert.That(transformedResults, Is.EquivalentTo(expectedResults));
         }
 
         [Test]
@@ -1029,19 +984,16 @@ namespace Keen.Core.Test
             var expectedResults = expectedResponse["result"];
 
             Assert.AreEqual(expectedResults.Count(), actualResults.Count());
-            var actualResultsEnumerator = actualResults.GetEnumerator();
-            foreach (var expectedResult in expectedResults)
+            var results = expectedResults.Zip(actualResults, (expected, actual) => new { Expected = expected, Actual = actual });
+            foreach (var result in results)
             {
-                actualResultsEnumerator.MoveNext();
-                var actualResult = actualResultsEnumerator.Current;
-
-                Assert.AreEqual(DateTime.Parse(expectedResult["timeframe"]["start"].Value<string>()), actualResult.Start);
-                Assert.AreEqual(DateTime.Parse(expectedResult["timeframe"]["end"].Value<string>()), actualResult.End);
+                Assert.AreEqual(DateTime.Parse(result.Expected["timeframe"]["start"].Value<string>()), result.Actual.Start);
+                Assert.AreEqual(DateTime.Parse(result.Expected["timeframe"]["end"].Value<string>()), result.Actual.End);
 
                 foreach (var label in queryParameters.Labels)
                 {
                     // Validate the result is correct
-                    Assert.AreEqual(expectedResult["value"][label].Value<int>(), int.Parse(actualResult.Value[label]));
+                    Assert.AreEqual(result.Expected["value"][label].Value<int>(), int.Parse(result.Actual.Value[label]));
                 }
             }
         }
@@ -1095,19 +1047,16 @@ namespace Keen.Core.Test
             var expectedResults = expectedResponse["result"];
 
             Assert.AreEqual(expectedResults.Count(), actualResults.Count());
-            var actualResultsEnumerator = actualResults.GetEnumerator();
-            foreach (var expectedResult in expectedResults)
+            var results = expectedResults.Zip(actualResults, (expected, actual) => new { Expected = expected, Actual = actual });
+            foreach (var result in results)
             {
-                actualResultsEnumerator.MoveNext();
-                var actualResult = actualResultsEnumerator.Current;
-
-                Assert.AreEqual(DateTime.Parse(expectedResult["timeframe"]["start"].Value<string>()), actualResult.Start);
-                Assert.AreEqual(DateTime.Parse(expectedResult["timeframe"]["end"].Value<string>()), actualResult.End);
+                Assert.AreEqual(DateTime.Parse(result.Expected["timeframe"]["start"].Value<string>()), result.Actual.Start);
+                Assert.AreEqual(DateTime.Parse(result.Expected["timeframe"]["end"].Value<string>()), result.Actual.End);
 
                 foreach (var group in new string[] { "group1", "group2" })
                 {
-                    var expectedGroupResult = expectedResult["value"].Where((groupResult) => groupResult[queryParameters.GroupBy].Value<string>() == group).First();
-                    var actualGroupResult = actualResult.Value.Where((groupResult) => groupResult.Group == group).First();
+                    var expectedGroupResult = result.Expected["value"].Where((groupResult) => groupResult[queryParameters.GroupBy].Value<string>() == group).First();
+                    var actualGroupResult = result.Actual.Value.Where((groupResult) => groupResult.Group == group).First();
 
                     foreach (var label in queryParameters.Labels)
                     {

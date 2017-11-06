@@ -1,4 +1,6 @@
 ﻿
+using System.Collections.Generic;
+
 namespace Keen.Core.Query
 {
     /// <summary>
@@ -21,6 +23,22 @@ namespace Keen.Core.Query
         {
             Value = value;
             Group = group;
+        }
+
+        public override bool Equals(object obj)
+        {
+            var value = obj as QueryGroupValue<T>;
+            return value != null &&
+                   EqualityComparer<T>.Default.Equals(Value, value.Value) &&
+                   Group == value.Group;
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = -1845644250;
+            hashCode = hashCode * -1521134295 + EqualityComparer<T>.Default.GetHashCode(Value);
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Group);
+            return hashCode;
         }
     }
 }
