@@ -85,6 +85,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Net.Http.WebRequest" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -115,6 +116,7 @@
     <Compile Include="ScopedKeyTest.cs" />
     <Compile Include="DelegatingHandlerMock.cs" />
     <Compile Include="TestKeenHttpClientProvider.cs" />
+    <Compile Include="TimeframeConverterTest.cs" />
     <Compile Include="UrlToMessageHandler.cs" />
   </ItemGroup>
   <ItemGroup>
