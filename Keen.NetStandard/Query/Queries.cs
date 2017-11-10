@@ -312,18 +312,28 @@ namespace Keen.Core.Query
             return o;
         }
 
+        string SerializeMultiAnalysisQueryParameter(IEnumerable<MultiAnalysisParam> analysisParams)
+        {
+            var jObs = analysisParams.Select(x =>
+                new JProperty(x.Label, JObject.FromObject(
+                    string.IsNullOrEmpty(x.TargetProperty) ?
+                        (object)new { analysis_type = x.Analysis } :
+                        new { analysis_type = x.Analysis, target_property = x.TargetProperty })));
+
+            return JsonConvert.SerializeObject(
+                new JObject(jObs),
+                Formatting.None,
+                new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+        }
+
         public async Task<IDictionary<string, string>> MultiAnalysis(string collection, IEnumerable<MultiAnalysisParam> analysisParams, IQueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
-            var jObs = analysisParams.Select(x => 
-                new JProperty( x.Label, JObject.FromObject( new {analysis_type = x.Analysis, target_property = x.TargetProperty })));
-            var parmsJson = JsonConvert.SerializeObject(new JObject(jObs), Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
-
             var parms = new Dictionary<string, string>();
             parms.Add(KeenConstants.QueryParmEventCollection, collection);
             parms.Add(KeenConstants.QueryParmTimeframe, timeframe.ToSafeString());
             parms.Add(KeenConstants.QueryParmTimezone, timezone);
             parms.Add(KeenConstants.QueryParmFilters, filters == null ? "" : JArray.FromObject(filters).ToString());
-            parms.Add(KeenConstants.QueryParmAnalyses, parmsJson);
+            parms.Add(KeenConstants.QueryParmAnalyses, SerializeMultiAnalysisQueryParameter(analysisParams));
 
             var reply = await KeenWebApiRequest(KeenConstants.QueryMultiAnalysis, parms).ConfigureAwait(false);
 
@@ -336,17 +346,13 @@ namespace Keen.Core.Query
 
         public async Task<IEnumerable<QueryGroupValue<IDictionary<string, string>>>> MultiAnalysis(string collection, IEnumerable<MultiAnalysisParam> analysisParams, IQueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string groupby = "", string timezone = "")
         {
-            var jObs = analysisParams.Select(x =>
-                new JProperty(x.Label, JObject.FromObject(new { analysis_type = x.Analysis, target_property = x.TargetProperty })));
-            var parmsJson = JsonConvert.SerializeObject(new JObject(jObs), Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
-
             var parms = new Dictionary<string, string>();
             parms.Add(KeenConstants.QueryParmEventCollection, collection);
             parms.Add(KeenConstants.QueryParmTimeframe, timeframe.ToSafeString());
             parms.Add(KeenConstants.QueryParmTimezone, timezone);
             parms.Add(KeenConstants.QueryParmFilters, filters == null ? "" : JArray.FromObject(filters).ToString());
             parms.Add(KeenConstants.QueryParmGroupBy, groupby);
-            parms.Add(KeenConstants.QueryParmAnalyses, parmsJson);
+            parms.Add(KeenConstants.QueryParmAnalyses, SerializeMultiAnalysisQueryParameter(analysisParams));
 
             var reply = await KeenWebApiRequest(KeenConstants.QueryMultiAnalysis, parms).ConfigureAwait(false);
 
@@ -371,16 +377,13 @@ namespace Keen.Core.Query
 
         public async Task<IEnumerable<QueryIntervalValue<IDictionary<string, string>>>> MultiAnalysis(string collection, IEnumerable<MultiAnalysisParam> analysisParams, IQueryTimeframe timeframe = null, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
-            var jObs = analysisParams.Select(x => new JProperty(x.Label, JObject.FromObject(new { analysis_type = x.Analysis, target_property = x.TargetProperty })));
-            var parmsJson = JsonConvert.SerializeObject(new JObject(jObs), Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
-
             var parms = new Dictionary<string, string>();
             parms.Add(KeenConstants.QueryParmEventCollection, collection);
             parms.Add(KeenConstants.QueryParmTimeframe, timeframe.ToSafeString());
             parms.Add(KeenConstants.QueryParmInterval, interval.ToSafeString());
             parms.Add(KeenConstants.QueryParmTimezone, timezone);
             parms.Add(KeenConstants.QueryParmFilters, filters == null ? "" : JArray.FromObject(filters).ToString());
-            parms.Add(KeenConstants.QueryParmAnalyses, parmsJson);
+            parms.Add(KeenConstants.QueryParmAnalyses, SerializeMultiAnalysisQueryParameter(analysisParams));
 
             var reply = await KeenWebApiRequest(KeenConstants.QueryMultiAnalysis, parms).ConfigureAwait(false);
 
@@ -401,9 +404,6 @@ namespace Keen.Core.Query
 
         public async Task<IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<IDictionary<string, string>>>>>> MultiAnalysis(string collection, IEnumerable<MultiAnalysisParam> analysisParams, IQueryTimeframe timeframe = null, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string groupby = "", string timezone = "")
         {
-            var jObs = analysisParams.Select(x => new JProperty(x.Label, JObject.FromObject(new { analysis_type = x.Analysis, target_property = x.TargetProperty })));
-            var parmsJson = JsonConvert.SerializeObject(new JObject(jObs), Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
-
             var parms = new Dictionary<string, string>();
             parms.Add(KeenConstants.QueryParmEventCollection, collection);
             parms.Add(KeenConstants.QueryParmTimeframe, timeframe.ToSafeString());
@@ -411,7 +411,7 @@ namespace Keen.Core.Query
             parms.Add(KeenConstants.QueryParmTimezone, timezone);
             parms.Add(KeenConstants.QueryParmGroupBy, groupby);
             parms.Add(KeenConstants.QueryParmFilters, filters == null ? "" : JArray.FromObject(filters).ToString());
-            parms.Add(KeenConstants.QueryParmAnalyses, parmsJson);
+            parms.Add(KeenConstants.QueryParmAnalyses, SerializeMultiAnalysisQueryParameter(analysisParams));
 
             var reply = await KeenWebApiRequest(KeenConstants.QueryMultiAnalysis, parms).ConfigureAwait(false);
 
