@@ -52,7 +52,12 @@
     <Compile Include="..\SharedVersionInfo.cs">
       <Link>Properties\SharedVersionInfo.cs</Link>
     </Compile>
+    <Compile Include="Dataset\DatasetDefinition.cs" />
+    <Compile Include="Dataset\DatasetDefinitionCollection.cs" />
+    <Compile Include="Dataset\Datasets.cs" />
     <Compile Include="DataEnrichment\EventAddOn.cs" />
+    <Compile Include="Dataset\IDataset.cs" />
+    <Compile Include="Dataset\QueryDefinitionExtensions.cs" />
     <Compile Include="HttpClientCache.cs" />
     <Compile Include="IHttpClientProvider.cs" />
     <Compile Include="IKeenHttpClient.cs" />
@@ -65,6 +70,7 @@
     <Compile Include="IKeenHttpClientProvider.cs" />
     <Compile Include="Query\MultiAnalysisParam.cs" />
     <Compile Include="Query\Queries.cs" />
+    <Compile Include="Query\QueryDefinition.cs" />
     <Compile Include="Query\QueryFilter.cs" />
     <Compile Include="Query\QueryGroupValue.cs" />
     <Compile Include="Query\QueryInterval.cs" />

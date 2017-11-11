@@ -100,6 +100,8 @@
       <Link>Properties\SharedVersionInfo.cs</Link>
     </Compile>
     <Compile Include="AddOnsTest.cs" />
+    <Compile Include="DatasetTests_Integration.cs" />
+    <Compile Include="DatasetTests.cs" />
     <Compile Include="EventCacheTest.cs" />
     <Compile Include="EventCollectionMock.cs" />
     <Compile Include="EventMock.cs" />
@@ -120,6 +122,15 @@
     <Compile Include="UrlToMessageHandler.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="ApiResponses\GetDatasetDefinition.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ApiResponses\ListDatasetDefinitions.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ApiResponses\GetDatasetResults.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>

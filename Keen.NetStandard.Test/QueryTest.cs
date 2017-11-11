@@ -74,7 +74,7 @@ namespace Keen.Core.Test
                 client.Queries = queryMock.Object;
             }
 
-            var response = await client.GetQueries();
+            var response = await client.GetQueriesAsync();
             Assert.True(response.Any(p => p.Key == "minimum"));
             Assert.True(response.Any(p => p.Key == "average"));
             Assert.True(response.Any(p => p.Key == "maximum"));

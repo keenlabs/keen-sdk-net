@@ -1,4 +1,4 @@
-﻿using Keen.Core;
+using Keen.Core;
 using Keen.Core.EventCache;
 using Moq;
 using Newtonsoft.Json.Linq;

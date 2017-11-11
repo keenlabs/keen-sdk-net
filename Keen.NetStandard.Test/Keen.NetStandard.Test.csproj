@@ -24,4 +24,16 @@
     <ProjectReference Include="..\Keen.NetStandard\Keen.NetStandard.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="ApiResponses\GetDatasetDefinition.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="ApiResponses\GetDatasetResults.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="ApiResponses\ListDatasetDefinitions.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
