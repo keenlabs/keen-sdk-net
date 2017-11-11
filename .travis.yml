@@ -19,5 +19,5 @@ osx_image: xcode8.3
 
 # Build and run the Keen.NetStandard project and run its tests
 script: |
-  cd Keen.NetStandard.Test
+  cd Keen.Test
   dotnet test

@@ -48,7 +48,7 @@ function Update-AssemblyVersionAttributes ([string] $version) {
     $majMinPatchVersion = Get-MajMinPatchVersion($version)
     $newNetStandardVersion = "<Version>$majMinPatchVersion</Version>"
  
-    Get-ChildItem -r -filter .\* -Include Keen.NetStandard.csproj | ForEach-Object {
+    Get-ChildItem -r -filter .\* -Include Keen.csproj | ForEach-Object {
         $filename = $_.Directory.ToString() + [IO.Path]::DirectorySeparatorChar + $_.Name
         "Setting version to $version in $filename"
 
@@ -71,7 +71,7 @@ Update-AssemblyVersionAttributes $version
 
 
 # Create another .nupkg for the .NET Standard stuff based on the .csproj, which will be the only .nupkg going forward
-& pushd .\Keen.NetStandard
+& pushd .\Keen
 & dotnet clean
 & dotnet pack -c Release
 & popd
