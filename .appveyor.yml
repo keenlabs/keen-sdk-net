@@ -65,6 +65,12 @@ build:
   # MSBuild verbosity level
   verbosity: normal
 
+
+# NOTE : We don't set a custom build script, so by default AppVeyor builds with MSBuild, which is
+# fine because that means between this and Travis CI, we're validating dotnet/msbuild and also
+# Windows/MacOS/Linux.
+
+
 before_build:
   # Make sure we have the right tools version
   - dotnet --version
