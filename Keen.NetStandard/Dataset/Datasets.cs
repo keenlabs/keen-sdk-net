@@ -31,6 +31,7 @@ namespace Keen.Core.Dataset
         private readonly IKeenHttpClient _keenHttpClient;
         private readonly string _cachedDatasetRelativeUrl;
         private readonly string _masterKey;
+        private readonly string _readKey;
 
 
         internal Datasets(IProjectSettings prjSettings,
@@ -62,6 +63,7 @@ namespace Keen.Core.Dataset
                                               KeenConstants.DatasetsResource);
 
             _masterKey = prjSettings.MasterKey;
+            _readKey = prjSettings.ReadKey;
         }
 
         public async Task<JObject> GetResultsAsync(string datasetName,
@@ -83,9 +85,9 @@ namespace Keen.Core.Dataset
                 throw new KeenException("A timeframe by is required.");
             }
 
-            if (string.IsNullOrWhiteSpace(_masterKey))
+            if (string.IsNullOrWhiteSpace(_readKey))
             {
-                throw new KeenException("An API masterkey is required to get dataset results.");
+                throw new KeenException("An API ReadKey is required to get dataset results.");
             }
 
             var datasetResultsUrl = $"{GetDatasetUrl(datasetName)}/results";
@@ -93,7 +95,7 @@ namespace Keen.Core.Dataset
             var url = $"{datasetResultsUrl}?index_by={indexBy}&timeframe={timeframe}";
 
             var responseMsg = await _keenHttpClient
-                .GetAsync(url, _masterKey)
+                .GetAsync(url, _readKey)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             var responseString = await responseMsg
@@ -120,13 +122,13 @@ namespace Keen.Core.Dataset
                 throw new KeenException("A dataset name is required.");
             }
 
-            if (string.IsNullOrWhiteSpace(_masterKey))
+            if (string.IsNullOrWhiteSpace(_readKey))
             {
-                throw new KeenException("An API masterkey is required to get dataset results.");
+                throw new KeenException("An API ReadKey is required to get dataset results.");
             }
 
             var responseMsg = await _keenHttpClient
-                .GetAsync(GetDatasetUrl(datasetName), _masterKey)
+                .GetAsync(GetDatasetUrl(datasetName), _readKey)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             var responseString = await responseMsg
@@ -151,9 +153,9 @@ namespace Keen.Core.Dataset
             int limit = 10,
             string afterName = null)
         {
-            if (string.IsNullOrWhiteSpace(_masterKey))
+            if (string.IsNullOrWhiteSpace(_readKey))
             {
-                throw new KeenException("An API masterkey is required to get dataset results.");
+                throw new KeenException("An API ReadKey is required to get dataset results.");
             }
 
             var datasetResultsUrl = $"{_cachedDatasetRelativeUrl}?limit={limit}";
@@ -164,7 +166,7 @@ namespace Keen.Core.Dataset
             }
 
             var responseMsg = await _keenHttpClient
-                .GetAsync(datasetResultsUrl, _masterKey)
+                .GetAsync(datasetResultsUrl, _readKey)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             var responseString = await responseMsg
@@ -234,7 +236,7 @@ namespace Keen.Core.Dataset
 
             if (string.IsNullOrWhiteSpace(_masterKey))
             {
-                throw new KeenException("An API masterkey is required to get dataset results.");
+                throw new KeenException("An API MasterKey is required to get dataset results.");
             }
 
             var responseMsg = await _keenHttpClient
@@ -246,23 +248,21 @@ namespace Keen.Core.Dataset
                 .ReadAsStringAsync()
                 .ConfigureAwait(continueOnCapturedContext: false);
 
-            if (HttpStatusCode.NoContent == responseMsg.StatusCode)
+            if (HttpStatusCode.NoContent != responseMsg.StatusCode)
             {
-                return;
+                var response = JObject.Parse(responseString);
+
+                KeenUtil.CheckApiErrorCode(response);
+
+                throw new KeenException($"Request failed with status: {responseMsg.StatusCode}");
             }
-
-            var response = JObject.Parse(responseString);
-
-            KeenUtil.CheckApiErrorCode(response);
-
-            throw new KeenException($"Request failed with status: {responseMsg.StatusCode}");
         }
 
         public async Task<DatasetDefinition> CreateDatasetAsync(DatasetDefinition dataset)
         {
             if (string.IsNullOrWhiteSpace(_masterKey))
             {
-                throw new KeenException("An API masterkey is required to get dataset results.");
+                throw new KeenException("An API MasterKey is required to get dataset results.");
             }
 
             // Validate

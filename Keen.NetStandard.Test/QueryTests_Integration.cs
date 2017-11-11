@@ -161,7 +161,7 @@ namespace Keen.Core.Test
                                                           new DelegatingHandlerMock(handler))
             });
 
-            var actualQueries = await client.GetQueries();
+            var actualQueries = await client.GetQueriesAsync();
 
             Assert.That(actualQueries, Is.EquivalentTo(expectedQueries));
         }

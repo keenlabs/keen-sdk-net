@@ -179,7 +179,28 @@ namespace Keen.Core.Test
         }
 
         [Test]
-        public void Results_Throws()
+        public void Results_Throws_WrongKey()
+        {
+            var apiResponse = File.ReadAllText($"{GetApiResponsesPath()}/GetDatasetResults.json");
+            IKeenHttpClientProvider httpClientProvider = null;
+
+            if (UseMocks)
+            {
+                httpClientProvider = GetMockHttpClientProviderForGetAsync(apiResponse);
+            }
+
+            var brokenClient = new KeenClient(new ProjectSettingsProvider("5011efa95f546f2ce2000000",
+                    Environment.GetEnvironmentVariable(KeenConstants.KeenMasterKey) ?? "",
+                    Environment.GetEnvironmentVariable(KeenConstants.KeenWriteKey) ?? "",
+                    null,
+                    GetServerUrl()),
+                httpClientProvider);
+
+            Assert.Throws<KeenException>(() => brokenClient.QueryDataset(_datasetName, _indexBy, _timeframe));
+        }
+
+        [Test]
+        public void Results_Throws_ServerError()
         {
             IKeenHttpClientProvider httpClientProvider = null;
 
@@ -193,21 +214,32 @@ namespace Keen.Core.Test
             Assert.Throws<KeenException>(() => client.QueryDataset(null, _indexBy, _timeframe));
             Assert.Throws<KeenException>(() => client.QueryDataset(_datasetName, null, _timeframe));
             Assert.Throws<KeenException>(() => client.QueryDataset(_datasetName, _indexBy, null));
-
             Assert.Throws<KeenException>(() => client.QueryDataset(_datasetName, _indexBy, _timeframe));
-
-            var brokenClient = new KeenClient(new ProjectSettingsProvider("5011efa95f546f2ce2000000",
-                null,
-                Environment.GetEnvironmentVariable("KEEN_WRITE_KEY") ?? "",
-                Environment.GetEnvironmentVariable("KEEN_READ_KEY") ?? "",
-                Environment.GetEnvironmentVariable("KEEN_SERVER_URL") ?? KeenConstants.ServerAddress + "/" + KeenConstants.ApiVersion + "/"),
-                httpClientProvider);
-
-            Assert.Throws<KeenException>(() => brokenClient.QueryDataset(_datasetName, _indexBy, _timeframe));
         }
 
         [Test]
-        public void Definition_Throws()
+        public void Definition_Throws_WrongKey()
+        {
+            var apiResponse = File.ReadAllText($"{GetApiResponsesPath()}/GetDatasetDefinition.json");
+            IKeenHttpClientProvider httpClientProvider = null;
+
+            if (UseMocks)
+            {
+                httpClientProvider = GetMockHttpClientProviderForGetAsync(apiResponse);
+            }
+
+            var brokenClient = new KeenClient(new ProjectSettingsProvider("5011efa95f546f2ce2000000",
+                    Environment.GetEnvironmentVariable(KeenConstants.KeenMasterKey) ?? "",
+                    Environment.GetEnvironmentVariable(KeenConstants.KeenWriteKey) ?? "",
+                    null,
+                    GetServerUrl()),
+                httpClientProvider);
+
+            Assert.Throws<KeenException>(() => brokenClient.GetDatasetDefinition(_datasetName));
+        }
+
+        [Test]
+        public void Definition_Throws_ServerError()
         {
             IKeenHttpClientProvider httpClientProvider = null;
 
@@ -220,19 +252,31 @@ namespace Keen.Core.Test
 
             Assert.Throws<KeenException>(() => client.GetDatasetDefinition(null));
             Assert.Throws<KeenException>(() => client.GetDatasetDefinition(_datasetName));
-
-            var brokenClient = new KeenClient(new ProjectSettingsProvider("5011efa95f546f2ce2000000",
-                    null,
-                    Environment.GetEnvironmentVariable("KEEN_WRITE_KEY") ?? "",
-                    Environment.GetEnvironmentVariable("KEEN_READ_KEY") ?? "",
-                    Environment.GetEnvironmentVariable("KEEN_SERVER_URL") ?? KeenConstants.ServerAddress + "/" + KeenConstants.ApiVersion + "/"),
-                httpClientProvider);
-
-            Assert.Throws<KeenException>(() => brokenClient.GetDatasetDefinition(_datasetName));
         }
 
         [Test]
-        public void ListDefinitions_Throws()
+        public void ListDefinitions_Throws_WrongKey()
+        {
+            var apiResponse = File.ReadAllText($"{GetApiResponsesPath()}/ListDatasetDefinitions.json");
+            IKeenHttpClientProvider httpClientProvider = null;
+
+            if (UseMocks)
+            {
+                httpClientProvider = GetMockHttpClientProviderForGetAsync(apiResponse);
+            }
+
+            var brokenClient = new KeenClient(new ProjectSettingsProvider("5011efa95f546f2ce2000000",
+                    Environment.GetEnvironmentVariable(KeenConstants.KeenMasterKey) ?? "",
+                    Environment.GetEnvironmentVariable(KeenConstants.KeenWriteKey) ?? "",
+                    null,
+                    GetServerUrl()),
+                httpClientProvider);
+
+            Assert.Throws<KeenException>(() => brokenClient.ListDatasetDefinitions());
+        }
+
+        [Test]
+        public void ListDefinitions_Throws_ServerError()
         {
             IKeenHttpClientProvider httpClientProvider = null;
 
@@ -244,19 +288,30 @@ namespace Keen.Core.Test
             var client = new KeenClient(SettingsEnv, httpClientProvider);
 
             Assert.Throws<KeenException>(() => client.ListDatasetDefinitions());
-
-            var brokenClient = new KeenClient(new ProjectSettingsProvider("5011efa95f546f2ce2000000",
-                    null,
-                    Environment.GetEnvironmentVariable("KEEN_WRITE_KEY") ?? "",
-                    Environment.GetEnvironmentVariable("KEEN_READ_KEY") ?? "",
-                    Environment.GetEnvironmentVariable("KEEN_SERVER_URL") ?? KeenConstants.ServerAddress + "/" + KeenConstants.ApiVersion + "/"),
-                httpClientProvider);
-
-            Assert.Throws<KeenException>(() => brokenClient.ListDatasetDefinitions());
         }
 
         [Test]
-        public void DeleteDataset_Throws()
+        public void DeleteDataset_Throws_WrongKey()
+        {
+            IKeenHttpClientProvider httpClientProvider = null;
+
+            if (UseMocks)
+            {
+                httpClientProvider = GetMockHttpClientProviderForDeleteAsync(string.Empty);
+            }
+
+            var brokenClient = new KeenClient(new ProjectSettingsProvider("5011efa95f546f2ce2000000",
+                    null,
+                    Environment.GetEnvironmentVariable(KeenConstants.KeenWriteKey) ?? "",
+                    Environment.GetEnvironmentVariable(KeenConstants.KeenReadKey) ?? "",
+                    GetServerUrl()),
+                httpClientProvider);
+
+            Assert.Throws<KeenException>(() => brokenClient.DeleteDataset(_datasetName));
+        }
+
+        [Test]
+        public void DeleteDataset_Throws_ServerError()
         {
             IKeenHttpClientProvider httpClientProvider = null;
 
@@ -269,19 +324,32 @@ namespace Keen.Core.Test
 
             Assert.Throws<KeenException>(() => client.DeleteDataset(null));
             Assert.Throws<KeenException>(() => client.DeleteDataset(_datasetName));
-
-            var brokenClient = new KeenClient(new ProjectSettingsProvider("5011efa95f546f2ce2000000",
-                    null,
-                    Environment.GetEnvironmentVariable("KEEN_WRITE_KEY") ?? "",
-                    Environment.GetEnvironmentVariable("KEEN_READ_KEY") ?? "",
-                    Environment.GetEnvironmentVariable("KEEN_SERVER_URL") ?? KeenConstants.ServerAddress + "/" + KeenConstants.ApiVersion + "/"),
-                httpClientProvider);
-
-            Assert.Throws<KeenException>(() => brokenClient.DeleteDataset(_datasetName));
         }
 
         [Test]
-        public void CreateDataset_Throws()
+        public void CreateDataset_Throws_WrongKey()
+        {
+            var apiResponse = File.ReadAllText($"{GetApiResponsesPath()}/GetDatasetDefinition.json");
+
+            IKeenHttpClientProvider httpClientProvider = null;
+
+            if (UseMocks)
+            {
+                httpClientProvider = GetMockHttpClientProviderForPutAsync(apiResponse);
+            }
+
+            var brokenClient = new KeenClient(new ProjectSettingsProvider("5011efa95f546f2ce2000000",
+                    null,
+                    Environment.GetEnvironmentVariable(KeenConstants.KeenWriteKey) ?? "",
+                    Environment.GetEnvironmentVariable(KeenConstants.KeenReadKey) ?? "",
+                    GetServerUrl()),
+                httpClientProvider);
+
+            Assert.Throws<KeenException>(() => brokenClient.CreateDataset(CreateDatasetDefinition()));
+        }
+
+        [Test]
+        public void CreateDataset_Throws_ServerError()
         {
             IKeenHttpClientProvider httpClientProvider = null;
 
@@ -293,15 +361,6 @@ namespace Keen.Core.Test
             var client = new KeenClient(SettingsEnv, httpClientProvider);
 
             Assert.Throws<KeenException>(() => client.CreateDataset(null));
-
-            var brokenClient = new KeenClient(new ProjectSettingsProvider("5011efa95f546f2ce2000000",
-                    null,
-                    Environment.GetEnvironmentVariable("KEEN_WRITE_KEY") ?? "",
-                    Environment.GetEnvironmentVariable("KEEN_READ_KEY") ?? "",
-                    Environment.GetEnvironmentVariable("KEEN_SERVER_URL") ?? KeenConstants.ServerAddress + "/" + KeenConstants.ApiVersion + "/"),
-                httpClientProvider);
-
-            Assert.Throws<KeenException>(() => brokenClient.CreateDataset(CreateDatasetDefinition()));
         }
 
         private string GetApiResponsesPath()
@@ -429,6 +488,11 @@ namespace Keen.Core.Test
                     Interval = "daily"
                 }
             };
+        }
+
+        private string GetServerUrl()
+        {
+            return Environment.GetEnvironmentVariable(KeenConstants.KeenServerUrl) ?? KeenConstants.ServerAddress + "/" + KeenConstants.ApiVersion + "/";
         }
     }
 }

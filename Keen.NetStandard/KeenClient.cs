@@ -1,4 +1,5 @@
 ﻿using Keen.Core.DataEnrichment;
+using Keen.Core.Dataset;
 using Keen.Core.EventCache;
 using Keen.Core.Query;
 using Newtonsoft.Json.Linq;
@@ -7,7 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Keen.Core.Dataset;
+
 
 namespace Keen.Core
 {
@@ -151,15 +152,14 @@ namespace Keen.Core
         /// Master API key is required.
         /// </summary>
         /// <param name="collection">Name of collection to delete.</param>
-        public async Task DeleteCollectionAsync(string collection)
+        public Task DeleteCollectionAsync(string collection)
         {
             // Preconditions
             KeenUtil.ValidateEventCollectionName(collection);
             if (string.IsNullOrWhiteSpace(_prjSettings.MasterKey))
                 throw new KeenException("Master API key is required for DeleteCollection");
 
-            await EventCollection.DeleteCollection(collection)
-                .ConfigureAwait(continueOnCapturedContext: false);
+            return EventCollection.DeleteCollection(collection);
         }
 
         /// <summary>
@@ -183,14 +183,13 @@ namespace Keen.Core
         /// Return schema information for all the event collections in this project.
         /// </summary>
         /// <returns></returns>
-        public async Task<JArray> GetSchemasAsync()
+        public Task<JArray> GetSchemasAsync()
         {
             // Preconditions
             if (string.IsNullOrWhiteSpace(_prjSettings.ReadKey))
                 throw new KeenException("Read API key is required for GetSchemas");
 
-            return await Event.GetSchemas()
-                .ConfigureAwait(continueOnCapturedContext: false);
+            return Event.GetSchemas();
         }
 
         /// <summary>
@@ -279,8 +278,7 @@ namespace Keen.Core
             var jEvent = new JObject {{collection, JToken.FromObject(eventsInfo)}};
 
             // Use the bulk interface to add events
-            return await Event.AddEvents(jEvent)
-                .ConfigureAwait(false);
+            return await Event.AddEvents(jEvent).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -492,9 +490,9 @@ namespace Keen.Core
         /// Retrieve a list of all the queries supported by the API.
         /// </summary>
         /// <returns></returns>
-        public async Task<IEnumerable<KeyValuePair<string, string>>> GetQueries()
+        public Task<IEnumerable<KeyValuePair<string, string>>> GetQueriesAsync()
         {
-            return await Queries.AvailableQueries();
+            return Queries.AvailableQueries();
         }
 
         /// <summary>
@@ -503,9 +501,9 @@ namespace Keen.Core
         /// <param name="queryName"></param>
         /// <param name="parms"></param>
         /// <returns></returns>
-        public async Task<JObject> QueryAsync(string queryName, Dictionary<string, string> parms)
+        public Task<JObject> QueryAsync(string queryName, Dictionary<string, string> parms)
         {
-            return await Queries.Metric(queryName, parms);
+            return Queries.Metric(queryName, parms);
         }
 
         /// <summary>
@@ -537,13 +535,10 @@ namespace Keen.Core
         /// <param name="filters">Filter to narrow down the events used in analysis. Optional, may be null.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public async Task<string> QueryAsync(QueryType queryType, string collection, string targetProperty,
+        public Task<string> QueryAsync(QueryType queryType, string collection, string targetProperty,
             IQueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
-            return
-                await
-                    Queries.Metric(queryType, collection, targetProperty, timeframe, filters, timezone)
-                        .ConfigureAwait(false);
+            return Queries.Metric(queryType, collection, targetProperty, timeframe, filters, timezone);
         }
 
         /// <summary>
@@ -580,14 +575,11 @@ namespace Keen.Core
         /// <param name="filters">Filter to narrow down the events used in analysis. Optional, may be null.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<QueryGroupValue<string>>> QueryGroupAsync(QueryType queryType, string collection,
+        public Task<IEnumerable<QueryGroupValue<string>>> QueryGroupAsync(QueryType queryType, string collection,
             string targetProperty, string groupBy, IQueryTimeframe timeframe = null,
             IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
-            return
-                await
-                    Queries.Metric(queryType, collection, targetProperty, groupBy, timeframe, filters, timezone)
-                        .ConfigureAwait(false);
+            return Queries.Metric(queryType, collection, targetProperty, groupBy, timeframe, filters, timezone);
         }
 
         /// <summary>
@@ -627,14 +619,11 @@ namespace Keen.Core
         /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<QueryIntervalValue<string>>> QueryIntervalAsync(QueryType queryType,
+        public Task<IEnumerable<QueryIntervalValue<string>>> QueryIntervalAsync(QueryType queryType,
             string collection, string targetProperty, IQueryTimeframe timeframe, QueryInterval interval = null,
             IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
-            return
-                await
-                    Queries.Metric(queryType, collection, targetProperty, timeframe, interval, filters, timezone)
-                        .ConfigureAwait(false);
+            return Queries.Metric(queryType, collection, targetProperty, timeframe, interval, filters, timezone);
         }
 
         /// <summary>
@@ -676,14 +665,11 @@ namespace Keen.Core
         /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>>> QueryIntervalGroupAsync
+        public Task<IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>>> QueryIntervalGroupAsync
             (QueryType queryType, string collection, string targetProperty, string groupBy, IQueryTimeframe timeframe,
                 QueryInterval interval, IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
-            return
-                await
-                    Queries.Metric(queryType, collection, targetProperty, groupBy, timeframe, interval, filters,
-                        timezone).ConfigureAwait(false);
+            return Queries.Metric(queryType, collection, targetProperty, groupBy, timeframe, interval, filters, timezone);
         }
 
         /// <summary>
@@ -723,10 +709,10 @@ namespace Keen.Core
         /// <param name="latest">Request up to 100 of the most recent events added to a given collection.</param>
         /// <param name="email">If specified, email will be sent when the data is ready for download. Otherwise, it will be returned directly.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<dynamic>> QueryExtractResourceAsync(string collection,
+        public Task<IEnumerable<dynamic>> QueryExtractResourceAsync(string collection,
             IQueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, int latest = 0, string email = "")
         {
-            return await Queries.Extract(collection, timeframe, filters, latest, email).ConfigureAwait(false);
+            return Queries.Extract(collection, timeframe, filters, latest, email);
         }
 
         /// <summary>
@@ -758,10 +744,10 @@ namespace Keen.Core
         /// <param name="timeframe">Specifies window of time from which to select events for analysis. May be absolute or relative.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public async Task<FunnelResult> QueryFunnelAsync(IEnumerable<FunnelStep> steps,
+        public Task<FunnelResult> QueryFunnelAsync(IEnumerable<FunnelStep> steps,
             IQueryTimeframe timeframe = null, string timezone = "")
         {
-            return await Queries.Funnel(steps, timeframe, timezone).ConfigureAwait(false);
+            return Queries.Funnel(steps, timeframe, timezone);
         }
 
         /// <summary>
@@ -793,14 +779,11 @@ namespace Keen.Core
         /// <param name="filters">Filter to narrow down the events used in analysis. Optional, may be null.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public async Task<IDictionary<string, string>> QueryMultiAnalysisAsync(string collection,
+        public Task<IDictionary<string, string>> QueryMultiAnalysisAsync(string collection,
             IEnumerable<MultiAnalysisParam> analysisParams, IQueryTimeframe timeframe = null,
             IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
-            return
-                await
-                    Queries.MultiAnalysis(collection, analysisParams, timeframe, filters, timezone)
-                        .ConfigureAwait(false);
+            return Queries.MultiAnalysis(collection, analysisParams, timeframe, filters, timezone);
         }
 
         /// <summary>
@@ -837,14 +820,11 @@ namespace Keen.Core
         /// <param name="groupBy">Name of a collection field by which to group results.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<QueryGroupValue<IDictionary<string, string>>>> QueryMultiAnalysisGroupAsync(
+        public Task<IEnumerable<QueryGroupValue<IDictionary<string, string>>>> QueryMultiAnalysisGroupAsync(
             string collection, IEnumerable<MultiAnalysisParam> analysisParams, IQueryTimeframe timeframe = null,
             IEnumerable<QueryFilter> filters = null, string groupBy = "", string timezone = "")
         {
-            return
-                await
-                    Queries.MultiAnalysis(collection, analysisParams, timeframe, filters, groupBy, timezone)
-                        .ConfigureAwait(false);
+            return Queries.MultiAnalysis(collection, analysisParams, timeframe, filters, groupBy, timezone);
         }
 
         /// <summary>
@@ -885,14 +865,11 @@ namespace Keen.Core
         /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<QueryIntervalValue<IDictionary<string, string>>>> QueryMultiAnalysisIntervalAsync(
+        public Task<IEnumerable<QueryIntervalValue<IDictionary<string, string>>>> QueryMultiAnalysisIntervalAsync(
             string collection, IEnumerable<MultiAnalysisParam> analysisParams, IQueryTimeframe timeframe = null,
             QueryInterval interval = null, IEnumerable<QueryFilter> filters = null, string timezone = "")
         {
-            return
-                await
-                    Queries.MultiAnalysis(collection, analysisParams, timeframe, interval, filters, timezone)
-                        .ConfigureAwait(false);
+            return Queries.MultiAnalysis(collection, analysisParams, timeframe, interval, filters, timezone);
         }
 
         /// <summary>
@@ -934,15 +911,12 @@ namespace Keen.Core
         /// <param name="filters">Filters to narrow down the events used in analysis. Optional, may be null.</param>
         /// <param name="timezone">The timezone to use when specifying a relative timeframe. Optional, may be blank.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<IDictionary<string, string>>>>>>
+        public Task<IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<IDictionary<string, string>>>>>>
             QueryMultiAnalysisIntervalGroupAsync(string collection, IEnumerable<MultiAnalysisParam> analysisParams,
                 IQueryTimeframe timeframe = null, QueryInterval interval = null, IEnumerable<QueryFilter> filters = null,
                 string groupBy = "", string timezone = "")
         {
-            return
-                await
-                    Queries.MultiAnalysis(collection, analysisParams, timeframe, interval, filters, groupBy, timezone)
-                        .ConfigureAwait(false);
+            return Queries.MultiAnalysis(collection, analysisParams, timeframe, interval, filters, groupBy, timezone);
         }
 
         /// <summary>
@@ -981,9 +955,9 @@ namespace Keen.Core
         /// <param name="indexBy">The string property value you want to retrieve results by.</param>
         /// <param name="timeframe">Limits retrieval of results to a specific portion of the Cached Dataset</param>
         /// <returns>An instance of Newtonsoft.Json.Linq.JObject containing query results and metadata defining the cached dataset.</returns>
-        public async Task<JObject> QueryDatasetAsync(string datasetName, string indexBy, string timeframe)
+        public Task<JObject> QueryDatasetAsync(string datasetName, string indexBy, string timeframe)
         {
-            return await Datasets.GetResultsAsync(datasetName, indexBy, timeframe);
+            return Datasets.GetResultsAsync(datasetName, indexBy, timeframe);
         }
 
         /// <summary>
@@ -1010,9 +984,9 @@ namespace Keen.Core
         /// </summary>
         /// <param name="datasetName">Name of cached dataset to get the definition of.</param>
         /// <returns>An instance of Keen.Core.Dataset.DatasetDefinition containing metadata about your cached dataset.</returns>
-        public async Task<DatasetDefinition> GetDatasetDefinitionAsync(string datasetName)
+        public Task<DatasetDefinition> GetDatasetDefinitionAsync(string datasetName)
         {
-            return await Datasets.GetDefinitionAsync(datasetName);
+            return Datasets.GetDefinitionAsync(datasetName);
         }
 
         /// <summary>
