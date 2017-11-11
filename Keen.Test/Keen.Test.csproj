@@ -20,7 +20,7 @@
     <PackageReference Include="Mono.Cecil" Version="0.10.0-beta6" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Keen.NetStandard\Keen.csproj" />
+    <ProjectReference Include="..\Keen\Keen.csproj" />
   </ItemGroup>
 
   <ItemGroup>
