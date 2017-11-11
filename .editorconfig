@@ -14,7 +14,10 @@ indent_style = space
 [*.{cs,csx,vb,vbx}]
 indent_size = 4
 insert_final_newline = true
-charset = utf-8-bom
+charset = utf-8
+# Note we're not using utf-8-bom anywhere, though some projects choose to use it for .cs/.vb files.
+# Hopefully most devs contributing here will have an editorconfig-friendly IDE/plugin that won't 
+# automatically try to add the BOM back in.
 
 # Xml project files
 [*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,projitems,shproj}]
@@ -27,6 +30,7 @@ indent_size = 2
 # JSON/YAML files
 [*.{json,yml,yaml}]
 indent_size = 2
+charset = utf-8
 
 # https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-code-style-settings-reference
 
@@ -123,15 +127,16 @@ csharp_space_between_parentheses = false
 csharp_space_between_square_brackets = false
 
 
-# name all constant fields using ALL_UPPERCASE
-dotnet_naming_rule.constant_fields_should_be_upper_case.severity = suggestion
-dotnet_naming_rule.constant_fields_should_be_upper_case.symbols  = constant_fields
-dotnet_naming_rule.constant_fields_should_be_upper_case.style    = upper_case_style
+# name all constant fields using PascalCase
+
+dotnet_naming_rule.constant_fields_should_be_pascal_case.severity = suggestion
+dotnet_naming_rule.constant_fields_should_be_pascal_case.symbols  = constant_fields
+dotnet_naming_rule.constant_fields_should_be_pascal_case.style    = pascal_case_style
 
 dotnet_naming_symbols.constant_fields.applicable_kinds   = field
 dotnet_naming_symbols.constant_fields.required_modifiers = const
 
-dotnet_naming_style.upper_case_style.capitalization = all_upper
+dotnet_naming_style.pascal_case_style.capitalization = pascal_case
 
 # internal and private fields should be _camelCase
 dotnet_naming_rule.camel_case_for_private_internal_fields.severity = suggestion
