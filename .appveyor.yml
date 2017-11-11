@@ -57,8 +57,7 @@ matrix:
 #---------------------------------#
 
 configuration:
-  # This config doesn't build the .NET Standard projects
-  - netfx
+  - release
 
 build:
   parallel: true
@@ -69,17 +68,7 @@ build:
 before_build:
   # Make sure we have the right tools version
   - dotnet --version
-
-  # Restore non-netstandard projects one by one using nuget cli directly
-  - nuget restore .\Keen\Keen.csproj -PackagesDirectory .\packages\
-  - nuget restore .\Keen.Net\Keen.Net.csproj -PackagesDirectory .\packages\
-  - nuget restore .\Keen.NET.Test\Keen.NET.Test.csproj -PackagesDirectory .\packages\
-  - nuget restore .\Keen.NET_35\Keen.NET_35.csproj -PackagesDirectory .\packages\
-  - nuget restore .\Keen.NET_35.Test\Keen.NET_35.Test.csproj -PackagesDirectory .\packages\
-
-  # Restore netstandard projects one by one using dotnet cli
-  - dotnet restore .\Keen.NetStandard\Keen.NetStandard.csproj
-  - dotnet restore .\Keen.NetStandard.Test\Keen.NetStandard.Test.csproj
+  - dotnet restore
 
 # scripts to run after build
 after_build:
@@ -93,7 +82,6 @@ after_build:
 test_script:
   - nuget install OpenCover -Version 4.6.519 -OutputDirectory tools
   - nuget install coveralls.net -Version 0.8.0-unstable0013 -PreRelease -OutputDirectory tools
-  - .\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:nunit3-console.exe -targetargs:"--noheader .\Keen.NET.Test\bin\netfx\Keen.Net.Test.dll .\Keen.NET_35.Test\bin\netfx\Keen.NET_35.Test.dll --result=results.xml;format=AppVeyor" -output:coverage.xml -filter:"+[*]* -[*.Test]*" -returntargetcode -register:user
 
   # Run the netstandard tests.
   # Explicitly build with DebugType=Full specified. This means a non-portable, Windows-style PDB
