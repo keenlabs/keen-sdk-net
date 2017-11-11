@@ -92,7 +92,11 @@ namespace Keen.Core.Dataset
 
             var datasetResultsUrl = $"{GetDatasetUrl(datasetName)}/results";
 
-            var url = $"{datasetResultsUrl}?index_by={indexBy}&timeframe={timeframe}";
+            // Absolute timeframes can have reserved characters like ':', and index_by can be
+            // any valid JSON member name, which can have all sorts of stuff, so we escape here.
+            var url = $"{datasetResultsUrl}?" +
+                $"index_by={Uri.EscapeDataString(indexBy)}" +
+                $"&timeframe={Uri.EscapeDataString(timeframe)}";
 
             var responseMsg = await _keenHttpClient
                 .GetAsync(url, _readKey)
@@ -158,10 +162,13 @@ namespace Keen.Core.Dataset
                 throw new KeenException("An API ReadKey is required to get dataset results.");
             }
 
+            // limit is just an int, so no need to encode here.
             var datasetResultsUrl = $"{_cachedDatasetRelativeUrl}?limit={limit}";
 
             if (!string.IsNullOrWhiteSpace(afterName))
             {
+                // afterName should be a valid dataset name, which can only be
+                // alphanumerics, '_' and '-', so we don't escape here.
                 datasetResultsUrl += $"&after_name={afterName}";
             }
 

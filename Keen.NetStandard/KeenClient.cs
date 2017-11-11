@@ -969,6 +969,8 @@ namespace Keen.Core
         /// <returns>An instance of Newtonsoft.Json.Linq.JObject containing query results and metadata defining the cached dataset.</returns>
         public JObject QueryDataset(string datasetName, string indexBy, string timeframe)
         {
+            // NOTE : The docs seem to indicate you can retrieve based on an absolute timeframe,
+            // so maybe we should be accepting an IQueryTimeframe instance instead of a string.
             try
             {
                 return QueryDatasetAsync(datasetName, indexBy, timeframe).Result;
