@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Keen.Core.EventCache;
+using Keen.EventCache;
 using Newtonsoft.Json.Linq;
 
 

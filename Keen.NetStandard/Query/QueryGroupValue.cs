@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 
 
-namespace Keen.Core.Query
+namespace Keen.Query
 {
     /// <summary>
     /// Represents the values from a query performed with a groupby. 

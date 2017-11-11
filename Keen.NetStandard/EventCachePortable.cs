@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Keen.Core.EventCache;
+using Keen.EventCache;
 using Newtonsoft.Json.Linq;
 
 

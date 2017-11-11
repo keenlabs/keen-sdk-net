@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 
-namespace Keen.Core.Test
+namespace Keen.Test
 {
     /// <summary>
     /// Wraps an <see cref="IHttpMessageHandler"/> and allows for using it as an HttpClientHandler.

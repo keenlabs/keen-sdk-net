@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
 
-namespace Keen.Core.Query
+namespace Keen.Query
 {
     public interface IQueries
     {

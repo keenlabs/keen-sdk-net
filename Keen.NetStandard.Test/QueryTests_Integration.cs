@@ -4,13 +4,14 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
-using Keen.Core.Query;
+using Keen.Core;
+using Keen.Query;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
 
-namespace Keen.Core.Test
+namespace Keen.Test
 {
     /// <summary>
     /// Integration tests for Queries. These will exercise more than unit tests, like the

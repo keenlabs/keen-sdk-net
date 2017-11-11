@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Threading.Tasks;
-using Keen.Core.EventCache;
+using Keen.Core;
+using Keen.EventCache;
 using Moq;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
 
-namespace Keen.Core.Test
+namespace Keen.Test
 {
     [TestFixture]
     public class BulkEventTest : TestBase

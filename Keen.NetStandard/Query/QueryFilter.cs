@@ -2,7 +2,7 @@ using System;
 using Newtonsoft.Json;
 
 
-namespace Keen.Core.Query
+namespace Keen.Query
 {
     /// <summary>
     /// Represents a filter that can be applied to a query.

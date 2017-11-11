@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Keen.Core.DataEnrichment;
-using Keen.Core.Dataset;
-using Keen.Core.EventCache;
-using Keen.Core.Query;
+using Keen.DataEnrichment;
+using Keen.Dataset;
+using Keen.EventCache;
+using Keen.Query;
 using Newtonsoft.Json.Linq;
 
 

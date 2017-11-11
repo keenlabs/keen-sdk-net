@@ -5,13 +5,14 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Keen.Core.Dataset;
-using Keen.Core.Query;
+using Keen.Core;
+using Keen.Dataset;
+using Keen.Query;
 using Moq;
 using NUnit.Framework;
 
 
-namespace Keen.Core.Test
+namespace Keen.Test
 {
     [TestFixture]
     public class DatasetTests_Integration : TestBase

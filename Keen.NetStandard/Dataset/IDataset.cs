@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
 
-namespace Keen.Core.Dataset
+namespace Keen.Dataset
 {
     public interface IDataset
     {

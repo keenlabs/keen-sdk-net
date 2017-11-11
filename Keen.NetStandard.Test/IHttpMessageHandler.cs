@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 
-namespace Keen.Core
+namespace Keen.Test
 {
     /// <summary>
     /// Represents the main functionality needed to override both HttpClientHandler and

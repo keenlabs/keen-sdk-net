@@ -1,8 +1,9 @@
 using System;
+using Keen.Core;
 using NUnit.Framework;
 
 
-namespace Keen.Core.Test
+namespace Keen.Test
 {
     public class TestBase
     {

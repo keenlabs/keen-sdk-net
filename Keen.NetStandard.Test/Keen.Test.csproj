@@ -19,9 +19,8 @@
   <ItemGroup Condition=" '$(DebugType)' == 'Full' ">
     <PackageReference Include="Mono.Cecil" Version="0.10.0-beta6" />
   </ItemGroup>
-
   <ItemGroup>
-    <ProjectReference Include="..\Keen.NetStandard\Keen.NetStandard.csproj" />
+    <ProjectReference Include="..\Keen.NetStandard\Keen.csproj" />
   </ItemGroup>
 
   <ItemGroup>

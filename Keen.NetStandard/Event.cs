@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Keen.Core.EventCache;
+using Keen.EventCache;
 using Newtonsoft.Json.Linq;
 
 

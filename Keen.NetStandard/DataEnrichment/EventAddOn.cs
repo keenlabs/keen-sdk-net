@@ -1,8 +1,9 @@
 using System.Collections.Generic;
+using Keen.Core;
 using Newtonsoft.Json;
 
 
-namespace Keen.Core.DataEnrichment
+namespace Keen.DataEnrichment
 {
     /// <summary>
     /// Represents a Data Enrichment add-on.

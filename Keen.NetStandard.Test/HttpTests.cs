@@ -4,13 +4,14 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Keen.Core.Query;
+using Keen.Core;
+using Keen.Query;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
 
-namespace Keen.Core.Test
+namespace Keen.Test
 {
     [TestFixture]
     internal class HttpTests : TestBase

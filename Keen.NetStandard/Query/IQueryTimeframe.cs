@@ -1,5 +1,5 @@
 
-namespace Keen.Core.Query
+namespace Keen.Query
 {
     public interface IQueryTimeframe
     {

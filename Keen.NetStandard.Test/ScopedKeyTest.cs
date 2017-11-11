@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Dynamic;
 using System.Linq;
+using Keen.Core;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
 
-namespace Keen.Core.Test
+namespace Keen.Test
 {
     [TestFixture]
     public class ScopedKeyTest : TestBase

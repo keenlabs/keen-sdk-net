@@ -1,9 +1,10 @@
 using System;
 using System.Threading.Tasks;
+using Keen.Core;
 using Newtonsoft.Json.Linq;
 
 
-namespace Keen.Core.Test
+namespace Keen.Test
 {
     /// <summary>
     /// EventCollectionMock provides an implementation of IEventCollection with a

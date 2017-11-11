@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Keen.Core.Query;
+using Keen.Core;
+using Keen.Query;
 using Moq;
 using NUnit.Framework;
 
 
-namespace Keen.Core.Test
+namespace Keen.Test
 {
     [TestFixture]
     public class FunnelTest : TestBase

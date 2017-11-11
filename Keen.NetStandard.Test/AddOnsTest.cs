@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
-using Keen.Core.DataEnrichment;
+using Keen.Core;
+using Keen.DataEnrichment;
 using NUnit.Framework;
 
 
-namespace Keen.Core.Test
+namespace Keen.Test
 {
     [TestFixture]
     public class AddOnsTest : TestBase
@@ -14,12 +15,16 @@ namespace Keen.Core.Test
         {
             var client = new KeenClient(SettingsEnv);
             if (UseMocks)
+            {
                 client.EventCollection = new EventCollectionMock(SettingsEnv,
                     addEvent: (c, e, p) =>
                     {
                         if (e["keen"].ToString().Contains("keen:ip_to_geo"))
+                        {
                             throw new Exception("Unexpected values");
+                        }
                     });
+            }
 
             Assert.DoesNotThrow(() => client.AddEvent("AddOnTest", new { an_ip = "70.187.8.97" }));
         }
@@ -29,12 +34,16 @@ namespace Keen.Core.Test
         {
             var client = new KeenClient(SettingsEnv);
             if (UseMocks)
+            {
                 client.EventCollection = new EventCollectionMock(SettingsEnv,
                     addEvent: (c, e, p) =>
                     {
                         if (!e["keen"].ToString().Contains("keen:ip_to_geo"))
+                        {
                             throw new Exception("Unexpected values");
+                        }
                     });
+            }
 
             var a = AddOn.IpToGeo("an_ip", "geocode");
 
@@ -46,12 +55,16 @@ namespace Keen.Core.Test
         {
             var client = new KeenClient(SettingsEnv);
             if (UseMocks)
+            {
                 client.EventCollection = new EventCollectionMock(SettingsEnv,
                     addEvent: (c, e, p) =>
                     {
                         if (!e["keen"].ToString().Contains("\"ip\": \"an_ip\""))
+                        {
                             throw new KeenException("Unexpected values");
+                        }
                     });
+            }
 
             var a = AddOn.IpToGeo("wrong_field", "geocode");
 
@@ -64,12 +77,16 @@ namespace Keen.Core.Test
         {
             var client = new KeenClient(SettingsEnv);
             if (UseMocks)
+            {
                 client.EventCollection = new EventCollectionMock(SettingsEnv,
                     addEvent: (c, e, p) =>
                     {
                         if (!e["keen"].ToString().Contains("keen:ua_parser"))
+                        {
                             throw new Exception("Unexpected values");
+                        }
                     });
+            }
 
             var a = AddOn.UserAgentParser("user_agent_string", "user_agent_parsed");
 
@@ -81,12 +98,16 @@ namespace Keen.Core.Test
         {
             var client = new KeenClient(SettingsEnv);
             if (UseMocks)
+            {
                 client.EventCollection = new EventCollectionMock(SettingsEnv,
                     addEvent: (c, e, p) =>
                     {
                         if (!e["keen"].ToString().Contains("keen:url_parser"))
+                        {
                             throw new Exception("Unexpected values");
+                        }
                     });
+            }
 
             var a = AddOn.UrlParser("url", "url_parsed");
 
@@ -98,12 +119,16 @@ namespace Keen.Core.Test
         {
             var client = new KeenClient(SettingsEnv);
             if (UseMocks)
+            {
                 client.EventCollection = new EventCollectionMock(SettingsEnv,
                     addEvent: (c, e, p) =>
                     {
                         if (!e["keen"].ToString().Contains("keen:referrer_parser"))
+                        {
                             throw new Exception("Unexpected values");
+                        }
                     });
+            }
 
             var a = AddOn.ReferrerParser("referrer", "page", "referrer_parsed");
 

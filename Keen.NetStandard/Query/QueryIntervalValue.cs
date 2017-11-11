@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 
 
-namespace Keen.Core.Query
+namespace Keen.Query
 {
     /// <summary>
     /// Represents a set of values from a query performed with an interval parameter.

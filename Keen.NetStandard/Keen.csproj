@@ -3,7 +3,7 @@
     <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
     <Configurations>Debug;Release;netfx</Configurations>
     <Authors>David Knaack, Brian Baumhover, Justin Mason</Authors>
-    <Version>0.3.17</Version>
+    <Version>0.4.0</Version>
     <Company>Keen IO</Company>
     <Product>Keen IO .NET SDK</Product>
     <Description>Keen IO is an analytics API for modern developers. Track any event: signups, upgrades, impressions, purchases, powerups, errors, shares... Keen IO stores events in arbitrary JSON format, automatically ingesting any new events and rich custom properties you send. Our elegant query APIs make it straightforward to run counts, sums, segmentation, and more.</Description>

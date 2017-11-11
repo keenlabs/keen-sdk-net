@@ -1,7 +1,8 @@
 using System.Threading.Tasks;
+using Keen.Core;
 
 
-namespace Keen.Core.Test
+namespace Keen.Test
 {
     class EventCachePortableTestable : EventCachePortable
     {

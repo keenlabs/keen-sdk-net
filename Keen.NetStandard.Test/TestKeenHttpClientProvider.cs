@@ -1,7 +1,8 @@
 using System;
+using Keen.Core;
 
 
-namespace Keen.Core.Test
+namespace Keen.Test
 {
     /// <summary>
     /// An implementation of <see cref="IKeenHttpClientProvider"/> that behaves just like

@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Keen.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 
-namespace Keen.Core.Query
+namespace Keen.Query
 {
     /// <summary>
     /// Queries implements the IQueries interface which represents the Keen.IO Query API methods.

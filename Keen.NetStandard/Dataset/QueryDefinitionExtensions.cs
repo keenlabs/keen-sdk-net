@@ -1,7 +1,8 @@
-using Keen.Core.Query;
+using Keen.Core;
+using Keen.Query;
 
 
-namespace Keen.Core.Dataset
+namespace Keen.Dataset
 {
     internal static class QueryDefinitionExtensions
     {

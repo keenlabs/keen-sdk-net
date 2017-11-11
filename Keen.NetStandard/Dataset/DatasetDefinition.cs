@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Keen.Core.Query;
+using Keen.Core;
+using Keen.Query;
 
 
-namespace Keen.Core.Dataset
+namespace Keen.Dataset
 {
     public class DatasetDefinition
     {

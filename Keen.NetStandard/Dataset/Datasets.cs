@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Keen.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 
 
-namespace Keen.Core.Dataset
+namespace Keen.Dataset
 {
     /// <summary>
     /// Datasets implements the IDataset interface which represents the Keen.IO Cached Datasets

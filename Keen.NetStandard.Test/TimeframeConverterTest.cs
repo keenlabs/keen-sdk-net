@@ -1,9 +1,9 @@
-using Keen.Core.Query;
+using Keen.Query;
 using Newtonsoft.Json;
 using NUnit.Framework;
 
 
-namespace Keen.NetStandard.Test
+namespace Keen.Test
 {
     [TestFixture]
     class TimeframeConverterTest
