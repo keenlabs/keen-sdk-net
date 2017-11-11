@@ -1,6 +1,6 @@
-﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 
 namespace Keen.Core

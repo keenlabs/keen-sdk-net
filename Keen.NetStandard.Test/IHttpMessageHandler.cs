@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,6 +26,7 @@ namespace Keen.Core
 
         Func<HttpRequestMessage,
              CancellationToken,
-             Task<HttpResponseMessage>> DefaultAsync { get; set; }
+             Task<HttpResponseMessage>> DefaultAsync
+        { get; set; }
     }
 }

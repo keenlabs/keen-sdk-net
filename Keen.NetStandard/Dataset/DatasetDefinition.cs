@@ -1,7 +1,7 @@
-﻿using Keen.Core.Query;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Keen.Core.Query;
 
 
 namespace Keen.Core.Dataset

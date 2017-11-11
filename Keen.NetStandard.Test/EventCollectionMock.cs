@@ -1,6 +1,6 @@
-﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 
 namespace Keen.Core.Test
@@ -20,7 +20,7 @@ namespace Keen.Core.Test
 
         public Task<JObject> GetSchema(string collection)
         {
-            return Task.Run(()=>_getSchema(collection, _settings));
+            return Task.Run(() => _getSchema(collection, _settings));
         }
 
         public Task DeleteCollection(string collection)

@@ -1,11 +1,8 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -37,7 +34,8 @@ namespace Keen.Core.Test
 
         public Func<HttpRequestMessage,
                     CancellationToken,
-                    Task<HttpResponseMessage>> DefaultAsync { get; set; }
+                    Task<HttpResponseMessage>> DefaultAsync
+        { get; set; }
 
         internal bool DeferToDefault { get; set; } = true;
 

@@ -1,14 +1,14 @@
-﻿using Keen.Core.Query;
-using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Linq;
-using System.Text;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
-using System.Web;
 using System.Collections.Specialized;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Web;
+using Keen.Core.Query;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using NUnit.Framework;
+
 
 namespace Keen.Core.Test
 {
@@ -290,7 +290,7 @@ namespace Keen.Core.Test
                         $"{HttpTests.GetUriForResource(SettingsEnv, KeenConstants.QueriesResource)}/" +
                         $"{queryParameters.GetResourceName()}";
 
-                    string actualPath = 
+                    string actualPath =
                         $"{request.RequestUri.Scheme}{Uri.SchemeDelimiter}" +
                         $"{request.RequestUri.Authority}{request.RequestUri.AbsolutePath}";
 
@@ -357,7 +357,7 @@ namespace Keen.Core.Test
                 "theOtherThing"
             };
 
-            var expectedResponse = new 
+            var expectedResponse = new
             {
                 result = results,
             };

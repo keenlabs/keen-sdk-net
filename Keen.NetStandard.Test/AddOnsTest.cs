@@ -1,7 +1,7 @@
-﻿using Keen.Core.DataEnrichment;
-using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using Keen.Core.DataEnrichment;
+using NUnit.Framework;
 
 
 namespace Keen.Core.Test
@@ -38,7 +38,7 @@ namespace Keen.Core.Test
 
             var a = AddOn.IpToGeo("an_ip", "geocode");
 
-            Assert.DoesNotThrow(() => client.AddEvent("AddOnTest", new {an_ip = "70.187.8.97"}, new List<AddOn> {a}));
+            Assert.DoesNotThrow(() => client.AddEvent("AddOnTest", new { an_ip = "70.187.8.97" }, new List<AddOn> { a }));
         }
 
         [Test]

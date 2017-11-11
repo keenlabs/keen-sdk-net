@@ -1,5 +1,6 @@
-﻿using Newtonsoft.Json;
 using System.Collections.Generic;
+using Newtonsoft.Json;
+
 
 namespace Keen.Core.Query
 {
@@ -209,9 +210,11 @@ namespace Keen.Core.Query
 
         public override bool Equals(object obj)
         {
-            var timeframe = obj as QueryRelativeTimeframe;
-            return timeframe != null &&
-                   _value == timeframe._value;
+            //var timeframe = obj as QueryRelativeTimeframe;
+            //return timeframe != null &&
+            //       _value == timeframe._value;
+
+            return (obj is QueryRelativeTimeframe timeframe) && _value == timeframe._value;
         }
 
         public override int GetHashCode()

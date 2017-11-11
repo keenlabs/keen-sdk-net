@@ -1,11 +1,11 @@
-﻿using Keen.Core.Query;
-using Moq;
-using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Keen.Core.Query;
+using Moq;
+using NUnit.Framework;
 
 
 namespace Keen.Core.Test
@@ -59,27 +59,27 @@ namespace Keen.Core.Test
             {
                 new FunnelStep
                 {
-                    EventCollection = FunnelColA, 
+                    EventCollection = FunnelColA,
                     ActorProperty = "id",
                 },
                 new FunnelStep
                 {
-                    EventCollection = FunnelColB, 
+                    EventCollection = FunnelColB,
                     ActorProperty = "id"
                 },
             };
 
             var expected = new FunnelResult
             {
-                Steps = new []
+                Steps = new[]
                 {
                     new FunnelResultStep
                     {
-                        EventCollection = FunnelColA, 
+                        EventCollection = FunnelColA,
                     },
                     new FunnelResultStep
                     {
-                        EventCollection = FunnelColB, 
+                        EventCollection = FunnelColB,
                     },
                 },
                 Result = new[] { 3, 2 }
@@ -119,12 +119,12 @@ namespace Keen.Core.Test
             {
                 new FunnelStep
                 {
-                    EventCollection = FunnelColA, 
+                    EventCollection = FunnelColA,
                     ActorProperty = "id",
                 },
                 new FunnelStep
                 {
-                    EventCollection = FunnelColB, 
+                    EventCollection = FunnelColB,
                     ActorProperty = "id",
                     Inverted = true
                 },
@@ -132,18 +132,18 @@ namespace Keen.Core.Test
 
             var expected = new FunnelResult
             {
-                Steps = new []
+                Steps = new[]
                 {
                     new FunnelResultStep
                     {
-                        EventCollection = FunnelColA, 
+                        EventCollection = FunnelColA,
                     },
                     new FunnelResultStep
                     {
-                        EventCollection = FunnelColB, 
+                        EventCollection = FunnelColB,
                     },
                 },
-                Result = new [] { 3, 1 }
+                Result = new[] { 3, 1 }
             };
 
             Mock<IQueries> queryMock = null;
@@ -177,44 +177,44 @@ namespace Keen.Core.Test
             var client = new KeenClient(SettingsEnv);
             var timeframe = QueryRelativeTimeframe.ThisHour();
 
-            IEnumerable<FunnelStep> funnelsteps = new []
+            IEnumerable<FunnelStep> funnelsteps = new[]
             {
                 new FunnelStep
                 {
-                    EventCollection = FunnelColA, 
+                    EventCollection = FunnelColA,
                     ActorProperty = "id",
                 },
                 new FunnelStep
                 {
-                    EventCollection = FunnelColB, 
+                    EventCollection = FunnelColB,
                     ActorProperty = "id",
                     Optional = true,
                 },
                 new FunnelStep
                 {
-                    EventCollection = FunnelColC, 
+                    EventCollection = FunnelColC,
                     ActorProperty = "id"
                 },
             };
 
             var expected = new FunnelResult
             {
-                Steps = new []
+                Steps = new[]
                 {
                     new FunnelResultStep
                     {
-                        EventCollection = FunnelColA, 
+                        EventCollection = FunnelColA,
                     },
                     new FunnelResultStep
                     {
-                        EventCollection = FunnelColB, 
+                        EventCollection = FunnelColB,
                     },
                     new FunnelResultStep
                     {
-                        EventCollection = FunnelColC, 
+                        EventCollection = FunnelColC,
                     },
                 },
-                Result = new [] { 3, 2, 1 }
+                Result = new[] { 3, 2, 1 }
             };
 
             Mock<IQueries> queryMock = null;
@@ -249,36 +249,36 @@ namespace Keen.Core.Test
             var timeframe = QueryRelativeTimeframe.ThisHour();
             var filters = new List<QueryFilter> { new QueryFilter("id", QueryFilter.FilterOperator.GreaterThanOrEqual(), 0) };
 
-            IEnumerable<FunnelStep> funnelsteps = new []
+            IEnumerable<FunnelStep> funnelsteps = new[]
             {
                 new FunnelStep
                 {
-                    EventCollection = FunnelColA, 
+                    EventCollection = FunnelColA,
                     ActorProperty = "id",
                     Filters = filters,
                 },
                 new FunnelStep
                 {
-                    EventCollection = FunnelColB, 
+                    EventCollection = FunnelColB,
                     ActorProperty = "id"
                 },
             };
 
             var expected = new FunnelResult
             {
-                Steps = new []
+                Steps = new[]
                 {
                     new FunnelResultStep
                     {
-                        EventCollection = FunnelColA, 
+                        EventCollection = FunnelColA,
                         Filters = filters
                     },
                     new FunnelResultStep
                     {
-                        EventCollection = FunnelColB, 
+                        EventCollection = FunnelColB,
                     },
                 },
-                Result = new [] { 3, 2 }
+                Result = new[] { 3, 2 }
             };
 
             Mock<IQueries> queryMock = null;
@@ -312,7 +312,7 @@ namespace Keen.Core.Test
             var client = new KeenClient(SettingsEnv);
             var timeframe = QueryRelativeTimeframe.ThisHour();
 
-            IEnumerable<FunnelStep> funnelsteps = new []
+            IEnumerable<FunnelStep> funnelsteps = new[]
             {
                 new FunnelStep
                 {
@@ -328,7 +328,7 @@ namespace Keen.Core.Test
 
             var expected = new FunnelResult
             {
-                Steps = new []
+                Steps = new[]
                 {
                     new FunnelResultStep
                     {
@@ -339,7 +339,7 @@ namespace Keen.Core.Test
                         EventCollection = FunnelColB,
                     },
                 },
-                Result = new [] { 3, 2 }
+                Result = new[] { 3, 2 }
             };
 
             Mock<IQueries> queryMock = null;
@@ -372,7 +372,7 @@ namespace Keen.Core.Test
         {
             var client = new KeenClient(SettingsEnv);
 
-            IEnumerable<FunnelStep> funnelsteps = new []
+            IEnumerable<FunnelStep> funnelsteps = new[]
             {
                 new FunnelStep
                 {
@@ -435,37 +435,37 @@ namespace Keen.Core.Test
             var client = new KeenClient(SettingsEnv);
             var timeframe = QueryRelativeTimeframe.ThisHour();
 
-            IEnumerable<FunnelStep> funnelsteps = new []
+            IEnumerable<FunnelStep> funnelsteps = new[]
             {
                 new FunnelStep
                 {
-                    EventCollection = FunnelColA, 
+                    EventCollection = FunnelColA,
                     ActorProperty = "id",
                     WithActors = true
                 },
                 new FunnelStep
                 {
-                    EventCollection = FunnelColB, 
+                    EventCollection = FunnelColB,
                     ActorProperty = "id"
                 },
             };
 
             var expected = new FunnelResult
             {
-                Actors = new []{ new []{"sam", "dean"}, null},
-                Steps = new []
+                Actors = new[] { new[] { "sam", "dean" }, null },
+                Steps = new[]
                 {
                     new FunnelResultStep
                     {
-                        EventCollection = FunnelColA, 
+                        EventCollection = FunnelColA,
                         WithActors = true
                     },
                     new FunnelResultStep
                     {
-                        EventCollection = FunnelColB, 
+                        EventCollection = FunnelColB,
                     },
                 },
-                Result = new [] { 3, 2 }
+                Result = new[] { 3, 2 }
             };
 
 

@@ -1,10 +1,10 @@
-﻿using Keen.Core.Dataset;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Keen.Core.Dataset;
 using Keen.Core.Query;
 using Moq;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 
 namespace Keen.Core.Test

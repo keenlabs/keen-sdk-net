@@ -1,6 +1,6 @@
-﻿using Newtonsoft.Json.Linq;
 using System.IO;
-using System.Linq;
+using Newtonsoft.Json.Linq;
+
 
 namespace Keen.Core
 {
@@ -25,13 +25,13 @@ namespace Keen.Core
             {
                 // http://www.newtonsoft.com/json/help/html/ReadJson.htm
                 JObject jsonProjectSettings = JObject.Parse(File.ReadAllText(filePath));
-                
+
                 Initialize(
-	                (string)jsonProjectSettings[KeenConstants.KeenProjectId],
-	                (string)jsonProjectSettings[KeenConstants.KeenMasterKey],
-	                (string)jsonProjectSettings[KeenConstants.KeenWriteKey],
-	                (string)jsonProjectSettings[KeenConstants.KeenReadKey],
-	                (string)jsonProjectSettings[KeenConstants.KeenServerUrl]);
+                    (string)jsonProjectSettings[KeenConstants.KeenProjectId],
+                    (string)jsonProjectSettings[KeenConstants.KeenMasterKey],
+                    (string)jsonProjectSettings[KeenConstants.KeenWriteKey],
+                    (string)jsonProjectSettings[KeenConstants.KeenReadKey],
+                    (string)jsonProjectSettings[KeenConstants.KeenServerUrl]);
             }
             catch (Newtonsoft.Json.JsonReaderException ex)
             {
