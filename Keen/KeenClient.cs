@@ -122,7 +122,7 @@ namespace Keen.Core
             // implementation via their respective properties.
             EventCollection = new EventCollection(_prjSettings, keenHttpClientProvider);
             Event = new Event(_prjSettings, keenHttpClientProvider);
-            Queries = new Queries(_prjSettings, keenHttpClientProvider);
+            Queries = new Query.Queries(_prjSettings, keenHttpClientProvider);
             AccessKeys = new AccessKeys(_prjSettings, keenHttpClientProvider);
         }
 

@@ -2,9 +2,6 @@
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Keen.Core.AccessKey
@@ -15,7 +12,7 @@ namespace Keen.Core.AccessKey
     public class AccessKeys : IAccessKeys
     {
         private readonly IKeenHttpClient _keenHttpClient;
-        private readonly string _acceskeyRelativeUrl;
+        private readonly string _accesKeyRelativeUrl;
         private readonly string _readKey;
         private readonly string _masterKey;
 
@@ -43,7 +40,7 @@ namespace Keen.Core.AccessKey
 
             var serverBaseUrl = new Uri(prjSettings.KeenUrl);
             _keenHttpClient = keenHttpClientProvider.GetForUrl(serverBaseUrl);
-            _acceskeyRelativeUrl = KeenHttpClient.GetRelativeUrl(prjSettings.ProjectId,
+            _accesKeyRelativeUrl = KeenHttpClient.GetRelativeUrl(prjSettings.ProjectId,
                                                                KeenConstants.AccessKeyResource);
 
             _readKey = prjSettings.ReadKey;
@@ -56,9 +53,7 @@ namespace Keen.Core.AccessKey
             {
                 throw new KeenException("An API WriteKey is required to add events.");
             }
-
-            var xcontent = accesskey.ToString();
-
+            
             DefaultContractResolver contractResolver = new DefaultContractResolver
             {
                 NamingStrategy = new SnakeCaseNamingStrategy()
@@ -71,7 +66,7 @@ namespace Keen.Core.AccessKey
             }).ToSafeString();
 
             var responseMsg = await _keenHttpClient
-                .PostAsync(_acceskeyRelativeUrl, _masterKey, content)
+                .PostAsync(_accesKeyRelativeUrl, _masterKey, content)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             var responseString = await responseMsg
@@ -87,6 +82,7 @@ namespace Keen.Core.AccessKey
             }
             catch (Exception)
             {
+                // To avoid any flow stoppers
             }
             if (!responseMsg.IsSuccessStatusCode)
             {

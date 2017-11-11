@@ -1,12 +1,11 @@
 ﻿using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Keen.Core.AccessKey
 {
+    /// <summary>
+    /// Public interface for Access Key related functionalities 
+    /// </summary>
     public interface IAccessKeys
     {
         /// <summary>

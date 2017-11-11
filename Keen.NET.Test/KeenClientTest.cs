@@ -1,5 +1,6 @@
 ﻿using Keen.Core;
 using Keen.Core.AccessKey;
+using Keen.Core.Query;
 using Keen.Core.EventCache;
 using Moq;
 using Newtonsoft.Json.Linq;
@@ -70,15 +71,16 @@ namespace Keen.Net.Test
                     }));
 
             HashSet<string> permissions = new HashSet<string>() { "queries" };
-            List<Core.Query.QueryFilter> qFilters = new List<Core.Query.QueryFilter>() { new Core.Query.QueryFilter("customer.id", Core.Query.QueryFilter.FilterOperator.Equals(), "asdf12345z") };
-            CachedQueries cachedQuaries = new CachedQueries();
-            cachedQuaries.Allowed = new HashSet<string>() { "my_cached_query" };
+            List<QueryFilter> qFilters = new List<QueryFilter>() { new QueryFilter("customer.id", QueryFilter.FilterOperator.Equals(), "asdf12345z") };
+            CachedQueries cachedQueries = new CachedQueries();
+            cachedQueries.Allowed = new HashSet<string>() { "my_cached_query" };
             Options options = new Options()
             {
-                Queries = new Quaries { Filters = qFilters },
-                CachedQueries = cachedQuaries
+                Queries = new Core.AccessKey.Queries { Filters = qFilters },
+                CachedQueries = cachedQueries
             };
-            Assert.DoesNotThrow(() => client.CreateAccessKey(new AccessKey("TestAccessKey", true, permissions, options)));
+            
+            Assert.DoesNotThrow(() => client.CreateAccessKey(new AccessKey { Name = "TestAccessKey", IsActive = true, Options = options, Permitted = permissions }));
         }
 
     }
