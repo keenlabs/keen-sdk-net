@@ -1,4 +1,4 @@
-﻿using Keen.Core;
+using Keen.Core;
 using Keen.Core.AccessKey;
 using Keen.Core.Query;
 using Keen.Core.EventCache;

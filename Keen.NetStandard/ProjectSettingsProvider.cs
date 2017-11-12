@@ -1,4 +1,4 @@
-﻿
+
 namespace Keen.Core
 {
     public class ProjectSettingsProvider : IProjectSettings
@@ -8,7 +8,7 @@ namespace Keen.Core
         /// server address and API version.
         /// </summary>
         public string KeenUrl { get; protected set; }
-        
+
         /// <summary>
         /// The Project ID, identifying the data silo to be accessed.
         /// </summary>
@@ -53,7 +53,7 @@ namespace Keen.Core
         /// <summary>
         /// Protected constructor to allow base classes to share initialization code more conveniently than by having to pass parameters through a constructor
         /// </summary>
-        protected ProjectSettingsProvider() {}
+        protected ProjectSettingsProvider() { }
 
         protected void Initialize(
             string projectId,

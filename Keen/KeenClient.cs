@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Keen.Core.Dataset;
 
 
 namespace Keen.Core
@@ -48,6 +49,8 @@ namespace Keen.Core
         /// The default implementation can be overridden by setting a new implementation here.
         /// </summary>
         public IQueries Queries { get; set; }
+
+        public IDataset Datasets { get; set; }
 
         /// <summary>
         /// AccessKeys provides direct access to the Keen.IO Access Keys API methods.
@@ -124,6 +127,7 @@ namespace Keen.Core
             Event = new Event(_prjSettings, keenHttpClientProvider);
             Queries = new Query.Queries(_prjSettings, keenHttpClientProvider);
             AccessKeys = new AccessKeys(_prjSettings, keenHttpClientProvider);
+            Datasets = new Datasets(_prjSettings, keenHttpClientProvider);
         }
 
         /// <summary>
@@ -978,7 +982,178 @@ namespace Keen.Core
                 throw ex.TryUnwrap();
             }
         }
+      
+        /// Get query results from a Cached Dataset.
+        /// </summary>
+        /// <param name="datasetName">Name of cached dataset to query.</param>
+        /// <param name="indexBy">The string property value you want to retrieve results by.</param>
+        /// <param name="timeframe">Limits retrieval of results to a specific portion of the Cached Dataset</param>
+        /// <returns>An instance of Newtonsoft.Json.Linq.JObject containing query results and metadata defining the cached dataset.</returns>
+        public async Task<JObject> QueryDatasetAsync(string datasetName, string indexBy, string timeframe)
+        {
+            return await Datasets.GetResultsAsync(datasetName, indexBy, timeframe);
+        }
 
+        /// <summary>
+        /// Get query results from a Cached Dataset.
+        /// </summary>
+        /// <param name="datasetName">Name of cached dataset to query.</param>
+        /// <param name="indexBy">The string property value you want to retrieve results by.</param>
+        /// <param name="timeframe">Limits retrieval of results to a specific portion of the Cached Dataset</param>
+        /// <returns>An instance of Newtonsoft.Json.Linq.JObject containing query results and metadata defining the cached dataset.</returns>
+        public JObject QueryDataset(string datasetName, string indexBy, string timeframe)
+        {
+            try
+            {
+                return QueryDatasetAsync(datasetName, indexBy, timeframe).Result;
+            }
+            catch (AggregateException ex)
+            {
+                throw ex.TryUnwrap();
+            }
+        }
+
+        /// <summary>
+        /// Get the definition of your cached dataset.
+        /// </summary>
+        /// <param name="datasetName">Name of cached dataset to get the definition of.</param>
+        /// <returns>An instance of Keen.Core.Dataset.DatasetDefinition containing metadata about your cached dataset.</returns>
+        public async Task<DatasetDefinition> GetDatasetDefinitionAsync(string datasetName)
+        {
+            return await Datasets.GetDefinitionAsync(datasetName);
+        }
+
+        /// <summary>
+        /// Get the definition of your cached dataset.
+        /// </summary>
+        /// <param name="datasetName">Name of cached dataset to get the definition of.</param>
+        /// <returns>An instance of Keen.Core.Dataset.DatasetDefinition containing metadata about your cached dataset.</returns>
+        public DatasetDefinition GetDatasetDefinition(string datasetName)
+        {
+            try
+            {
+                return GetDatasetDefinitionAsync(datasetName).Result;
+            }
+            catch (AggregateException ex)
+            {
+                throw ex.TryUnwrap();
+            }
+        }
+
+        /// <summary>
+        /// Lists the first n cached dataset definitions in your project.
+        /// </summary>
+        /// <param name="limit">How many cached dataset definitions to return at a time (1-100). Defaults to 10.</param>
+        /// <param name="afterName">A cursor for use in pagination. afterName is the Cached Dataset name that defines your place in the list. 
+        /// For instance, if you make a list request and receive 100 Cached Dataset definitions, 
+        /// ending with dataset_foo you can use dataset_foo as your afterName to retrieve the next page of definitions. 
+        /// Lists also return with helper “NextPageUrl” that uses AfterName, 
+        /// so your subsequent call can fetch the next page of the list easily.</param>
+        /// <returns>An instance of Keen.Core.Dataset.DatasetDefinitionCollection containing the total count, next page url and list of DatasetDefinitions.</returns>
+        public Task<DatasetDefinitionCollection> ListDatasetDefinitionsAsync(int limit = 10, string afterName = null)
+        {
+            return Datasets.ListDefinitionsAsync(limit, afterName);
+        }
+
+        /// <summary>
+        /// Lists the first n cached dataset definitions in your project.
+        /// </summary>
+        /// <param name="limit">How many cached dataset definitions to return at a time (1-100). Defaults to 10.</param>
+        /// <param name="afterName">A cursor for use in pagination. afterName is the Cached Dataset name that defines your place in the list. 
+        /// For instance, if you make a list request and receive 100 Cached Dataset definitions, 
+        /// ending with dataset_foo you can use dataset_foo as your afterName to retrieve the next page of definitions. 
+        /// Lists also return with helper “NextPageUrl” that uses AfterName, 
+        /// so your subsequent call can fetch the next page of the list easily.</param>
+        /// <returns>An instance of Keen.Core.Dataset.DatasetDefinitionCollection containing the total count, next page url and list of DatasetDefinitions.</returns>
+        public DatasetDefinitionCollection ListDatasetDefinitions(int limit = 10, string afterName = null)
+        {
+            try
+            {
+                return ListDatasetDefinitionsAsync(limit, afterName).Result;
+            }
+            catch(AggregateException ex)
+            {
+                throw ex.TryUnwrap();
+            }
+        }
+
+        /// <summary>
+        /// Lists all the dataset definitions in your project.
+        /// </summary>
+        /// <returns>A list of Keen.Core.Dataset.DatasetDefinition</returns>
+        public Task<IEnumerable<DatasetDefinition>> ListAllDatasetDefinitionsAsync()
+        {
+            return Datasets.ListAllDefinitionsAsync();
+        }
+
+        /// <summary>
+        /// Lists all the dataset definitions in your project.
+        /// </summary>
+        /// <returns>A list of Keen.Core.Dataset.DatasetDefinition</returns>
+        public IEnumerable<DatasetDefinition> ListAllDatasetDefinitions()
+        {
+            try
+            {
+                return ListAllDatasetDefinitionsAsync().Result;
+            }
+            catch (AggregateException ex)
+            {
+                throw ex.TryUnwrap();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new Cached Dataset
+        /// </summary>
+        /// <param name="dataset">An instance of Keen.Core.Dataset.DatasetDefinition. It must have DatasetName, DisplayName, IndexBy and Query populated.</param>
+        /// <returns>An instance of Keen.Core.Dataset.DatasetDefinition populated more information.</returns>
+        public Task<DatasetDefinition> CreateDatasetAsync(DatasetDefinition dataset)
+        {
+            return Datasets.CreateDatasetAsync(dataset);
+        }
+
+        /// <summary>
+        /// Creates a new Cached Dataset
+        /// </summary>
+        /// <param name="dataset">An instance of Keen.Core.Dataset.DatasetDefinition. It must have DatasetName, DisplayName, IndexBy and Query populated.</param>
+        /// <returns>An instance of Keen.Core.Dataset.DatasetDefinition populated more information.</returns>
+        public DatasetDefinition CreateDataset(DatasetDefinition dataset)
+        {
+            try
+            {
+                return CreateDatasetAsync(dataset).Result;
+            }
+            catch (AggregateException ex)
+            {
+                throw ex.TryUnwrap();
+            }
+        }
+
+        /// <summary>
+        /// Delete a Cached Dataset 
+        /// </summary>
+        /// <param name="datasetName">The name of the dataset to be deleted.</param>
+        public Task DeleteDatasetAsync(string datasetName)
+        {
+            return Datasets.DeleteDatasetAsync(datasetName);
+        }
+
+        /// <summary>
+        /// Delete a Cached Dataset 
+        /// </summary>
+        /// <param name="datasetName">The name of the dataset to be deleted.</param>
+        public void DeleteDataset(string datasetName)
+        {
+            try
+            {
+                DeleteDatasetAsync(datasetName).Wait();
+            }
+            catch (AggregateException ex)
+            {
+                throw ex.TryUnwrap();
+            }
+        }
+        
         /// <summary>
         /// </summary>
         public void CreateAccessKey(AccessKey.AccessKey accessKey)
@@ -990,7 +1165,6 @@ namespace Keen.Core
             catch (AggregateException ex)
             {
                 Debug.WriteLine(ex.TryUnwrap());
-                throw ex.TryUnwrap();
             }
         }
 

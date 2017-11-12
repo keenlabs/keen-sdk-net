@@ -1,10 +1,10 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 
 namespace Keen.Core
@@ -149,7 +149,7 @@ namespace Keen.Core
             if (hex.Length % 2 == 1)
                 throw new Exception("Hex string must have an even number of characters");
 
-            Func<int,int> hexMap = (h) => h - (h < 58 ? 48 : (h < 97 ? 55 : 87));
+            Func<int, int> hexMap = (h) => h - (h < 58 ? 48 : (h < 97 ? 55 : 87));
 
             var result = new byte[hex.Length >> 1];
             for (int i = 0; i < (hex.Length >> 1); ++i)

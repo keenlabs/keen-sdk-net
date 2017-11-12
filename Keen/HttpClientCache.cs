@@ -31,7 +31,7 @@ namespace Keen.Core
 
         private readonly object _cacheLock;
 
-        // NOTE : We should use ConcurrentDictionary<Uri, Lazy<>> here. if/when we upgrade the PCL
+        // NOTE : We should use ConcurrentDictionary<Uri, Lazy<>> here if/when we upgrade the PCL
         // profile to something >= .NET 4.0.
 
         // NOTE : Use WeakReference<T> in 4.5+

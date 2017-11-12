@@ -1,12 +1,12 @@
-﻿using Keen.Core.EventCache;
-using Moq;
-using Newtonsoft.Json.Linq;
-using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Threading.Tasks;
+using Keen.Core.EventCache;
+using Moq;
+using Newtonsoft.Json.Linq;
+using NUnit.Framework;
 
 
 namespace Keen.Core.Test
@@ -24,12 +24,12 @@ namespace Keen.Core.Test
                     addEvents: new Func<JObject, IProjectSettings, IEnumerable<CachedEvent>>((e, p) =>
                     {
                         if ((p == settings)
-                            &&(p.ProjectId=="X"))
+                            && (p.ProjectId == "X"))
                             throw new KeenException();
                         else
                             throw new Exception("Unexpected value");
                     }));
-            Assert.Throws<KeenException>(() => client.AddEvents("AddEventTest", new []{ new {AProperty = "AValue" }}));
+            Assert.Throws<KeenException>(() => client.AddEvents("AddEventTest", new[] { new { AProperty = "AValue" } }));
         }
 
 
@@ -45,19 +45,19 @@ namespace Keen.Core.Test
                         if (null == err)
                             throw new Exception("Unexpected error, test data not found");
 
-                        return new List<CachedEvent>(){new CachedEvent("AddEventTest", e)};
+                        return new List<CachedEvent>() { new CachedEvent("AddEventTest", e) };
                     }));
 
             object invalidEvent = new ExpandoObject();
             ((IDictionary<string, object>)invalidEvent).Add("$" + new string('.', 260), "AValue");
 
             var events = (from i in Enumerable.Range(1, 2)
-                         select new { AProperty = "AValue" + i }).ToList<object>();
+                          select new { AProperty = "AValue" + i }).ToList<object>();
             events.Add(invalidEvent);
 
             Assert.Throws<KeenBulkException>(() => client.AddEvents("AddEventTest", events));
         }
-        
+
         [Test]
         public void AddEvents_NoCache_Success()
         {
@@ -76,8 +76,8 @@ namespace Keen.Core.Test
                         return new List<CachedEvent>();
                     }));
 
-            var events = from i in Enumerable.Range(1,3)
-                         select new { AProperty = "AValue" + i};
+            var events = from i in Enumerable.Range(1, 3)
+                         select new { AProperty = "AValue" + i };
 
             Assert.DoesNotThrow(() => client.AddEvents("AddEventTest", events));
             Assert.True((UseMocks && done) || !UseMocks, "AddEvent mock was not called");
@@ -295,17 +295,17 @@ namespace Keen.Core.Test
             var client = new KeenClient(SettingsEnv);
             if (UseMocks)
                 client.EventCollection = new EventCollectionMock(SettingsEnv,
-                    addEvent: new Action<string,JObject,IProjectSettings>((c,e,p) => 
-                    {
-                        if ((p == SettingsEnv) 
-                            && (c == "X") 
-                            && (null != e.Property("keen"))
-                            && (e.Property("keen").Value.GetType()==typeof(JObject))
-                            && (null!=((JObject)e.Property("keen").Value).Property("AProperty")))
-                                throw new KeenInvalidKeenNamespacePropertyException();
-                        else
-                            throw new Exception("Unexpected value");
-                    }));
+                    addEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
+                      {
+                          if ((p == SettingsEnv)
+                              && (c == "X")
+                              && (null != e.Property("keen"))
+                              && (e.Property("keen").Value.GetType() == typeof(JObject))
+                              && (null != ((JObject)e.Property("keen").Value).Property("AProperty")))
+                              throw new KeenInvalidKeenNamespacePropertyException();
+                          else
+                              throw new Exception("Unexpected value");
+                      }));
 
             Assert.Throws<KeenInvalidKeenNamespacePropertyException>(() => client.AddEvent("X", new { keen = new { AProperty = "AValue" } }));
         }
@@ -318,7 +318,7 @@ namespace Keen.Core.Test
                 client.EventCollection = new EventCollectionMock(SettingsEnv,
                     addEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
                     {
-                        if ((p == SettingsEnv) && (c == "AddEventTest") && (e["AProperty"].Value<string>()=="AValue"))
+                        if ((p == SettingsEnv) && (c == "AddEventTest") && (e["AProperty"].Value<string>() == "AValue"))
                             return;
                         else
                             throw new Exception("Unexpected values");
@@ -470,8 +470,8 @@ namespace Keen.Core.Test
                 client.EventCollection = new EventCollectionMock(SettingsEnv,
                     addEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
                     {
-                        if ((p == SettingsEnv) && (c == "AddEventTest") 
-                            && (e["AProperty"].Value<string>() == "AValue") 
+                        if ((p == SettingsEnv) && (c == "AddEventTest")
+                            && (e["AProperty"].Value<string>() == "AValue")
                             && (e["AGlobal"].Value<string>() == "AValue"))
                             return;
                         else
@@ -529,8 +529,8 @@ namespace Keen.Core.Test
                 client.EventCollection = new EventCollectionMock(SettingsEnv,
                     addEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
                     {
-                        if ((p == SettingsEnv) && (c == "AddEventTest") 
-                            && (e["AProperty"].Value<string>() == "AValue") 
+                        if ((p == SettingsEnv) && (c == "AddEventTest")
+                            && (e["AProperty"].Value<string>() == "AValue")
                             && (e["AGlobal"]["AProperty"].Value<string>() == "AValue"))
                             return;
                         else
@@ -577,7 +577,7 @@ namespace Keen.Core.Test
                     {
                         if ((p == SettingsEnv) && (c == "AddEventTest")
                             && (e["AProperty"].Value<string>() == "AValue")
-                            && (e["AGlobal"]!=null))
+                            && (e["AGlobal"] != null))
                             return;
                         else
                             throw new Exception("Unexpected value");
@@ -599,7 +599,7 @@ namespace Keen.Core.Test
                 client.EventCollection = new EventCollectionMock(SettingsEnv,
                     addEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
                     {
-                        if ((p == SettingsEnv) && (c == "AddEventTest") 
+                        if ((p == SettingsEnv) && (c == "AddEventTest")
                             && (e["AProperty"].Value<string>() == "AValue")
                             && (e["AGlobal"].Values<int>().All((x) => (x == 1) || (x == 2) || (x == 3))))
                             return;
@@ -622,8 +622,8 @@ namespace Keen.Core.Test
                 client.EventCollection = new EventCollectionMock(SettingsEnv,
                     addEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
                     {
-                        if ((p == SettingsEnv) && (c == "AddEventTest") 
-                            && (e["AProperty"].Value<string>() == "AValue") 
+                        if ((p == SettingsEnv) && (c == "AddEventTest")
+                            && (e["AProperty"].Value<string>() == "AValue")
                             && (e["AGlobal"].Value<JObject>()["SubProp1"].Value<string>() == "Value"))
                             return;
                         else
@@ -659,7 +659,7 @@ namespace Keen.Core.Test
                 client.EventCollection = new EventCollectionMock(SettingsEnv,
                     addEvent: new Action<string, JObject, IProjectSettings>((c, e, p) =>
                     {
-                        if ((p == SettingsEnv) && (c == "AddEventTest") 
+                        if ((p == SettingsEnv) && (c == "AddEventTest")
                             && (e["AProperty"].Value<string>() == "AValue")
                             && (e["AGlobal"].Value<string>() == "value"))
                             return;
@@ -719,9 +719,9 @@ namespace Keen.Core.Test
                 client.Event = new EventMock(SettingsEnv,
                     addEvents: new Func<JObject, IProjectSettings, IEnumerable<CachedEvent>>((e, p) =>
                     {
-                        if ((p == SettingsEnv) 
-                            && (null!=e.Property("CachedEventTest"))
-                            && (e.Property("CachedEventTest").Value.Children().Count()==3))
+                        if ((p == SettingsEnv)
+                            && (null != e.Property("CachedEventTest"))
+                            && (e.Property("CachedEventTest").Value.Children().Count() == 3))
                             return new List<CachedEvent>();
                         else
                             throw new Exception("Unexpected value");
@@ -760,7 +760,7 @@ namespace Keen.Core.Test
 
             Assert.DoesNotThrow(() => client.SendCachedEvents());
             Assert.Null(await client.EventCache.TryTakeAsync(), "Cache is empty");
-            Assert.True( !UseMocks || ( total == KeenConstants.BulkBatchSize));
+            Assert.True(!UseMocks || (total == KeenConstants.BulkBatchSize));
         }
 
         [Test]
@@ -772,8 +772,8 @@ namespace Keen.Core.Test
                     addEvents: new Func<JObject, IProjectSettings, IEnumerable<CachedEvent>>((e, p) =>
                     {
                         if (p == SettingsEnv)
-                            throw new KeenBulkException("Mock exception", 
-                                new List<CachedEvent>(){new CachedEvent("CachedEventTest", e, new Exception())});
+                            throw new KeenBulkException("Mock exception",
+                                new List<CachedEvent>() { new CachedEvent("CachedEventTest", e, new Exception()) });
                         else
                             throw new Exception("Unexpected value");
                     }));
@@ -781,15 +781,15 @@ namespace Keen.Core.Test
             var anEvent = new JObject();
             anEvent.Add("AProperty", "AValue");
             client.AddEvent("CachedEventTest", anEvent);
-            
-            anEvent.Add("keen", JObject.FromObject(new {invalidPropName = "value"} ));
+
+            anEvent.Add("keen", JObject.FromObject(new { invalidPropName = "value" }));
             client.AddEvent("CachedEventTest", anEvent);
-            Assert.DoesNotThrow(() => 
+            Assert.DoesNotThrow(() =>
                 {
                     try
                     {
                         client.SendCachedEvents();
-                    } 
+                    }
                     catch (KeenBulkException ex)
                     {
                         if (ex.FailedEvents.Count() != 1)
@@ -824,7 +824,7 @@ namespace Keen.Core.Test
         public void Async_GetCollectionSchema_NullProjectId_Throws()
         {
             var client = new KeenClient(SettingsEnv);
-            Assert.ThrowsAsync<KeenException>( () => client.GetSchemaAsync(null));
+            Assert.ThrowsAsync<KeenException>(() => client.GetSchemaAsync(null));
         }
 
         [Test]
@@ -840,7 +840,7 @@ namespace Keen.Core.Test
                             throw new KeenResourceNotFoundException(c);
                     }));
 
-            Assert.ThrowsAsync<KeenResourceNotFoundException>( () => client.AddEventAsync("AddEventTest", new { AProperty = "Value" }));
+            Assert.ThrowsAsync<KeenResourceNotFoundException>(() => client.AddEventAsync("AddEventTest", new { AProperty = "Value" }));
         }
 
         [Test]
@@ -870,7 +870,7 @@ namespace Keen.Core.Test
                         if ((p == SettingsEnv) && (c == "AddEventTest") && (e["AProperty"].Value<string>() == "Value"))
                             throw new KeenResourceNotFoundException(c);
                     }));
-            
+
             await client.AddEventAsync("AddEventTest", new { AProperty = "AValue" });
         }
 
@@ -878,7 +878,7 @@ namespace Keen.Core.Test
         public void Async_AddEvents_NullCollection_Throws()
         {
             var client = new KeenClient(SettingsEnv);
-            Assert.ThrowsAsync<KeenException>( () => client.AddEventsAsync("AddEventTest", null));
+            Assert.ThrowsAsync<KeenException>(() => client.AddEventsAsync("AddEventTest", null));
         }
 
         [Test]
@@ -944,7 +944,7 @@ namespace Keen.Core.Test
             events.Add(invalidEvent);
 
             await client.AddEventsAsync("AddEventTest", events);
-            Assert.ThrowsAsync<KeenBulkException>( () => client.SendCachedEventsAsync());
+            Assert.ThrowsAsync<KeenBulkException>(() => client.SendCachedEventsAsync());
         }
     }
 }

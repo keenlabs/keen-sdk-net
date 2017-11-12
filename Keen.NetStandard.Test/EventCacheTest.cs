@@ -1,10 +1,11 @@
-﻿using Keen.Core.EventCache;
-using Newtonsoft.Json.Linq;
-using NUnit.Framework;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.IO;
+using Keen.Core.EventCache;
+using Newtonsoft.Json.Linq;
+using NUnit.Framework;
+
 
 namespace Keen.Core.Test
 {

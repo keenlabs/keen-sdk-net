@@ -1,5 +1,5 @@
-﻿using Newtonsoft.Json;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 
 namespace Keen.Core.Query
@@ -13,6 +13,6 @@ namespace Keen.Core.Query
         public IEnumerable<FunnelResultStep> Steps { get; set; }
 
         [JsonProperty(PropertyName = "result", NullValueHandling = NullValueHandling.Ignore)]
-        public IEnumerable<int> Result{ get; set; }
+        public IEnumerable<int> Result { get; set; }
     }
 }

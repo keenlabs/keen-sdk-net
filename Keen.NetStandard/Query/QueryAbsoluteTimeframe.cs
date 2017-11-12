@@ -1,6 +1,6 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 
 namespace Keen.Core.Query

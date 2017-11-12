@@ -1,9 +1,9 @@
-﻿using Keen.Core.EventCache;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Keen.Core.EventCache;
+using Newtonsoft.Json.Linq;
 
 
 namespace Keen.Core
@@ -138,17 +138,17 @@ namespace Keen.Core
             // or if the HTTP response is a failure, throw.
             var failedItems =
                 from respCols in jsonResponse.Properties()
-                    from eventsCols in events.Properties()
-                        where respCols.Name == eventsCols.Name
-                            let collection = respCols.Name
-                            let combined = eventsCols.Children().Children()
-                                .Zip(respCols.Children().Children(),
-                                     (e, r) => new { eventObj = (JObject)e, result = (JObject)r })
-                                from e in combined
-                                    where !(bool)(e.result.Property("success").Value)
-                                    select new CachedEvent(collection,
-                                                           e.eventObj,
-                                                           KeenUtil.GetBulkApiError(e.result));
+                from eventsCols in events.Properties()
+                where respCols.Name == eventsCols.Name
+                let collection = respCols.Name
+                let combined = eventsCols.Children().Children()
+                    .Zip(respCols.Children().Children(),
+                         (e, r) => new { eventObj = (JObject)e, result = (JObject)r })
+                from e in combined
+                where !(bool)(e.result.Property("success").Value)
+                select new CachedEvent(collection,
+                                       e.eventObj,
+                                       KeenUtil.GetBulkApiError(e.result));
 
             return failedItems;
         }

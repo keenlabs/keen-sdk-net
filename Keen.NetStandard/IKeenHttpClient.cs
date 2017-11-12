@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -70,5 +70,27 @@ namespace Keen.Core
         /// <param name="authKey">The key to use for authenticating this request.</param>
         /// <returns>The response message.</returns>
         Task<HttpResponseMessage> DeleteAsync(Uri resource, string authKey);
+
+        /// <summary>
+        /// Create and send a PUT request with the given content to the given relative resource
+        /// using the given key for authentication. 
+        /// </summary>
+        /// <param name="resource">The relative resource to PUT. Must be properly formatted as a
+        ///     relative Uri.</param>
+        /// <param name="authKey">The key to use for authenticating this request.</param>
+        /// <param name="content">The PUT body to send.</param>
+        /// <returns>>The response message.</returns>
+        Task<HttpResponseMessage> PutAsync(string resource, string authKey, string content);
+
+        /// <summary>
+        /// Create and send a PUT request with the given content to the given relative resource
+        /// using the given key for authentication. 
+        /// </summary>
+        /// <param name="resource">The relative resource to PUT. Must be properly formatted as a
+        ///     relative Uri.</param>
+        /// <param name="authKey">The key to use for authenticating this request.</param>
+        /// <param name="content">The PUT body to send.</param>
+        /// <returns>>The response message.</returns>
+        Task<HttpResponseMessage> PutAsync(Uri resource, string authKey, string content);
     }
 }

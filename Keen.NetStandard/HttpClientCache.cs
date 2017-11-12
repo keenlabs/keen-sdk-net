@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -72,7 +72,7 @@ namespace Keen.Core
                     if (null == httpClient)
                     {
                         throw new KeenException(
-                            string.Format("Existing HttpClient for baseUrl \"{0}\" has been" + 
+                            string.Format("Existing HttpClient for baseUrl \"{0}\" has been" +
                                           "garbage collected.", baseUrl));
                     }
                 }

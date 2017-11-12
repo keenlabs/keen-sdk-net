@@ -1,6 +1,6 @@
-﻿using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 
 namespace Keen.Core.Query
@@ -27,6 +27,6 @@ namespace Keen.Core.Query
 
         Task<IEnumerable<dynamic>> Extract(string collection, IQueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, int latest = 0, string email = "");
 
-        Task<FunnelResult> Funnel(IEnumerable<FunnelStep> steps, IQueryTimeframe timeframe = null, string timeZone = "" );
+        Task<FunnelResult> Funnel(IEnumerable<FunnelStep> steps, IQueryTimeframe timeframe = null, string timeZone = "");
     }
 }
