@@ -1,9 +1,9 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 
 namespace Keen.Core.Query
@@ -99,17 +99,17 @@ namespace Keen.Core.Query
             var reply = await KeenWebApiRequest().ConfigureAwait(false);
             return from j in reply.Children()
                    let p = j as JProperty
-                   where p != null 
+                   where p != null
                    select new KeyValuePair<string, string>(p.Name, (string)p.Value);
         }
 
         #region metric
 
-        public async Task<JObject> Metric(string queryName, Dictionary<string,string> parms)
+        public async Task<JObject> Metric(string queryName, Dictionary<string, string> parms)
         {
             if (string.IsNullOrEmpty(queryName))
                 throw new ArgumentNullException("queryName");
-            if (null==parms)
+            if (null == parms)
                 throw new ArgumentNullException("parms");
 
             return await KeenWebApiRequest(queryName, parms).ConfigureAwait(false);
@@ -303,7 +303,7 @@ namespace Keen.Core.Query
             {
                 parms.Add(KeenConstants.QueryParmTimeframe, timeframe.ToString());
             }
-            
+
             parms.Add(KeenConstants.QueryParmTimezone, timezone);
             parms.Add(KeenConstants.QueryParmSteps, stepsJson);
 
@@ -395,7 +395,7 @@ namespace Keen.Core.Query
                     d.Add(p.Name, (string)p.Value);
 
                 var t = i.Value<JObject>("timeframe");
-                var qv = new QueryIntervalValue<IDictionary<string, string>>(d , t.Value<DateTime>("start"), t.Value<DateTime>("end"));
+                var qv = new QueryIntervalValue<IDictionary<string, string>>(d, t.Value<DateTime>("start"), t.Value<DateTime>("end"));
                 result.Add(qv);
             }
 
@@ -430,7 +430,7 @@ namespace Keen.Core.Query
                         else
                             d.Add(p.Name, (string)p.Value);
                     }
-                    qgl.Add( new QueryGroupValue<IDictionary<string, string>>(d, grpVal));
+                    qgl.Add(new QueryGroupValue<IDictionary<string, string>>(d, grpVal));
                 }
 
                 var t = i.Value<JObject>("timeframe");

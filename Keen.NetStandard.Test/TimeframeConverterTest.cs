@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NUnit.Framework;
-using Newtonsoft.Json;
 using Keen.Core.Query;
+using Newtonsoft.Json;
+using NUnit.Framework;
+
 
 namespace Keen.NetStandard.Test
 {

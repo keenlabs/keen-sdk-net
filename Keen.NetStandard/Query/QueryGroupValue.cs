@@ -1,5 +1,5 @@
-﻿
 using System.Collections.Generic;
+
 
 namespace Keen.Core.Query
 {
@@ -13,7 +13,7 @@ namespace Keen.Core.Query
         /// The value for the group. Varies with the type of query performed.
         /// </summary>
         public T Value { get; private set; }
-        
+
         /// <summary>
         /// The value of the groupby field for this value.
         /// </summary>

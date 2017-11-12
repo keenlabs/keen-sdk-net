@@ -1,11 +1,11 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 
 
 namespace Keen.Core.Dataset
@@ -16,8 +16,9 @@ namespace Keen.Core.Dataset
     /// </summary>
     internal class Datasets : IDataset
     {
-        private const int MAX_DATASET_DEFINITION_LIST_LIMIT = 100;
-        private static readonly JsonSerializerSettings SERIALIZER_SETTINGS =
+        private const int MaxDatasetDefinitionListLimit = 100;
+
+        private static readonly JsonSerializerSettings SerializerSettings =
             new JsonSerializerSettings
             {
                 ContractResolver = new DefaultContractResolver
@@ -150,7 +151,7 @@ namespace Keen.Core.Dataset
             }
 
             return JsonConvert.DeserializeObject<DatasetDefinition>(responseString,
-                                                                    SERIALIZER_SETTINGS);
+                                                                    SerializerSettings);
         }
 
         public async Task<DatasetDefinitionCollection> ListDefinitionsAsync(
@@ -191,13 +192,13 @@ namespace Keen.Core.Dataset
             }
 
             return JsonConvert.DeserializeObject<DatasetDefinitionCollection>(responseString,
-                                                                              SERIALIZER_SETTINGS);
+                                                                              SerializerSettings);
         }
 
         public async Task<IEnumerable<DatasetDefinition>> ListAllDefinitionsAsync()
         {
             var allDefinitions = new List<DatasetDefinition>();
-            var firstSet = await ListDefinitionsAsync(MAX_DATASET_DEFINITION_LIST_LIMIT)
+            var firstSet = await ListDefinitionsAsync(MaxDatasetDefinitionListLimit)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             if (null == firstSet?.Datasets)
@@ -219,7 +220,7 @@ namespace Keen.Core.Dataset
 
             do
             {
-                var nextSet = await ListDefinitionsAsync(MAX_DATASET_DEFINITION_LIST_LIMIT,
+                var nextSet = await ListDefinitionsAsync(MaxDatasetDefinitionListLimit,
                                                          allDefinitions.Last().DatasetName)
                     .ConfigureAwait(continueOnCapturedContext: false);
 
@@ -281,7 +282,7 @@ namespace Keen.Core.Dataset
             // This throws if dataset is not valid.
             dataset.Validate();
 
-            var content = JsonConvert.SerializeObject(dataset, SERIALIZER_SETTINGS);
+            var content = JsonConvert.SerializeObject(dataset, SerializerSettings);
 
             var responseMsg = await _keenHttpClient
                 .PutAsync(GetDatasetUrl(dataset.DatasetName), _masterKey, content)
@@ -302,7 +303,7 @@ namespace Keen.Core.Dataset
             }
 
             return JsonConvert.DeserializeObject<DatasetDefinition>(responseString,
-                                                                    SERIALIZER_SETTINGS);
+                                                                    SerializerSettings);
         }
 
         private string GetDatasetUrl(string datasetName = null)

@@ -1,8 +1,8 @@
-﻿using Newtonsoft.Json;
-using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Newtonsoft.Json;
+using NUnit.Framework;
 
 
 namespace Keen.Core.Test

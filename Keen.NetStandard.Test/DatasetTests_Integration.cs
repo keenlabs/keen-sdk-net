@@ -1,7 +1,3 @@
-using Keen.Core.Dataset;
-using Keen.Core.Query;
-using Moq;
-using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,6 +5,10 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Keen.Core.Dataset;
+using Keen.Core.Query;
+using Moq;
+using NUnit.Framework;
 
 
 namespace Keen.Core.Test

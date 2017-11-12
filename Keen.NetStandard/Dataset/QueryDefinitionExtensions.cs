@@ -1,4 +1,4 @@
-﻿using Keen.Core.Query;
+using Keen.Core.Query;
 
 
 namespace Keen.Core.Dataset

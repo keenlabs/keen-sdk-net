@@ -1,13 +1,13 @@
-﻿using Keen.Core.Query;
-using Moq;
-using Newtonsoft.Json.Linq;
-using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Dynamic;
 using System.Linq;
 using System.Threading.Tasks;
+using Keen.Core.Query;
+using Moq;
+using Newtonsoft.Json.Linq;
+using NUnit.Framework;
 
 
 namespace Keen.Core.Test
@@ -39,7 +39,7 @@ namespace Keen.Core.Test
         [Test]
         public void ReadKeyOnly_Success()
         {
-            var settings = new ProjectSettingsProvider(SettingsEnv.ProjectId, readKey: SettingsEnv.ReadKey); 
+            var settings = new ProjectSettingsProvider(SettingsEnv.ProjectId, readKey: SettingsEnv.ReadKey);
             var client = new KeenClient(settings);
 
             if (!UseMocks)
@@ -59,8 +59,8 @@ namespace Keen.Core.Test
             if (UseMocks)
             {
                 // A few values that should be present and are unlikely to change
-                IEnumerable<KeyValuePair<string,string>> testResult = new List<KeyValuePair<string, string>>() 
-                { 
+                IEnumerable<KeyValuePair<string, string>> testResult = new List<KeyValuePair<string, string>>()
+                {
                     new KeyValuePair<string, string>("minimum", "url" ),
                     new KeyValuePair<string, string>("average", "url" ),
                     new KeyValuePair<string, string>("maximum", "url" ),
@@ -68,7 +68,7 @@ namespace Keen.Core.Test
                 };
 
                 queryMock = new Mock<IQueries>();
-                queryMock.Setup(m=>m.AvailableQueries())
+                queryMock.Setup(m => m.AvailableQueries())
                     .Returns(Task.FromResult(testResult));
 
                 client.Queries = queryMock.Object;
@@ -106,7 +106,7 @@ namespace Keen.Core.Test
                 client.Queries = queryMock.Object;
             }
 
-            Assert.ThrowsAsync<ArgumentNullException>( () => client.QueryAsync(QueryType.Count(), null, "", timeframe, null));
+            Assert.ThrowsAsync<ArgumentNullException>(() => client.QueryAsync(QueryType.Count(), null, "", timeframe, null));
         }
 
         [Test]
@@ -124,7 +124,7 @@ namespace Keen.Core.Test
                         It.Is<string>(c => c == testCol),
                         It.Is<string>(p => p == ""),
                         It.Is<QueryAbsoluteTimeframe>(t => t == timeframe),
-                        It.Is<IEnumerable<QueryFilter>>(f=>f==null),
+                        It.Is<IEnumerable<QueryFilter>>(f => f == null),
                         It.Is<string>(z => z == "")))
                     .Returns(Task.FromResult("0"));
 
@@ -184,20 +184,20 @@ namespace Keen.Core.Test
 
             IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>> reply = new List<QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>>()
             {
-                new QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>( 
+                new QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>(
                     new List<QueryGroupValue<string>>()
                     {
                         new QueryGroupValue<string>( "1", "field1" ),
                         new QueryGroupValue<string>( "1", "field1" ),
-                    }, 
+                    },
                     DateTime.Now, DateTime.Now.AddSeconds(2)
                 ),
-                new QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>( 
+                new QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>(
                     new List<QueryGroupValue<string>>()
                     {
                         new QueryGroupValue<string>( "2", "field1" ),
                         new QueryGroupValue<string>( "2", "field1" ),
-                    }, 
+                    },
                     DateTime.Now, DateTime.Now.AddSeconds(2)
                 ),
             };
@@ -330,7 +330,7 @@ namespace Keen.Core.Test
         public async Task Query_ValidFilter_Success()
         {
             var client = new KeenClient(SettingsEnv);
-            var filters = new List<QueryFilter>(){ new QueryFilter("field1", QueryFilter.FilterOperator.GreaterThan(), "1") };
+            var filters = new List<QueryFilter>() { new QueryFilter("field1", QueryFilter.FilterOperator.GreaterThan(), "1") };
             var timeframe = QueryRelativeTimeframe.ThisHour();
 
             Mock<IQueries> queryMock = null;
@@ -372,10 +372,10 @@ namespace Keen.Core.Test
                 queryMock.Setup(m => m.Metric(
                         It.Is<QueryType>(q => q == QueryType.CountUnique()),
                         It.Is<string>(c => c == testCol),
-                        It.Is<string>(p=> p == prop),
+                        It.Is<string>(p => p == prop),
                         It.Is<QueryAbsoluteTimeframe>(t => t == timeframe),
                         It.Is<IEnumerable<QueryFilter>>(f => f == null),
-                        It.Is<string>(t=>t=="")
+                        It.Is<string>(t => t == "")
                         ))
                     .Returns(Task.FromResult("0"));
 
@@ -688,20 +688,20 @@ namespace Keen.Core.Test
             var resultl = "hello,goodbye,I'm late";
 
             IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>> result =
-                new List<QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>>() 
-                { 
+                new List<QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>>()
+                {
                     new QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>(
                         new List<QueryGroupValue<string>>(){
                             new QueryGroupValue<string>(resultl, "abc"),
                             new QueryGroupValue<string>(resultl, "def")
-                        }, 
+                        },
                         timeframe.Start, timeframe.End
                         ),
                     new QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>(
                         new List<QueryGroupValue<string>>(){
                             new QueryGroupValue<string>(resultl, "abc"),
                             new QueryGroupValue<string>(resultl, "def")
-                        }, 
+                        },
                         timeframe.Start, timeframe.End
                         ),
                 };
@@ -783,7 +783,7 @@ namespace Keen.Core.Test
                         It.Is<string>(c => c == testCol),
                         It.Is<QueryAbsoluteTimeframe>(t => t == timeframe),
                         It.Is<IEnumerable<QueryFilter>>(f => f == null),
-                        It.Is<int>( l => l == 0),
+                        It.Is<int>(l => l == 0),
                         It.Is<string>(t => t == "")
                         ))
                     .Returns(Task.FromResult(result));
@@ -866,8 +866,8 @@ namespace Keen.Core.Test
             var client = new KeenClient(SettingsEnv);
             var timeframe = QueryRelativeTimeframe.ThisHour();
 
-            IEnumerable<MultiAnalysisParam> param = new List<MultiAnalysisParam>() 
-            { 
+            IEnumerable<MultiAnalysisParam> param = new List<MultiAnalysisParam>()
+            {
                 new MultiAnalysisParam("first", MultiAnalysisParam.Metric.Count()),
                 new MultiAnalysisParam("second", MultiAnalysisParam.Metric.Maximum("field1")),
                 new MultiAnalysisParam("third", MultiAnalysisParam.Metric.Minimum("field1")),
@@ -907,8 +907,8 @@ namespace Keen.Core.Test
         {
             var client = new KeenClient(SettingsEnv);
             var timeframe = QueryRelativeTimeframe.PreviousNDays(2);
-            IEnumerable<MultiAnalysisParam> param = new List<MultiAnalysisParam>() 
-            { 
+            IEnumerable<MultiAnalysisParam> param = new List<MultiAnalysisParam>()
+            {
                 new MultiAnalysisParam("first", MultiAnalysisParam.Metric.Count()),
                 new MultiAnalysisParam("second", MultiAnalysisParam.Metric.Maximum("field1")),
                 new MultiAnalysisParam("third", MultiAnalysisParam.Metric.Minimum("field1")),
@@ -949,8 +949,8 @@ namespace Keen.Core.Test
             var client = new KeenClient(SettingsEnv);
             var timeframe = QueryRelativeTimeframe.ThisHour();
             var groupby = "field1";
-            IEnumerable<MultiAnalysisParam> param = new List<MultiAnalysisParam>() 
-            { 
+            IEnumerable<MultiAnalysisParam> param = new List<MultiAnalysisParam>()
+            {
                 new MultiAnalysisParam("first", MultiAnalysisParam.Metric.Count()),
                 new MultiAnalysisParam("second", MultiAnalysisParam.Metric.Maximum("field1")),
                 new MultiAnalysisParam("third", MultiAnalysisParam.Metric.Minimum("field1")),
@@ -999,8 +999,8 @@ namespace Keen.Core.Test
             var timeframe = QueryRelativeTimeframe.PreviousNDays(3);
             var interval = QueryInterval.Daily();
             var groupby = "field1";
-            IEnumerable<MultiAnalysisParam> param = new List<MultiAnalysisParam>() 
-            { 
+            IEnumerable<MultiAnalysisParam> param = new List<MultiAnalysisParam>()
+            {
                 new MultiAnalysisParam("first", MultiAnalysisParam.Metric.Count()),
                 new MultiAnalysisParam("second", MultiAnalysisParam.Metric.Maximum("field1")),
                 new MultiAnalysisParam("third", MultiAnalysisParam.Metric.Minimum("field1")),
@@ -1018,14 +1018,14 @@ namespace Keen.Core.Test
                     new List<QueryGroupValue<IDictionary<string,string>>>(){
                         new QueryGroupValue<IDictionary<string,string>>(dict, groupby),
                         new QueryGroupValue<IDictionary<string,string>>(dict, groupby)
-                    }, 
+                    },
                     DateTime.Now, DateTime.Now.AddSeconds(2)
                 ),
                 new QueryIntervalValue<IEnumerable<QueryGroupValue<IDictionary<string, string>>>>(
                     new List<QueryGroupValue<IDictionary<string,string>>>(){
                         new QueryGroupValue<IDictionary<string,string>>(dict, groupby),
                         new QueryGroupValue<IDictionary<string,string>>(dict, groupby)
-                    }, 
+                    },
                     DateTime.Now, DateTime.Now.AddSeconds(2)
                 ),
             };
@@ -1038,7 +1038,7 @@ namespace Keen.Core.Test
                         It.Is<string>(c => c == testCol),
                         It.Is<IEnumerable<MultiAnalysisParam>>(p => p == param),
                         It.Is<IQueryTimeframe>(t => t == timeframe),
-                        It.Is<QueryInterval>(i=>i==interval),
+                        It.Is<QueryInterval>(i => i == interval),
                         It.Is<IEnumerable<QueryFilter>>(f => f == null),
                         It.Is<string>(g => g == groupby),
                         It.Is<string>(tz => tz == "")
@@ -1058,8 +1058,8 @@ namespace Keen.Core.Test
         public async Task MultiAnalysis_ValidInterval_Success()
         {
             var client = new KeenClient(SettingsEnv);
-            IEnumerable<MultiAnalysisParam> param = new List<MultiAnalysisParam>() 
-            { 
+            IEnumerable<MultiAnalysisParam> param = new List<MultiAnalysisParam>()
+            {
                 new MultiAnalysisParam("first", MultiAnalysisParam.Metric.Count()),
                 new MultiAnalysisParam("second", MultiAnalysisParam.Metric.Maximum("field1")),
                 new MultiAnalysisParam("third", MultiAnalysisParam.Metric.Minimum("field1")),
@@ -1067,14 +1067,14 @@ namespace Keen.Core.Test
             var timeframe = QueryRelativeTimeframe.PreviousNDays(3);
             var interval = QueryInterval.Daily();
             IEnumerable<QueryIntervalValue<IDictionary<string, string>>> result = new List<QueryIntervalValue<IDictionary<string, string>>>();
-            foreach( var i in Enumerable.Range(1,3))
+            foreach (var i in Enumerable.Range(1, 3))
             {
                 var dic = new Dictionary<string, string>();
                 dic.Add("second", "fff");
                 dic.Add("third", "aaa");
                 dic.Add("first", "123");
 
-                var qv = new QueryIntervalValue<IDictionary<string,string>>(dic, DateTime.Now, DateTime.Now.AddSeconds(2));
+                var qv = new QueryIntervalValue<IDictionary<string, string>>(dic, DateTime.Now, DateTime.Now.AddSeconds(2));
                 ((List<QueryIntervalValue<IDictionary<string, string>>>)result).Add(qv);
             }
 
@@ -1167,16 +1167,16 @@ namespace Keen.Core.Test
 
             var json = JObject.FromObject(filter).ToString(Newtonsoft.Json.Formatting.None);
             Trace.WriteLine(json);
-            const string expectedJson = "{"+
-                                          "\"property_name\":\"prop\","+
-                                          "\"operator\":\"within\","+
-                                          "\"property_value\":{"+
-                                            "\"coordinates\":["+
-                                              "10.0,"+
-                                              "10.0"+
-                                            "],"+
-                                            "\"max_distance_miles\":5.0"+
-                                          "}"+
+            const string expectedJson = "{" +
+                                          "\"property_name\":\"prop\"," +
+                                          "\"operator\":\"within\"," +
+                                          "\"property_value\":{" +
+                                            "\"coordinates\":[" +
+                                              "10.0," +
+                                              "10.0" +
+                                            "]," +
+                                            "\"max_distance_miles\":5.0" +
+                                          "}" +
                                         "}";
 
             Assert.AreEqual(expectedJson, json);

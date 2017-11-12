@@ -1,13 +1,13 @@
-﻿using Keen.Core.DataEnrichment;
-using Keen.Core.Dataset;
-using Keen.Core.EventCache;
-using Keen.Core.Query;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Keen.Core.DataEnrichment;
+using Keen.Core.Dataset;
+using Keen.Core.EventCache;
+using Keen.Core.Query;
+using Newtonsoft.Json.Linq;
 
 
 namespace Keen.Core
@@ -275,7 +275,7 @@ namespace Keen.Core
             if (!eventsInfo.Any())
                 return new List<CachedEvent>();
             // Build a container object with a property to identify the collection
-            var jEvent = new JObject {{collection, JToken.FromObject(eventsInfo)}};
+            var jEvent = new JObject { { collection, JToken.FromObject(eventsInfo) } };
 
             // Use the bulk interface to add events
             return await Event.AddEvents(jEvent).ConfigureAwait(false);
@@ -385,12 +385,12 @@ namespace Keen.Core
             // Ensure this event has a 'keen' object of the correct type
             if (null == jEvent.Property("keen"))
                 jEvent.Add("keen", new JObject());
-            else if (jEvent.Property("keen").Value.GetType() != typeof (JObject))
+            else if (jEvent.Property("keen").Value.GetType() != typeof(JObject))
                 throw new KeenException(string.Format("Value of property \"keen\" must be an object, is {0}",
                     jEvent.Property("keen").GetType()));
 
 
-            var keen = ((JObject) jEvent.Property("keen").Value);
+            var keen = ((JObject)jEvent.Property("keen").Value);
             if (addOns != null && addOns.Any())
                 keen.Add("addons", JArray.FromObject(addOns));
 
@@ -1039,7 +1039,7 @@ namespace Keen.Core
             {
                 return ListDatasetDefinitionsAsync(limit, afterName).Result;
             }
-            catch(AggregateException ex)
+            catch (AggregateException ex)
             {
                 throw ex.TryUnwrap();
             }

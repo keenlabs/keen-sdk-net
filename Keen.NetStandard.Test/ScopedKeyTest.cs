@@ -1,10 +1,10 @@
-﻿using Newtonsoft.Json.Linq;
-using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Dynamic;
 using System.Linq;
+using Newtonsoft.Json.Linq;
+using NUnit.Framework;
 
 
 namespace Keen.Core.Test
@@ -95,11 +95,11 @@ namespace Keen.Core.Test
                 dynamic secOps = new ExpandoObject();
 
                 IDictionary<string, object> filter = new ExpandoObject();
-                filter.Add("property_name", "account_id" );
-                filter.Add("operator", "eq" );
-                filter.Add("property_value", 123 );
-                secOps.filters = new List<object>(){ filter };
-                secOps.allowed_operations = new List<string>(){ "read" };
+                filter.Add("property_name", "account_id");
+                filter.Add("operator", "eq");
+                filter.Add("property_value", 123);
+                secOps.filters = new List<object>() { filter };
+                secOps.allowed_operations = new List<string>() { "read" };
 
                 var scopedKey = ScopedKey.Encrypt(settings.MasterKey, (object)secOps);
             });
@@ -122,7 +122,7 @@ namespace Keen.Core.Test
             {
                 var scopedKey = ScopedKey.Encrypt(settings.MasterKey, (object)secOpsIn);
                 var decrypted = ScopedKey.Decrypt(settings.MasterKey, scopedKey);
-                var secOpsOut = JObject.Parse(decrypted); 
+                var secOpsOut = JObject.Parse(decrypted);
                 Assert.True(secOpsIn.allowed_operations[0] == (string)(secOpsOut["allowed_operations"].First()));
             });
         }
@@ -186,7 +186,7 @@ namespace Keen.Core.Test
             var rnd = new System.Security.Cryptography.RNGCryptoServiceProvider();
             var bytes = new byte[16];
             rnd.GetBytes(bytes);
-            
+
             var iv = String.Concat(bytes.Select(b => b.ToString("X2"))); Trace.WriteLine("IV: " + iv);
 
             Trace.WriteLine("plaintext: " + str);
