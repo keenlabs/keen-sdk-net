@@ -14,19 +14,6 @@ namespace Keen.Core.AccessKey
         public ISet<string> Permitted { get; set; }
         public string Key { get; set; }
         public Options Options { get; set; }
-
-        internal AccessKey(string name, bool isActive, ISet<string> permitted, Options options)
-        {
-            this.Key = null; //Not needed for the creation of key
-            this.Name = name;
-            this.IsActive = isActive;
-            this.Permitted = permitted;
-            this.Options = options;
-        }
-
-        internal AccessKey() { }
-
-        
     }
 
     /// <summary>
