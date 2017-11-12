@@ -127,7 +127,7 @@ namespace Keen.Core
             Event = new Event(_prjSettings, keenHttpClientProvider);
             Queries = new Query.Queries(_prjSettings, keenHttpClientProvider);
             AccessKeys = new AccessKeys(_prjSettings, keenHttpClientProvider);
-            Datasets = new Datasets(_prjSettings, keenHttpClientProvider);
+            Datasets = new Dataset.Datasets(_prjSettings, keenHttpClientProvider);
         }
 
         /// <summary>
