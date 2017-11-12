@@ -25,7 +25,7 @@ Print usage info.
 #>
 function Usage {
     "Updates the Version in the .csproj file. Then, tries to create a new NuGet package, which will"
-    "fail if nuget.exe isn't in the PATH or the script's directory.`n"
+    "fail if dotnet core tools aren't installed.`n"
     ".\NewSemVer.ps1 <VersionNumber>`n"
     "   <VersionNumber>     The version number to set, for example: 1.2.3"
     "                       If prelease/metadata info (e.g. 1.2.3-beta) is provided, only "
