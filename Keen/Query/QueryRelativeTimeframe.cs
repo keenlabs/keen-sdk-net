@@ -210,10 +210,6 @@ namespace Keen.Query
 
         public override bool Equals(object obj)
         {
-            //var timeframe = obj as QueryRelativeTimeframe;
-            //return timeframe != null &&
-            //       _value == timeframe._value;
-
             return (obj is QueryRelativeTimeframe timeframe) && _value == timeframe._value;
         }
 
