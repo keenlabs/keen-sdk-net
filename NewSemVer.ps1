@@ -25,7 +25,7 @@ Print usage info.
 #>
 function Usage {
     "Updates the Version in the .csproj file. Then, tries to create a new NuGet package, which will"
-    "fail if nuget.exe isn't in the PATH or the script's directory.`n"
+    "fail if dotnet core tools aren't installed.`n"
     ".\NewSemVer.ps1 <VersionNumber>`n"
     "   <VersionNumber>     The version number to set, for example: 1.2.3"
     "                       If prelease/metadata info (e.g. 1.2.3-beta) is provided, only "
@@ -48,7 +48,7 @@ function Update-AssemblyVersionAttributes ([string] $version) {
     $majMinPatchVersion = Get-MajMinPatchVersion($version)
     $newNetStandardVersion = "<Version>$majMinPatchVersion</Version>"
  
-    Get-ChildItem -r -filter .\* -Include Keen.NetStandard.csproj | ForEach-Object {
+    Get-ChildItem -r -filter .\* -Include Keen.csproj | ForEach-Object {
         $filename = $_.Directory.ToString() + [IO.Path]::DirectorySeparatorChar + $_.Name
         "Setting version to $version in $filename"
 
@@ -71,7 +71,7 @@ Update-AssemblyVersionAttributes $version
 
 
 # Create another .nupkg for the .NET Standard stuff based on the .csproj, which will be the only .nupkg going forward
-& pushd .\Keen.NetStandard
+& pushd .\Keen
 & dotnet clean
 & dotnet pack -c Release
 & popd
