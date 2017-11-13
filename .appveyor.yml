@@ -98,7 +98,7 @@ test_script:
   # Some comments on this can be found here: https://github.com/OpenCover/opencover/issues/601
   - .\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:dotnet.exe -targetargs:"test --logger \"trx;LogFileName=netstandard_test_results.xml\" .\Keen.NetStandard.Test\Keen.NetStandard.Test.csproj /property:DebugType=Full" -mergeoutput -output:coverage.xml -filter:"+[*]* -[*.Test]* -[Moq*]*" -oldStyle -returntargetcode -register:user
 
-  # Upload merged coverage results from both test runs
+  # Upload coverage results
   - .\tools\coveralls.net.0.8.0-unstable0013\tools\csmacnz.Coveralls.exe --opencover -i .\coverage.xml
 
   # Upload netstandard test results to appveyor
