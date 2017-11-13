@@ -39,7 +39,7 @@ function Get-MajMinPatchVersion([string] $version) {
 
 
 <#
-Effect version updates in SharedVersionInfo.cs.
+Effect version updates in .csproj file.
 #>
 function Update-AssemblyVersionAttributes ([string] $version) {
     $majMinPatchPattern = '[0-9]+(\.([0-9]+|\*)){1,3}'
