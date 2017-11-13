@@ -57,8 +57,7 @@ matrix:
 #---------------------------------#
 
 configuration:
-  # This config doesn't build the .NET Standard projects
-  - netfx
+  - release
 
 build:
   parallel: true
@@ -66,20 +65,16 @@ build:
   # MSBuild verbosity level
   verbosity: normal
 
+
+# NOTE : We don't set a custom build script, so by default AppVeyor builds with MSBuild, which is
+# fine because that means between this and Travis CI, we're validating dotnet/msbuild and also
+# Windows/MacOS/Linux.
+
+
 before_build:
   # Make sure we have the right tools version
   - dotnet --version
-
-  # Restore non-netstandard projects one by one using nuget cli directly
-  - nuget restore .\Keen\Keen.csproj -PackagesDirectory .\packages\
-  - nuget restore .\Keen.Net\Keen.Net.csproj -PackagesDirectory .\packages\
-  - nuget restore .\Keen.NET.Test\Keen.NET.Test.csproj -PackagesDirectory .\packages\
-  - nuget restore .\Keen.NET_35\Keen.NET_35.csproj -PackagesDirectory .\packages\
-  - nuget restore .\Keen.NET_35.Test\Keen.NET_35.Test.csproj -PackagesDirectory .\packages\
-
-  # Restore netstandard projects one by one using dotnet cli
-  - dotnet restore .\Keen.NetStandard\Keen.NetStandard.csproj
-  - dotnet restore .\Keen.NetStandard.Test\Keen.NetStandard.Test.csproj
+  - dotnet restore
 
 # scripts to run after build
 after_build:
@@ -93,7 +88,6 @@ after_build:
 test_script:
   - nuget install OpenCover -Version 4.6.519 -OutputDirectory tools
   - nuget install coveralls.net -Version 0.8.0-unstable0013 -PreRelease -OutputDirectory tools
-  - .\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:nunit3-console.exe -targetargs:"--noheader .\Keen.NET.Test\bin\netfx\Keen.Net.Test.dll .\Keen.NET_35.Test\bin\netfx\Keen.NET_35.Test.dll --result=results.xml;format=AppVeyor" -output:coverage.xml -filter:"+[*]* -[*.Test]*" -returntargetcode -register:user
 
   # Run the netstandard tests.
   # Explicitly build with DebugType=Full specified. This means a non-portable, Windows-style PDB
@@ -102,9 +96,9 @@ test_script:
   #
   # Also use -oldStyle flag which uses an alternate instrumentation hook that is available for .NET Core
   # Some comments on this can be found here: https://github.com/OpenCover/opencover/issues/601
-  - .\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:dotnet.exe -targetargs:"test --logger \"trx;LogFileName=netstandard_test_results.xml\" .\Keen.NetStandard.Test\Keen.NetStandard.Test.csproj /property:DebugType=Full" -mergeoutput -output:coverage.xml -filter:"+[*]* -[*.Test]*" -oldStyle -returntargetcode -register:user
+  - .\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:dotnet.exe -targetargs:"test --logger \"trx;LogFileName=netstandard_test_results.xml\" .\Keen.NetStandard.Test\Keen.NetStandard.Test.csproj /property:DebugType=Full" -mergeoutput -output:coverage.xml -filter:"+[*]* -[*.Test]* -[Moq*]*" -oldStyle -returntargetcode -register:user
 
-  # Upload merged coverage results from both test runs
+  # Upload coverage results
   - .\tools\coveralls.net.0.8.0-unstable0013\tools\csmacnz.Coveralls.exe --opencover -i .\coverage.xml
 
   # Upload netstandard test results to appveyor

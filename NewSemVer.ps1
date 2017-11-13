@@ -24,9 +24,8 @@ $semVerPattern = '\d+.\d+.\d+(-[a-zA-Z0-9-]+)?'
 Print usage info.
 #>
 function Usage {
-    "Updates the AssemblyVersion, AssemblyInformationalVersion and AssemblyFileVersion in "
-    "the SharedVersionInfo.cs file. Then, tries to create a new NuGet package, which will fail if "
-    "nuget.exe isn't in the PATH or the script's directory.`n"
+    "Updates the Version in the .csproj file. Then, tries to create a new NuGet package, which will"
+    "fail if nuget.exe isn't in the PATH or the script's directory.`n"
     ".\NewSemVer.ps1 <VersionNumber>`n"
     "   <VersionNumber>     The version number to set, for example: 1.2.3"
     "                       If prelease/metadata info (e.g. 1.2.3-beta) is provided, only "
@@ -38,31 +37,23 @@ function Get-MajMinPatchVersion([string] $version) {
     return $version.Split('-'.ToCharArray(), 2)[0]
 }
 
+
 <#
-Effect version updates in SharedVersionInfo.cs.
+Effect version updates in .csproj file.
 #>
 function Update-AssemblyVersionAttributes ([string] $version) {
     $majMinPatchPattern = '[0-9]+(\.([0-9]+|\*)){1,3}'
     $netStandardVersionPattern = "<Version>$majMinPatchPattern</Version>"
-    $assemblyVersionPattern = "AssemblyVersion\(`"$majMinPatchPattern`"\)"
-    $assemblyFileVersionPattern = "AssemblyFileVersion\(`"$majMinPatchPattern`"\)"
-    $assemblyInformationalVersionPattern = "AssemblyInformationalVersion\(`"$semVerPattern`"\)"
 
     $majMinPatchVersion = Get-MajMinPatchVersion($version)
     $newNetStandardVersion = "<Version>$majMinPatchVersion</Version>"
-    $newAssemblyVersion = "AssemblyVersion(`"$majMinPatchVersion`")"
-    $newAssemblyfileVersion = "AssemblyFileVersion(`"$majMinPatchVersion`")"
-    $newAssemblyInformationalVersion = "AssemblyInformationalVersion(`"$version`")"
-    
-    Get-ChildItem -r -filter .\* -Include SharedVersionInfo.cs, Keen.NetStandard.csproj | ForEach-Object {
+ 
+    Get-ChildItem -r -filter .\* -Include Keen.NetStandard.csproj | ForEach-Object {
         $filename = $_.Directory.ToString() + [IO.Path]::DirectorySeparatorChar + $_.Name
         "Setting version to $version in $filename"
 
         (Get-Content $filename) | ForEach-Object {
-            % {$_ -replace $netStandardVersionPattern, $newNetStandardVersion } |
-            % {$_ -replace $assemblyVersionPattern, $newAssemblyVersion } |
-            % {$_ -replace $assemblyFileVersionPattern, $newAssemblyfileVersion } |
-            % {$_ -replace $assemblyInformationalVersionPattern, $newAssemblyInformationalVersion }
+            % {$_ -replace $netStandardVersionPattern, $newNetStandardVersion }
         } | Set-Content $filename
     }
 } 
@@ -77,33 +68,6 @@ if ($help -or ($version -notmatch "^$semVerPattern$")) {
 
 # Update the version for the .NET assemblies.
 Update-AssemblyVersionAttributes $version
-
-# Rebuild the solution to bake the new version into the assemblies. This is using the default
-# VS2017 location for MSBuild, so change it as needed (Community vs Enterprise vs Preview, etc.).
-# 
-# C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\MSBuild\15.0\Bin
-#
-# Note that since this solution now includes a multi-targeting .NET Standard 2.0 project and a
-# .NET Core test app, you'll need at least VS 2017 15.3.
-$msBuildExe = (${env:ProgramFiles(x86)}, 'Microsoft Visual Studio', '2017', 'Enterprise', 'MSBuild', '15.0', 'bin', 'msbuild.exe') `
-    -join [IO.Path]::DirectorySeparatorChar
-'MSBuild EXE: ' + $msBuildExe
-
-& $msBuildExe ('Keen.sln','/verbosity:q','/p:configuration=Release','/t:Clean,Build')
-
-if (-not $?) {
-    Write-Debug 'Failed to build solution!'
-    exit
-}
-
-
-# Execute the nuget CLI either from the script's location or the PATH.
-$scriptPath = Split-Path -Path $MyInvocation.MyCommand.Path
-$env:Path += ";$scriptPath"
-
-
-# Create the .nupkg and pass the version to override the .nuspec token(s).
-& 'nuget.exe' pack KeenClient.nuspec -properties "version=$version"
 
 
 # Create another .nupkg for the .NET Standard stuff based on the .csproj, which will be the only .nupkg going forward
