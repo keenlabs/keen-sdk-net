@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
     <Configurations>Debug;Release</Configurations>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Authors>David Knaack, Brian Baumhover, Justin Mason</Authors>
     <Version>0.4.0</Version>
     <Company>Keen IO</Company>
