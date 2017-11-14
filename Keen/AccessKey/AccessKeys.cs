@@ -9,17 +9,30 @@ using Newtonsoft.Json.Serialization;
 namespace Keen.AccessKey
 {
     /// <summary>
-    /// AccessKeys implements the IAccessKeys interface which represents the Keen.IO Access Key API methods.
+    /// AccessKeys implements the IAccessKeys interface which represents the Keen.IO Access
+    /// Key API methods.
     /// </summary>
     public class AccessKeys : IAccessKeys
     {
+        private static readonly JsonSerializerSettings SerializerSettings =
+            new JsonSerializerSettings
+            {
+                ContractResolver = new DefaultContractResolver
+                {
+                    NamingStrategy = new SnakeCaseNamingStrategy()
+                },
+                DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate,
+                Formatting = Formatting.None
+            };
+
         private readonly IKeenHttpClient _keenHttpClient;
-        private readonly string _accesKeyRelativeUrl;
+        private readonly string _accessKeyRelativeUrl;
         private readonly string _readKey;
         private readonly string _masterKey;
 
+
         internal AccessKeys(IProjectSettings prjSettings,
-                       IKeenHttpClientProvider keenHttpClientProvider)
+                            IKeenHttpClientProvider keenHttpClientProvider)
         {
             if (null == prjSettings)
             {
@@ -42,33 +55,29 @@ namespace Keen.AccessKey
 
             var serverBaseUrl = new Uri(prjSettings.KeenUrl);
             _keenHttpClient = keenHttpClientProvider.GetForUrl(serverBaseUrl);
-            _accesKeyRelativeUrl = KeenHttpClient.GetRelativeUrl(prjSettings.ProjectId,
-                                                               KeenConstants.AccessKeyResource);
+            _accessKeyRelativeUrl = KeenHttpClient.GetRelativeUrl(prjSettings.ProjectId,
+                                                                  KeenConstants.AccessKeyResource);
 
             _readKey = prjSettings.ReadKey;
             _masterKey = prjSettings.MasterKey;
         }
 
-        public async Task<JObject> CreateAccessKey(AccessKey accesskey)
+        public async Task<JObject> CreateAccessKey(AccessKeyDefinition accesskey)
         {
             if (string.IsNullOrWhiteSpace(_masterKey))
             {
                 throw new KeenException("An API WriteKey is required to add events.");
             }
-            
-            DefaultContractResolver contractResolver = new DefaultContractResolver
-            {
-                NamingStrategy = new SnakeCaseNamingStrategy()
-            };
 
-            var content = JsonConvert.SerializeObject(accesskey, new JsonSerializerSettings
+            if (null == accesskey)
             {
-                ContractResolver = contractResolver,
-                Formatting = Formatting.Indented
-            }).ToSafeString();
+                throw new KeenException("An instance of AccessKeyDefinition must be provided");
+            }
+
+            var content = JsonConvert.SerializeObject(accesskey, SerializerSettings);
 
             var responseMsg = await _keenHttpClient
-                .PostAsync(_accesKeyRelativeUrl, _masterKey, content)
+                .PostAsync(_accessKeyRelativeUrl, _masterKey, content)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             var responseString = await responseMsg
@@ -86,14 +95,16 @@ namespace Keen.AccessKey
             {
                 // To avoid any flow stoppers
             }
+
             if (!responseMsg.IsSuccessStatusCode)
             {
-                throw new KeenException("AddEvents failed with status: " + responseMsg.StatusCode);
+                throw new KeenException("Creating Access Key failed with status: " +
+                                        responseMsg.StatusCode);
             }
 
             if (null == jsonResponse)
             {
-                throw new KeenException("AddEvents failed with empty response from server.");
+                throw new KeenException("Creating Access Key failed with empty JSON response.");
             }
 
             return jsonResponse;

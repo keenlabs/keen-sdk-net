@@ -5,10 +5,14 @@ using Keen.Query;
 
 namespace Keen.AccessKey
 {
+    // TODO : We should provide some helpers/constants/factories/builders/validation to
+    // make it a littler easier to put together this model structure. For example, we could
+    // easily provide an enum for 'Permitted' so that it's easy to use and self-documenting.
+
     /// <summary>
     /// Model for AccessKey object
     /// </summary>
-    public class AccessKey
+    public class AccessKeyDefinition
     {
         public string Name { get; set; }
         public bool IsActive { get; set; }
@@ -58,7 +62,7 @@ namespace Keen.AccessKey
     /// </summary>
     public class AllowedDatasetIndexes
     {
-        public Tuple<string, string> IndexBy { get;  set;}
+        public Tuple<string, string> IndexBy { get; set; }
     }
 
     /// <summary>

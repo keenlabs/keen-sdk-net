@@ -1129,32 +1129,36 @@ namespace Keen.Core
                 throw ex.TryUnwrap();
             }
         }
-        
-        /// <summary>
-        /// </summary>
-        public void CreateAccessKey(AccessKey.AccessKey accessKey)
-        {
-            try
-            {
-                CreateAccessKeyAsync(accessKey).Wait();
-            }
-            catch (AggregateException ex)
-            {
-                Debug.WriteLine(ex.TryUnwrap());
-            }
-        }
+
+        // TODO : Flesh out public comments as per PR feedback.
 
         ///<summary>
         ///</summary>
-        private async Task<JObject> CreateAccessKeyAsync(AccessKey.AccessKey accessKey)
+        private Task<JObject> CreateAccessKeyAsync(AccessKeyDefinition accessKey)
         {
             if (null == accessKey)
+            {
                 throw new KeenException("Access Key required");
+            }
 
-            var createdKey = await AccessKeys.CreateAccessKey(accessKey)
-                .ConfigureAwait(false);
+            return AccessKeys.CreateAccessKey(accessKey);
+        }
 
-            return createdKey;
+        // TODO : Is JObject really what we want to return? Can/should we return an
+        // AccessKeyDefinition or some other model object?
+
+        /// <summary>
+        /// </summary>
+        public JObject CreateAccessKey(AccessKeyDefinition accessKey)
+        {
+            try
+            {
+                return CreateAccessKeyAsync(accessKey).Result;
+            }
+            catch (AggregateException ex)
+            {
+                throw ex.TryUnwrap();
+            }
         }
     }
 }

@@ -1,11 +1,8 @@
-using Keen.AccessKey;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
+using Keen.AccessKey;
 using Keen.Core;
+using Newtonsoft.Json.Linq;
 
 
 namespace Keen.Test
@@ -18,17 +15,19 @@ namespace Keen.Test
     /// </summary>
     class AccessKeysMock : IAccessKeys
     {
+        // TODO : Replace AccessKeysMock with Moq as per PR feedback.
+
         private readonly IProjectSettings _settings;
-        private readonly Func<AccessKey.AccessKey, IProjectSettings, JObject> _createAccessKey;
+        private readonly Func<AccessKeyDefinition, IProjectSettings, JObject> _createAccessKey;
 
         public AccessKeysMock(IProjectSettings projSettings,
-             Func<AccessKey.AccessKey, IProjectSettings, JObject> createAccessKey = null)
+             Func<AccessKeyDefinition, IProjectSettings, JObject> createAccessKey = null)
         {
             _settings = projSettings;
             _createAccessKey = createAccessKey ?? ((p, k) => new JObject());
         }
 
-        public Task<JObject> CreateAccessKey(AccessKey.AccessKey accesskey)
+        public Task<JObject> CreateAccessKey(AccessKeyDefinition accesskey)
         {
             return Task.Run(() => _createAccessKey(accesskey, _settings));
         }
