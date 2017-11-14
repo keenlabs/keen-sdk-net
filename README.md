@@ -11,15 +11,9 @@ The Keen IO .NET SDK can be used to do custom analytics and event tracking for .
 .NET Version Support
 ------------
 
-There are four versions of the .NET SDK, which vary based on the target platform.
+The .NET SDK is currently comprised of a single project which produces two DLLs from which to choose based on the target platform.
 
-A class library that multi-targets .NET Standard 2.0 and .NET Framework 4.5.
-
-A portable class library targets .NET 4.5, Windows and Windows Phone 8+, and Xamarin for iOS and Android. (Will be replaced by the .NET Standard 2.0 library soon!)
-
-A .NET 4.5 specific library makes use of the portable class library and adds a few features including scoped key generation and project settings providers which read settings from environment variables or a file. (Will be replaced by the .NET Standard 2.0 + .NET Framework 4.5 multi-targeted library soon!)
-
-For older projects and Unity, a separate .NET 3.5 library exists, though it lacks query support. (Will be replaced by the .NET Standard 2.0 library soon!)
+This class library currently multi-targets .NET Standard 2.0 and .NET Framework 4.5. These two libraries should be able to cover most scenarios, including .NET Framework, .NET Standard in various environments/operating systems, UWP, Unity, Xamarin and other types of projects.
 
 Installation
 ------------
@@ -44,7 +38,7 @@ Initializing the Library
 The core object you'll interact with to add events to a collection is the `KeenClient` object. When creating a `KeenClient` instance, you'll want to provide it with a `ProjectSettingsProvider` instance that contains details about your project id, keys, and optionally a different root URL for Keen.IO's API.
 
 ```
-using Keen.Core; // Replace this with Keen.NET_35 for projects targeting .NET 3.5
+using Keen.Core;
 ...
 var projectSettings = new ProjectSettingsProvider("YourProjectID", writeKey: "YourWriteKey");
 var keenClient = new KeenClient(projectSettings);
@@ -100,7 +94,7 @@ The delegate is executed each time event data is added as well as during the `Ad
 Using Data Enrichment Add-ons
 ------------------------------
 
-Keen IO can enrich event data by parsing or joining it with other data sets. This is done through the concept of “add-ons”. See the [Keen IO API documentation](https://keen.io/docs/api/#data-enrichment) for more on this. The .NET SDK enables add-ons with the `Keen.Core.DataEnrichment.AddOn` class.
+Keen IO can enrich event data by parsing or joining it with other data sets. This is done through the concept of “add-ons”. See the [Keen IO API documentation](https://keen.io/docs/api/#data-enrichment) for more on this. The .NET SDK enables add-ons with the `Keen.DataEnrichment.AddOn` class.
 
 ```
 // Build an event object
@@ -306,7 +300,7 @@ Scoped Keys
 
 Scoped keys are customized API keys you can generate yourself. Each key has a defined scope of allowed operations (read/write), along with a set of predetermined filters that are applied to every request. See the [Keen IO API reference](https://keen.io/docs/api/#scoped-keys) for more information on scoped keys.
 
-The .NET 4.0 SDK includes methods for generating scoped keys. These methods aren't available in the .NET 4.5 portable library or the .NET 3.5 library. You'll find them under the `Keen.Core` namespace as `ScopedKey.Encrypt`, `ScopedKey.EncryptString`, and `ScopedKey.Decrypt`.
+The .NET SDK includes methods for generating scoped keys. You'll find them under the `Keen.Core` namespace as `ScopedKey.Encrypt`, `ScopedKey.EncryptString`, and `ScopedKey.Decrypt`.
 
 
 ```
