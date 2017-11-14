@@ -1,7 +1,7 @@
 keen-sdk-net
 ============
 
-[![Build status](https://ci.appveyor.com/api/projects/status/sxkqpvmlxto07y4r/branch/master?svg=true)](https://ci.appveyor.com/project/masojus/keen-sdk-net/branch/master) [![Coverage Status](https://coveralls.io/repos/github/keenlabs/keen-sdk-net/badge.svg?branch=master)](https://coveralls.io/github/keenlabs/keen-sdk-net?branch=master) [![NuGet](http://img.shields.io/nuget/v/KeenClient.svg)](https://www.nuget.org/packages/KeenClient/)
+[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/sxkqpvmlxto07y4r/branch/master?svg=true)](https://ci.appveyor.com/project/masojus/keen-sdk-net/branch/master) [![Travis CI Build Status](https://travis-ci.org/keenlabs/keen-sdk-net.svg?branch=master)](https://travis-ci.org/keenlabs/keen-sdk-net) [![Coverage Status](https://coveralls.io/repos/github/keenlabs/keen-sdk-net/badge.svg?branch=master)](https://coveralls.io/github/keenlabs/keen-sdk-net?branch=master) [![NuGet](http://img.shields.io/nuget/v/KeenClient.svg)](https://www.nuget.org/packages/KeenClient/)
 
 Overview
 -----
