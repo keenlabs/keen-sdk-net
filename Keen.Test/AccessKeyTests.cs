@@ -1,6 +1,6 @@
-﻿using Keen.Core;
-using Keen.Core.AccessKey;
-using Keen.Core.Query;
+using Keen.Core;
+using Keen.AccessKey;
+using Keen.Query;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using System;
@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Keen.Net.Test
+namespace Keen.Test
 {
     [TestFixture]
     class AccessKeyTests : TestBase
@@ -22,7 +22,7 @@ namespace Keen.Net.Test
 
             if (UseMocks)
                 client.AccessKeys = new AccessKeysMock(settings,
-                    createAccessKey: new Func<AccessKey, IProjectSettings, JObject>((e, p) =>
+                    createAccessKey: new Func<AccessKey.AccessKey, IProjectSettings, JObject>((e, p) =>
                     {
                         Assert.True(p == settings, "Incorrect Settings");
                         Assert.NotNull(e.Name, "Expected a name for the newly created Key");
@@ -40,11 +40,11 @@ namespace Keen.Net.Test
             cachedQueries.Allowed = new HashSet<string>() { "my_cached_query" };
             Options options = new Options()
             {
-                Queries = new Core.AccessKey.Queries { Filters = qFilters },
+                Queries = new AccessKey.Queries { Filters = qFilters },
                 CachedQueries = cachedQueries
             };
 
-            Assert.DoesNotThrow(() => client.CreateAccessKey(new AccessKey { Name = "TestAccessKey", IsActive = true, Options = options, Permitted = permissions }));
+            Assert.DoesNotThrow(() => client.CreateAccessKey(new AccessKey.AccessKey { Name = "TestAccessKey", IsActive = true, Options = options, Permitted = permissions }));
         }
 
 
@@ -56,7 +56,7 @@ namespace Keen.Net.Test
 
             if (UseMocks)
                 client.AccessKeys = new AccessKeysMock(settings,
-                    createAccessKey: new Func<AccessKey, IProjectSettings, JObject>((e, p) =>
+                    createAccessKey: new Func<AccessKey.AccessKey, IProjectSettings, JObject>((e, p) =>
                     {
                         Assert.True(p == settings, "Incorrect Settings");
                         Assert.NotNull(e.Name, "Expected a name for the newly created Key");
@@ -77,14 +77,14 @@ namespace Keen.Net.Test
             cachedQueries.Allowed = new HashSet<string>() { "my_cached_query" };
             Options options = new Options()
             {
-                Queries = new Core.AccessKey.Queries { Filters = qFilters },
+                Queries = new AccessKey.Queries { Filters = qFilters },
                 CachedQueries = cachedQueries,
                 SavedQueries = savedQuaries,
                 Datasets = datasets,
                 Writes = writes
             };
 
-            Assert.DoesNotThrow(() => client.CreateAccessKey(new AccessKey { Name = "TestAccessKey", IsActive = true, Options = options, Permitted = permissions }));
+            Assert.DoesNotThrow(() => client.CreateAccessKey(new AccessKey.AccessKey { Name = "TestAccessKey", IsActive = true, Options = options, Permitted = permissions }));
         }
 
     }

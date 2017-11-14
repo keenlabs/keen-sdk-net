@@ -1,10 +1,12 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
 using System;
 using System.Threading.Tasks;
+using Keen.Core;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 
-namespace Keen.Core.AccessKey
+
+namespace Keen.AccessKey
 {
     /// <summary>
     /// AccessKeys implements the IAccessKeys interface which represents the Keen.IO Access Key API methods.

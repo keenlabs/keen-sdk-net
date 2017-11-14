@@ -1,8 +1,9 @@
-﻿using Keen.Core.Query;
 using System;
 using System.Collections.Generic;
+using Keen.Query;
 
-namespace Keen.Core.AccessKey
+
+namespace Keen.AccessKey
 {
     /// <summary>
     /// Model for AccessKey object

@@ -1,7 +1,7 @@
-﻿using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
 
-namespace Keen.Core.AccessKey
+namespace Keen.AccessKey
 {
     /// <summary>
     /// Public interface for Access Key related functionalities 

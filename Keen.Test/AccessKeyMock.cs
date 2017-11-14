@@ -1,4 +1,4 @@
-﻿using Keen.Core.AccessKey;
+using Keen.AccessKey;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Keen.Core;
 
-namespace Keen.Net.Test
+
+namespace Keen.Test
 {
     /// <summary>
     /// AccessKeyMock provides an implementation of IAccessKeys with a constructor that 
@@ -18,16 +19,16 @@ namespace Keen.Net.Test
     class AccessKeysMock : IAccessKeys
     {
         private readonly IProjectSettings _settings;
-        private readonly Func<AccessKey, IProjectSettings, JObject> _createAccessKey;
+        private readonly Func<AccessKey.AccessKey, IProjectSettings, JObject> _createAccessKey;
 
         public AccessKeysMock(IProjectSettings projSettings,
-             Func<AccessKey, IProjectSettings, JObject> createAccessKey = null)
+             Func<AccessKey.AccessKey, IProjectSettings, JObject> createAccessKey = null)
         {
             _settings = projSettings;
             _createAccessKey = createAccessKey ?? ((p, k) => new JObject());
         }
 
-        public Task<JObject> CreateAccessKey(AccessKey accesskey)
+        public Task<JObject> CreateAccessKey(AccessKey.AccessKey accesskey)
         {
             return Task.Run(() => _createAccessKey(accesskey, _settings));
         }
