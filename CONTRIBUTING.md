@@ -29,11 +29,20 @@ If a maintainer asks you to "rebase" your PR, they're saying that a lot of code 
 $ git clone https://github.com/keenlabs/keen-sdk-net.git && cd keen-sdk-net
 ```
 
-Now, launch Visual Studio and open `Keen.sln`. Build the solution, discover unit tests, and run them. Set some breakpoints and get acquainted with the PCL, the .NET 4.5 DLL and the .NET 3.5 DLL, as well as the related test projects. Maybe add a mini test project that references one of the built binaries and play with actually using the SDK as per the instructions in the [README](./README.md).
+Now, launch Visual Studio and open `Keen.sln`. Build the solution, discover unit tests, and run them. Or, if using the .NET Core SDK tools, build and make sure tests pass:
+
+```ssh
+$ dotnet build
+$ cd Keen.Test/
+$ dotnet test
+```
+...though actually manually building in the first step isn't necessary, as the `test` command should restore packages and build if necessary. NOTE: on platforms where you don't have an SDK or Targeting Pack for .NET Framework 4.5 (e.g. MacOS or Linux), you'll likely see `error MSB3644` but the `netstandard2.0` outputs should build correctly and tests should run. You can avoid this error by running commands with `-f netstandard2.0` in the specific subdirectory.
+
+Next, set some breakpoints or put in some `println()`s and get acquainted with the `Keen` project, as well as the related test project `Keen.Test`. Maybe add a mini test project that references one of the built binaries and play with actually using the SDK as per the instructions in the [README](./README.md).
 
 ### Submitting a Pull Request
 
-When you go about creating a pull request, first make sure you are working in a branch, and not trying to go directly in `master`. Explain what features this PR is adding or bugs this is fixing, and reference the related Issue(s). Make sure some tests are included or at least explain why if they are not. If certain testing steps are not relevant, specify that. If additional manual checks are needed, explain that as well. Please run through all testing steps before asking for a review. Until CI and required checks are in place, tests must be run manually so do your due diligence so that things go as smoothly as possible.
+When you go about creating a pull request, first make sure you are working in a branch, and not trying to go directly in `master`. Explain what features this PR is adding or bugs this is fixing, and reference the related Issue(s). Make sure some tests are included or at least explain why if they are not. If certain testing steps are not relevant, specify that. If additional manual checks are needed, explain that as well. Please run through all testing steps before asking for a review. CI (AppVeyor and Travis CI) and required checks are in place, but it doesn't hurt to run tests manually so as to do your due diligence and keeps things running as smoothly as possible. Pay attention to test results and Code Coverage results when pushing a branch and when working on a PR.
 
 A project maintainer will respond in a few days to the PR, and you can iterate with them and/or other community members until the PR is satisfactory and a project maintainer will go about approving, merging and releasing, and thanking you for your contribution.
 

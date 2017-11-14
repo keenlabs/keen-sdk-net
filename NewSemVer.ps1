@@ -72,6 +72,6 @@ Update-AssemblyVersionAttributes $version
 
 # Create another .nupkg for the .NET Standard stuff based on the .csproj, which will be the only .nupkg going forward
 & pushd .\Keen
-& dotnet clean
+& dotnet clean -c Release
 & dotnet pack -c Release
 & popd
