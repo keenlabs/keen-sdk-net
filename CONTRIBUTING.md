@@ -36,7 +36,7 @@ $ dotnet build
 $ cd Keen.Test/
 $ dotnet test
 ```
-...though actually manually building in the first step isn't necessary, as the `test` command should restore packages and build if necessary.
+...though actually manually building in the first step isn't necessary, as the `test` command should restore packages and build if necessary. NOTE: on platforms where you don't have an SDK or Targeting Pack for .NET Framework 4.5 (e.g. MacOS or Linux), you'll likely see `error MSB3644` but the `netstandard2.0` outputs should build correctly and tests should run. You can avoid this error by running commands with `-f netstandard2.0` in the specific subdirectory.
 
 Next, set some breakpoints or put in some `println()`s and get acquainted with the `Keen` project, as well as the related test project `Keen.Test`. Maybe add a mini test project that references one of the built binaries and play with actually using the SDK as per the instructions in the [README](./README.md).
 
