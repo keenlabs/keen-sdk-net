@@ -26,6 +26,11 @@ Install the NuGet package by running the following command from the NuGet Packag
 PM> Install-Package KeenClient
 ```
 
+...or if using the .NET Core SDK tools:
+```
+$ dotnet add package KeenClient
+```
+
 The most up-to-date code is available in the following repository:
 
 ```
