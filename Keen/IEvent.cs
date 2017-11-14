@@ -1,7 +1,7 @@
-﻿using Keen.Core.EventCache;
-using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Keen.EventCache;
+using Newtonsoft.Json.Linq;
 
 
 namespace Keen.Core

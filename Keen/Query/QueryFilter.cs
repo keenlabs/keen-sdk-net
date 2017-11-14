@@ -1,8 +1,8 @@
-﻿using Newtonsoft.Json;
 using System;
+using Newtonsoft.Json;
 
 
-namespace Keen.Core.Query
+namespace Keen.Query
 {
     /// <summary>
     /// Represents a filter that can be applied to a query.
@@ -115,7 +115,7 @@ namespace Keen.Core.Query
 
             public GeoValue(double longitude, double latitude, double maxDistanceMiles)
             {
-                Coordinates = new [] { longitude, latitude };
+                Coordinates = new[] { longitude, latitude };
                 MaxDistanceMiles = maxDistanceMiles;
             }
         }
@@ -150,13 +150,8 @@ namespace Keen.Core.Query
                 throw new ArgumentNullException(nameof(property), "Property name is required.");
             }
 
-            if (null == op)
-            {
-                throw new ArgumentNullException(nameof(op), "Filter operator is required.");
-            }
-
             PropertyName = property;
-            Operator = op;
+            Operator = op ?? throw new ArgumentNullException(nameof(op), "Filter operator is required.");
             Value = value;
         }
     }

@@ -1,8 +1,8 @@
-﻿using Newtonsoft.Json;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 
-namespace Keen.Core.Query
+namespace Keen.Query
 {
     /// <summary>
     /// Represents one step in a funnel query. See the Keen.IO API for details on how to perform a funnel query.
@@ -32,7 +32,7 @@ namespace Keen.Core.Query
         /// May not be applied to an initial step.
         /// </summary>
         [JsonProperty(PropertyName = "inverted", NullValueHandling = NullValueHandling.Ignore)]
-        public bool Inverted{ get; set; }
+        public bool Inverted { get; set; }
 
         /// <summary>
         /// If set to true, filtering applied to this step won't apply to any steps after it.

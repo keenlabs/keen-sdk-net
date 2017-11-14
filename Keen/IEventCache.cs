@@ -1,12 +1,12 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 
-namespace Keen.Core.EventCache
+namespace Keen.EventCache
 {
     public interface IEventCache
     {
-        Task Add(CachedEvent e);
-        Task<CachedEvent> TryTake();
-        Task Clear();
+        Task AddAsync(CachedEvent e);
+        Task<CachedEvent> TryTakeAsync();
+        Task ClearAsync();
     }
 }

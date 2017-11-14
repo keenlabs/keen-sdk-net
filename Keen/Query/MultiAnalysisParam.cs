@@ -1,5 +1,5 @@
-﻿
-namespace Keen.Core.Query
+
+namespace Keen.Query
 {
     public sealed class MultiAnalysisParam
     {
@@ -8,7 +8,7 @@ namespace Keen.Core.Query
             private readonly string _value;
             public readonly string TargetProperty;
             internal Metric(string value) { _value = value; }
-            internal Metric(string value, string targetProperty) { _value = value; TargetProperty = targetProperty;  }
+            internal Metric(string value, string targetProperty) { _value = value; TargetProperty = targetProperty; }
             public override string ToString() { return _value; }
             public static implicit operator string(Metric value) { return value.ToString(); }
 

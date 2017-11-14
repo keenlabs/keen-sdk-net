@@ -1,83 +1,24 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.0
+VisualStudioVersion = 15.0.27019.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keen", "Keen\Keen.csproj", "{36D156BF-8523-42EC-9AD6-7C3AC05D699F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Keen", "Keen\Keen.csproj", "{711F4331-198A-4919-ACA8-C2B303E045A8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keen.NET.Test", "Keen.NET.Test\Keen.NET.Test.csproj", "{644382BF-CF65-4DB6-AFD8-1ACDA2800D31}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keen.Net", "Keen.Net\Keen.Net.csproj", "{0CD3383E-5267-48BC-99CD-1B3AE8AFF7BA}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keen.NET_35", "Keen.NET_35\Keen.NET_35.csproj", "{A395C070-F971-48D5-A3DE-9263032CFB84}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keen.NET_35.Test", "Keen.NET_35.Test\Keen.NET_35.Test.csproj", "{2EF6BF24-A068-47E2-ABBF-DE2666607D65}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B3285F3A-90CD-4116-B994-F4B0752FA95B}"
-	ProjectSection(SolutionItems) = preProject
-		SharedAssemblyInfo.cs = SharedAssemblyInfo.cs
-		SharedVersionInfo.cs = SharedVersionInfo.cs
-	EndProjectSection
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Keen.NetStandard", "Keen.NetStandard\Keen.NetStandard.csproj", "{711F4331-198A-4919-ACA8-C2B303E045A8}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Keen.NetStandard.Test", "Keen.NetStandard.Test\Keen.NetStandard.Test.csproj", "{DC84C790-A0B0-4D40-A835-8128177F8FA3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Keen.Test", "Keen.Test\Keen.Test.csproj", "{DC84C790-A0B0-4D40-A835-8128177F8FA3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
-		netfx|Any CPU = netfx|Any CPU
-		netstandard|Any CPU = netstandard|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{36D156BF-8523-42EC-9AD6-7C3AC05D699F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{36D156BF-8523-42EC-9AD6-7C3AC05D699F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{36D156BF-8523-42EC-9AD6-7C3AC05D699F}.netfx|Any CPU.ActiveCfg = netfx|Any CPU
-		{36D156BF-8523-42EC-9AD6-7C3AC05D699F}.netfx|Any CPU.Build.0 = netfx|Any CPU
-		{36D156BF-8523-42EC-9AD6-7C3AC05D699F}.netstandard|Any CPU.ActiveCfg = Release|Any CPU
-		{36D156BF-8523-42EC-9AD6-7C3AC05D699F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{36D156BF-8523-42EC-9AD6-7C3AC05D699F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{644382BF-CF65-4DB6-AFD8-1ACDA2800D31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{644382BF-CF65-4DB6-AFD8-1ACDA2800D31}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{644382BF-CF65-4DB6-AFD8-1ACDA2800D31}.netfx|Any CPU.ActiveCfg = netfx|Any CPU
-		{644382BF-CF65-4DB6-AFD8-1ACDA2800D31}.netfx|Any CPU.Build.0 = netfx|Any CPU
-		{644382BF-CF65-4DB6-AFD8-1ACDA2800D31}.netstandard|Any CPU.ActiveCfg = Release|Any CPU
-		{644382BF-CF65-4DB6-AFD8-1ACDA2800D31}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{644382BF-CF65-4DB6-AFD8-1ACDA2800D31}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0CD3383E-5267-48BC-99CD-1B3AE8AFF7BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0CD3383E-5267-48BC-99CD-1B3AE8AFF7BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0CD3383E-5267-48BC-99CD-1B3AE8AFF7BA}.netfx|Any CPU.ActiveCfg = netfx|Any CPU
-		{0CD3383E-5267-48BC-99CD-1B3AE8AFF7BA}.netfx|Any CPU.Build.0 = netfx|Any CPU
-		{0CD3383E-5267-48BC-99CD-1B3AE8AFF7BA}.netstandard|Any CPU.ActiveCfg = Release|Any CPU
-		{0CD3383E-5267-48BC-99CD-1B3AE8AFF7BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0CD3383E-5267-48BC-99CD-1B3AE8AFF7BA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A395C070-F971-48D5-A3DE-9263032CFB84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A395C070-F971-48D5-A3DE-9263032CFB84}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A395C070-F971-48D5-A3DE-9263032CFB84}.netfx|Any CPU.ActiveCfg = netfx|Any CPU
-		{A395C070-F971-48D5-A3DE-9263032CFB84}.netfx|Any CPU.Build.0 = netfx|Any CPU
-		{A395C070-F971-48D5-A3DE-9263032CFB84}.netstandard|Any CPU.ActiveCfg = Release|Any CPU
-		{A395C070-F971-48D5-A3DE-9263032CFB84}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A395C070-F971-48D5-A3DE-9263032CFB84}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2EF6BF24-A068-47E2-ABBF-DE2666607D65}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2EF6BF24-A068-47E2-ABBF-DE2666607D65}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2EF6BF24-A068-47E2-ABBF-DE2666607D65}.netfx|Any CPU.ActiveCfg = netfx|Any CPU
-		{2EF6BF24-A068-47E2-ABBF-DE2666607D65}.netfx|Any CPU.Build.0 = netfx|Any CPU
-		{2EF6BF24-A068-47E2-ABBF-DE2666607D65}.netstandard|Any CPU.ActiveCfg = Release|Any CPU
-		{2EF6BF24-A068-47E2-ABBF-DE2666607D65}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2EF6BF24-A068-47E2-ABBF-DE2666607D65}.Release|Any CPU.Build.0 = Release|Any CPU
 		{711F4331-198A-4919-ACA8-C2B303E045A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{711F4331-198A-4919-ACA8-C2B303E045A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{711F4331-198A-4919-ACA8-C2B303E045A8}.netfx|Any CPU.ActiveCfg = netfx|Any CPU
-		{711F4331-198A-4919-ACA8-C2B303E045A8}.netstandard|Any CPU.ActiveCfg = Release|Any CPU
-		{711F4331-198A-4919-ACA8-C2B303E045A8}.netstandard|Any CPU.Build.0 = Release|Any CPU
 		{711F4331-198A-4919-ACA8-C2B303E045A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{711F4331-198A-4919-ACA8-C2B303E045A8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DC84C790-A0B0-4D40-A835-8128177F8FA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DC84C790-A0B0-4D40-A835-8128177F8FA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DC84C790-A0B0-4D40-A835-8128177F8FA3}.netfx|Any CPU.ActiveCfg = netfx|Any CPU
-		{DC84C790-A0B0-4D40-A835-8128177F8FA3}.netstandard|Any CPU.ActiveCfg = Debug|Any CPU
-		{DC84C790-A0B0-4D40-A835-8128177F8FA3}.netstandard|Any CPU.Build.0 = Debug|Any CPU
 		{DC84C790-A0B0-4D40-A835-8128177F8FA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DC84C790-A0B0-4D40-A835-8128177F8FA3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection

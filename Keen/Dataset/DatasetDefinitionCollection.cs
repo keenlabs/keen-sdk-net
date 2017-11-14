@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 
-namespace Keen.Core.Dataset
+namespace Keen.Dataset
 {
     /// <summary>
     /// A model for a collection of DatasetDefinitions with paging information.

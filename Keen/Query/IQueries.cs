@@ -1,9 +1,9 @@
-﻿using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 
-namespace Keen.Core.Query
+namespace Keen.Query
 {
     public interface IQueries
     {
@@ -15,6 +15,7 @@ namespace Keen.Core.Query
         Task<JObject> Metric(string queryName, Dictionary<string, string> parms);
 
         Task<string> Metric(QueryType queryType, string collection, string targetProperty, IQueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "");
+
         Task<IEnumerable<QueryGroupValue<string>>> Metric(QueryType queryType, string collection, string targetProperty, string groupBy, IQueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, string timezone = "");
         Task<IEnumerable<QueryIntervalValue<string>>> Metric(QueryType queryType, string collection, string targetProperty, IQueryTimeframe timeframe, QueryInterval interval, IEnumerable<QueryFilter> filters = null, string timezone = "");
         Task<IEnumerable<QueryIntervalValue<IEnumerable<QueryGroupValue<string>>>>> Metric(QueryType queryType, string collection, string targetProperty, string groupBy, IQueryTimeframe timeframe, QueryInterval interval, IEnumerable<QueryFilter> filters = null, string timezone = "");
@@ -26,7 +27,6 @@ namespace Keen.Core.Query
 
         Task<IEnumerable<dynamic>> Extract(string collection, IQueryTimeframe timeframe = null, IEnumerable<QueryFilter> filters = null, int latest = 0, string email = "");
 
-        Task<FunnelResult> Funnel(IEnumerable<FunnelStep> steps, IQueryTimeframe timeframe = null, string timeZone = "" );
-
+        Task<FunnelResult> Funnel(IEnumerable<FunnelStep> steps, IQueryTimeframe timeframe = null, string timeZone = "");
     }
 }

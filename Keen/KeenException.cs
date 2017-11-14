@@ -1,6 +1,6 @@
-﻿using Keen.Core.EventCache;
 using System;
 using System.Collections.Generic;
+using Keen.EventCache;
 
 
 namespace Keen.Core
@@ -23,7 +23,7 @@ namespace Keen.Core
     {
         public KeenResourceNotFoundException() { }
         public KeenResourceNotFoundException(string message) : base(message) { }
-        public KeenResourceNotFoundException(string message, Exception inner) : base(message, inner) { }      
+        public KeenResourceNotFoundException(string message, Exception inner) : base(message, inner) { }
     }
 
     public class KeenNamespaceTypeException : KeenException
@@ -44,7 +44,7 @@ namespace Keen.Core
     {
         public KeenListsOfNonPrimitivesNotAllowedException() { }
         public KeenListsOfNonPrimitivesNotAllowedException(string message) : base(message) { }
-        public KeenListsOfNonPrimitivesNotAllowedException(string message, Exception inner) : base(message, inner) { }    
+        public KeenListsOfNonPrimitivesNotAllowedException(string message, Exception inner) : base(message, inner) { }
     }
 
     public class KeenInvalidBatchException : KeenException
@@ -60,15 +60,15 @@ namespace Keen.Core
         public KeenInternalServerErrorException(string message) : base(message) { }
         public KeenInternalServerErrorException(string message, Exception inner) : base(message, inner) { }
     }
-    
-    public class KeenInvalidKeenNamespacePropertyException: KeenException
+
+    public class KeenInvalidKeenNamespacePropertyException : KeenException
     {
         public KeenInvalidKeenNamespacePropertyException() { }
         public KeenInvalidKeenNamespacePropertyException(string message) : base(message) { }
         public KeenInvalidKeenNamespacePropertyException(string message, Exception inner) : base(message, inner) { }
     }
-    
-    public class KeenInvalidPropertyNameException: KeenException
+
+    public class KeenInvalidPropertyNameException : KeenException
     {
         public KeenInvalidPropertyNameException() { }
         public KeenInvalidPropertyNameException(string message) : base(message) { }
@@ -78,8 +78,8 @@ namespace Keen.Core
     public class KeenBulkException : KeenException
     {
         private IEnumerable<CachedEvent> _failedEvents;
-        public IEnumerable<CachedEvent> FailedEvents { get { return _failedEvents; } protected set { ; } }
+        public IEnumerable<CachedEvent> FailedEvents { get { return _failedEvents; } protected set {; } }
         public KeenBulkException(IEnumerable<CachedEvent> failedEvents) { _failedEvents = failedEvents; }
-        public KeenBulkException(string message, IEnumerable<CachedEvent> failedEvents ) : base(message) { _failedEvents = failedEvents; }
+        public KeenBulkException(string message, IEnumerable<CachedEvent> failedEvents) : base(message) { _failedEvents = failedEvents; }
     }
 }

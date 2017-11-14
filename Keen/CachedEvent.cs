@@ -1,8 +1,8 @@
-﻿using Newtonsoft.Json.Linq;
 using System;
+using Newtonsoft.Json.Linq;
 
 
-namespace Keen.Core.EventCache
+namespace Keen.EventCache
 {
     /// <summary>
     /// CachedEvent is a container for user event data which associates the

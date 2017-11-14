@@ -1,11 +1,12 @@
-﻿using Newtonsoft.Json;
 using System.Collections.Generic;
+using Keen.Core;
+using Newtonsoft.Json;
 
 
-namespace Keen.Core.DataEnrichment
+namespace Keen.DataEnrichment
 {
     /// <summary>
-    /// Represents a Data Enrichment add-on. 
+    /// Represents a Data Enrichment add-on.
     /// <remarks>
     /// https://keen.io/docs/data-collection/data-enrichment/
     /// </remarks>
@@ -16,26 +17,26 @@ namespace Keen.Core.DataEnrichment
         /// Name of the add-on 
         /// </summary>
         [JsonProperty(PropertyName = "name")]
-        public string Name { get; private set; }
+        public string Name { get; }
 
         /// <summary>
         /// Parameters required by the add-on
         /// </summary>
         [JsonProperty(PropertyName = "input")]
-        public Dictionary<string, string> Input { get; private set; }
+        public Dictionary<string, string> Input { get; }
 
         /// <summary>
         /// Target property name where the enriched data should be stored.
         /// </summary>
         [JsonProperty(PropertyName = "output")]
-        public string Output { get; private set; }
+        public string Output { get; }
 
         /// <param name="name">Name of the data enhancement add-on.</param>
         /// <param name="input">Name-value pairs of input parameters required by the add-on.</param>
         /// <param name="output">Target property name for the enriched data.</param>
         public AddOn(string name, IDictionary<string, string> input, string output)
         {
-            if (output.StartsWith("keen."))
+            if (output.StartsWith("keen.", System.StringComparison.Ordinal))
                 throw new KeenInvalidPropertyNameException(
                     "Add-on event output name may not be in the keen namespace:" + output);
 

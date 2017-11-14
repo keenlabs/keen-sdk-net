@@ -1,10 +1,10 @@
-﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json.Linq;
 
 
 namespace Keen.Core
@@ -37,7 +37,7 @@ namespace Keen.Core
 
             try
             {
-                attribute = (AssemblyInformationalVersionAttribute)(Assembly.GetExecutingAssembly()
+                attribute = (AssemblyInformationalVersionAttribute)(typeof(KeenUtil).Assembly
                         .GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false)
                         .FirstOrDefault());
             }

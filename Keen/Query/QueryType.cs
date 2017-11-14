@@ -1,5 +1,5 @@
-﻿
-namespace Keen.Core.Query
+
+namespace Keen.Query
 {
     public sealed class QueryType
     {
@@ -14,7 +14,7 @@ namespace Keen.Core.Query
         /// Returns the number of resources in the event collection. Parameter targetProperty is ignored.
         /// </summary>
         public static QueryType Count() { return count; }
-        
+
         private static QueryType countunique = new QueryType("count_unique");
         /// <summary>
         /// Returns the number of unique resources in the event collection.

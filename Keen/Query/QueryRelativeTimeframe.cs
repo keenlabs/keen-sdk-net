@@ -1,7 +1,8 @@
-﻿using Newtonsoft.Json;
+using System.Collections.Generic;
+using Newtonsoft.Json;
 
 
-namespace Keen.Core.Query
+namespace Keen.Query
 {
     /// <summary>
     /// Provides values for relative timeframe query parameter.
@@ -206,5 +207,15 @@ namespace Keen.Core.Query
         /// convenience for “previous_1_years”
         /// </summary>
         public static QueryRelativeTimeframe PreviousYear() { return Create("previous_year"); }
+
+        public override bool Equals(object obj)
+        {
+            return (obj is QueryRelativeTimeframe timeframe) && _value == timeframe._value;
+        }
+
+        public override int GetHashCode()
+        {
+            return -1939223833 + EqualityComparer<string>.Default.GetHashCode(_value);
+        }
     }
 }
