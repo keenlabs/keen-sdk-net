@@ -1,13 +1,20 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
     <Configurations>Debug;Release</Configurations>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Title>Keen.IO Client - .Net SDK</Title>
     <Authors>David Knaack, Brian Baumhover, Justin Mason</Authors>
     <Version>0.4.0</Version>
     <Company>Keen IO</Company>
     <Product>Keen IO .NET SDK</Product>
     <Description>Keen IO is an analytics API for modern developers. Track any event: signups, upgrades, impressions, purchases, powerups, errors, shares... Keen IO stores events in arbitrary JSON format, automatically ingesting any new events and rich custom properties you send. Our elegant query APIs make it straightforward to run counts, sums, segmentation, and more.</Description>
-    <Copyright>Copyright Â© 2014 Keen IO</Copyright>
+    <!-- NOTE: Summary used to be in the .nuspec as "Keen IO is an analytics API that stores events in arbitrary JSON format."
+         However, Summary may be getting deprecated and isn't supported in the new .csproj even though NuGet.org still
+         uses it. The tools may still show a "warning : Issue: Consider providing Summary text" which can't really be fixed
+         right now as per https://github.com/NuGet/Home/issues/4587 so if we want a "Summary" field in NuGet.org, we have to
+         edit the package after pushing it. -->
+    <Copyright>Copyright © 2014 Keen IO</Copyright>
     <PackageLicenseUrl>http://opensource.org/licenses/MIT</PackageLicenseUrl>
     <PackageProjectUrl>https://keen.io/</PackageProjectUrl>
     <PackageIconUrl>https://www.gravatar.com/avatar/b948c4bc2de9618c488431612d2ff99d</PackageIconUrl>
