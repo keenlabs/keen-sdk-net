@@ -119,7 +119,8 @@ namespace Keen.Test
             };
 
             // TODO : We need to more carefully test out what is required and what isn't. For
-            // example, I thought the 'options' member could be omitted.
+            // example, I thought the 'options' member could be omitted, e.g. with 'schema'
+            // permitted.
 
             var accessKey = new AccessKeyDefinition
             {

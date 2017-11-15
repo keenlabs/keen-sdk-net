@@ -8,6 +8,9 @@ namespace Keen.AccessKey
     // TODO : We should provide some helpers/constants/factories/builders/validation to
     // make it a littler easier to put together this model structure. For example, we could
     // easily provide an enum for 'Permitted' so that it's easy to use and self-documenting.
+    // Actually, when serializing this SDK could populate 'Permitted' automatically based on
+    // the 'Options' object if it weren't for the 'schema' permission, which would still be
+    // easy to work around.
 
     /// <summary>
     /// Model for AccessKey object
@@ -62,6 +65,20 @@ namespace Keen.AccessKey
     /// </summary>
     public class AllowedDatasetIndexes
     {
+        // TODO: It seems like this should probably be a
+        // Tuple<string, IEnumerable<string>> as per examples:
+        //
+        // "allowed": {
+        //   "my_single_index_dataset": {
+        //     "index_by": {
+        //       "customer.id": ["93iskds39kd93id"]
+        //     }
+        //   },
+        //   "my_other_dataset_unlimited_access": {}
+        // }
+        //
+        // If at some point we can specify >1 index_by property name, each with various values,
+        // this will need to be an IDictionary<string, IEnumerable<string>> instead.
         public Tuple<string, string> IndexBy { get; set; }
     }
 
